@@ -1,5 +1,7 @@
 #include "UI.hpp"
 
+ #include <list>
+
 UI::UI()
 {
 	
@@ -13,8 +15,6 @@ void UI::Init(GLFWwindow* window, const char* glsl_version)
 	ImGuiIO& io = ImGui::GetIO();
 
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-
-	io.FontGlobalScale = 2;
 
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init(glsl_version);
@@ -38,6 +38,16 @@ void UI::Update()
 	ImGui::BeginMainMenuBar();
 	if (ImGui::MenuItem("Exit"))
 		exit(0);
+
+	float v_data[1000] = {0};
+	float t_data[1000] = {0};
+
+	ImGui::Begin("Velocity vs. Time");
+	if (ImPlot::BeginPlot("My Plot")) {
+		ImPlot::PlotLine("My Line Plot", v_data, t_data, 1000);
+		ImPlot::EndPlot();
+	}
+ImGui::End();
 
 	ImGui::EndMainMenuBar();
 }
