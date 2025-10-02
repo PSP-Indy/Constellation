@@ -1,7 +1,7 @@
 ﻿# CMakeList.txt : Top-level CMake project file, do global configuration
 # and include sub-projects here.
 #
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required (VERSION 3.10)
 
 # Enable Hot Reload for MSVC compilers if supported.
 if (POLICY CMP0141)
@@ -10,7 +10,7 @@ if (POLICY CMP0141)
   set(CMAKE_CXX_STANDARD 23)
 endif()
 
-project ("Leviathan" VERSION 0.1 DESCRIPTION "An application for robot control and communication for the MATE ROV competition by the MHS robotics team")
+project ("Constellation" VERSION 0.1 DESCRIPTION "")
 
 # Include sub-projects.
-add_subdirectory ("Leviathan")
+add_subdirectory ("Constellation")
