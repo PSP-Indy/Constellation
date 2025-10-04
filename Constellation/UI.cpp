@@ -49,19 +49,23 @@ void UI::Update()
 	if (ImPlot::BeginPlot("Velocity (ft/s) vs Time (s)", ImVec2(-1, -1))) {
 		ImPlot::SetupAxis(ImAxis_X1, "Time (s)"); 
         ImPlot::SetupAxis(ImAxis_Y1, "Velocity (ft/s)"); 
-		ImPlot::PlotLine("As", v_values->data(),  t_values->data(), t_values->size());
+		ImPlot::PlotLine("As", v_values->data(),  t_values->data(), static_cast<int>(t_values->size()));
 		ImPlot::EndPlot();
 	}
 	ImGui::End();
 
 	ImGui::Begin("Figure 2");
 	if (ImPlot::BeginPlot("Position (ft) vs Time (s)", ImVec2(-1, -1))) {
-		ImPlot::PlotLine("X Positition", x_values->data(),  t_values->data(), t_values->size());
-		ImPlot::PlotLine("Y Positition", y_values->data(),  t_values->data(), t_values->size());
-		ImPlot::PlotLine("Z Positition", z_values->data(),  t_values->data(), t_values->size());
+		ImPlot::PlotLine("X Positition", x_values->data(),  t_values->data(), static_cast<int>(t_values->size()));
+		ImPlot::PlotLine("Y Positition", y_values->data(),  t_values->data(), static_cast<int>(t_values->size()));
+		ImPlot::PlotLine("Z Positition", z_values->data(),  t_values->data(), static_cast<int>(t_values->size()));
 		ImPlot::EndPlot();
 	}
 	ImGui::End();
+
+	std::vector<ImPlot3DPoint> rocket_vertices_rotated;
+
+	RotateModel(rocket_vertices, &rocket_vertices_rotated, 3.14f / 2.0f + x_rotation, y_rotation);
 
 	ImGui::Begin("Figure 3");
 	if (ImPlot3D::BeginPlot("3D Rotation", ImVec2(-1, -1))) {
@@ -69,7 +73,7 @@ void UI::Update()
 		ImPlot3D::SetupAxisLimits(ImAxis3D_Y, 0, 1);
 		ImPlot3D::SetupAxisLimits(ImAxis3D_Z, 0, 1);
 		ImPlot3D::SetupAxes("", "", "", ImPlot3DAxisFlags_LockMin + ImPlot3DAxisFlags_LockMax, ImPlot3DAxisFlags_LockMin + ImPlot3DAxisFlags_LockMax, ImPlot3DAxisFlags_LockMin + ImPlot3DAxisFlags_LockMax);
-		ImPlot3D::PlotMesh("Orientation", rocket_vertices.data(), rocket_indices.data(), rocket_vertices.size(), rocket_indices.size(), ImPlot3DMeshFlags_NoLegend);
+		ImPlot3D::PlotMesh("Orientation", rocket_vertices_rotated.data(), rocket_indices.data(), static_cast<int>(rocket_vertices_rotated.size()), static_cast<int>(rocket_indices.size()), ImPlot3DMeshFlags_NoLegend);
 		ImPlot3D::EndPlot();
 	}
 	ImGui::End();
@@ -96,6 +100,19 @@ void UI::Shutdown()
 	ImPlot3D::DestroyContext();
 	ImPlot::DestroyContext();
 	ImGui::DestroyContext();
+}
+
+void UI::RotateModel(std::vector<ImPlot3DPoint> vertices, std::vector<ImPlot3DPoint>* rotated_vertices, float x_rotation, float y_rotation)
+{
+    for (ImPlot3DPoint vert : vertices) {
+        ImPlot3DPoint centered_vert = {vert[0] - 0.5f, vert[1] - 0.5f, vert[2] - 0.5f};
+		
+		ImPlot3DPoint rotated_vert_x = {centered_vert[0], centered_vert[1] * cos(x_rotation) - centered_vert[2] * sin(x_rotation), centered_vert[1] * sin(x_rotation) + centered_vert[2] * cos(x_rotation)};
+		ImPlot3DPoint rotated_vert_y = {rotated_vert_x[0] * cos(y_rotation) + rotated_vert_x[2] * sin(y_rotation), rotated_vert_x[1], -rotated_vert_x[0] * sin(y_rotation) + rotated_vert_x[2] * cos(y_rotation)};
+
+		ImPlot3DPoint final_vert = {rotated_vert_y[0] + 0.5f, rotated_vert_y[1] + 0.5f, rotated_vert_y[2] + 0.5f};
+		rotated_vertices->push_back(final_vert);
+    }
 }
 
 UI::~UI()

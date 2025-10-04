@@ -24,12 +24,12 @@ int main()
 	UI* gui = UI::Get();
 
 	std::vector<float> t_values = {0, 1, 2, 3};
-	std::vector<float> v_values = {0, 1, 4, 9};
+	std::vector<float> v_values = {0, 10, 20, 30};
 	std::vector<float> x_values = {0, 0, 0, 0};
 	std::vector<float> y_values = {0, 0, 0, 0};
-	std::vector<float> z_values = {0, 10, 20, 30};
+	std::vector<float> z_values = {0, 10, 30, 60};
 
-	gui->assignValueGroups(gui, &t_values, &v_values, &x_values, &y_values, &z_values);
+	gui->assignValueGroups(gui, &t_values, &v_values, &x_values, &y_values, &z_values, 0.1f, 0.2f);
 
 	if (!glfwInit())
 		return 2;
