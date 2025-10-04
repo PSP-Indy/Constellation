@@ -1,0 +1,10 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/Code/Constellation/build/cmake_install.cmake",
+		"C:/Code/Constellation/build/Constellation/cmake_install.cmake",
+		"C:/Code/Constellation/build/Constellation/lib/glfw3/cmake_install.cmake",
+		"C:/Code/Constellation/build/Constellation/lib/glfw3/src/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

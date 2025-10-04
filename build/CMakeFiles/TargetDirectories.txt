@@ -1,0 +1,8 @@
+C:/Code/Constellation/build/CMakeFiles/ALL_BUILD.dir
+C:/Code/Constellation/build/CMakeFiles/ZERO_CHECK.dir
+C:/Code/Constellation/build/Constellation/CMakeFiles/Constellation.dir
+C:/Code/Constellation/build/Constellation/CMakeFiles/glad.dir
+C:/Code/Constellation/build/Constellation/CMakeFiles/ImGui.dir
+C:/Code/Constellation/build/Constellation/lib/glfw3/CMakeFiles/ALL_BUILD.dir
+C:/Code/Constellation/build/Constellation/lib/glfw3/src/CMakeFiles/update_mappings.dir
+C:/Code/Constellation/build/Constellation/lib/glfw3/src/CMakeFiles/glfw.dir
