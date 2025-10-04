@@ -43,13 +43,13 @@ public:
 	~UI();
 	static UI* Get();
 
-	void assignValueGroups(UI* ui, std::vector<float>* t_values, std::vector<float>* v_values, std::vector<float>* x_values, std::vector<float>* y_values, std::vector<float>* z_values, float x_rotation, float y_rotation){
+	void assignValues(UI* ui, std::vector<float>* t_values, std::vector<float>* v_values, std::vector<float>* x_values, std::vector<float>* y_values, std::vector<float>* z_values, float* x_rotation, float* y_rotation){
 		ui->t_values = t_values;
 		ui->v_values = v_values;
 		ui->x_values = x_values;
 		ui->y_values = y_values;
 		ui->z_values = z_values;
-		ui->x_rotation = x_rotation;
-		ui->y_rotation = y_rotation;
+		ui->x_rotation = *x_rotation;
+		ui->y_rotation = *y_rotation;
 	}
 };

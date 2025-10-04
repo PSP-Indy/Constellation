@@ -9,6 +9,9 @@
 
 #include <iostream>
 #include <chrono>
+#include <thread>
+
+#include <Windows.h>
 
 #include "UI.hpp"
 
@@ -19,18 +22,86 @@ using namespace std::chrono;
 
 UI* UI::ui = new UI();
 
+float CharStringToFloat(char* charString, int idx) {
+	union {
+		float f;
+		char b[4];
+	} u;
+	u.b[3] = charString[idx + 3];
+	u.b[2] = charString[idx + 2];
+	u.b[1] = charString[idx + 1];
+	u.b[0] = charString[idx];
+	return u.f;
+}
+
+void ProcessSerialData(HANDLE hSerial, std::vector<float>* t_values, std::vector<float>* v_values, std::vector<float>* x_values, std::vector<float>* y_values, std::vector<float>* z_values, float* x_rotation, float* y_rotation) {
+	char readBuffer[32];
+	DWORD bytesRead;
+
+	if (!ReadFile(hSerial, readBuffer, sizeof(readBuffer), &bytesRead, NULL)) {
+		std::cout << "Error reading serial buffer!" << std::endl;
+	} else {
+		t_values->push_back(CharStringToFloat(readBuffer, 0));
+		v_values->push_back(CharStringToFloat(readBuffer, 4));
+		x_values->push_back(CharStringToFloat(readBuffer, 8));
+		y_values->push_back(CharStringToFloat(readBuffer, 12));
+		z_values->push_back(CharStringToFloat(readBuffer, 16));
+		*x_rotation = CharStringToFloat(readBuffer, 20);
+		*y_rotation = CharStringToFloat(readBuffer, 24);
+	}
+}
+
 int main()
 {
-	UI* gui = UI::Get();
+	//GLOBAL USE VARIABLES
 
 	std::vector<float> t_values = {0, 1, 2, 3};
 	std::vector<float> v_values = {0, 10, 20, 30};
 	std::vector<float> x_values = {0, 0, 0, 0};
 	std::vector<float> y_values = {0, 0, 0, 0};
 	std::vector<float> z_values = {0, 10, 30, 60};
+	float x_rotation = 0.1f;
+	float y_rotation = 0.2f;
 
-	gui->assignValueGroups(gui, &t_values, &v_values, &x_values, &y_values, &z_values, 0.1f, 0.2f);
+	//SERIAL INITIALIZATION
 
+	HANDLE hSerial = CreateFile("\\\\.\\COM1", GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+
+	DCB dcbSerialParams = {0};
+	dcbSerialParams.DCBlength = sizeof(dcbSerialParams);
+
+	if (!GetCommState(hSerial, &dcbSerialParams)) {
+		std::cout << "Failed to get comm state, aborting serial communication." << std::endl;
+	} else {
+		dcbSerialParams.BaudRate = CBR_9600;
+		dcbSerialParams.ByteSize = 8;
+		dcbSerialParams.StopBits = ONESTOPBIT;
+		dcbSerialParams.Parity = NOPARITY;
+
+		if (!SetCommState(hSerial, &dcbSerialParams)) {
+			std::cout << "Failed to set comm state, aborting serial communication." << std::endl;
+		} else {
+			COMMTIMEOUTS timeouts = {0};
+			timeouts.ReadIntervalTimeout = 50;
+			timeouts.ReadTotalTimeoutConstant = 50;
+			timeouts.ReadTotalTimeoutMultiplier = 10;
+			timeouts.WriteTotalTimeoutConstant = 50;
+			timeouts.WriteTotalTimeoutMultiplier = 10;
+
+			if (!SetCommTimeouts(hSerial, &timeouts)) {
+				std::cout << "Failed to set timouts, aborting serial communication." << std::endl;
+			} else {
+				std::thread serial_thread(ProcessSerialData, hSerial, &t_values, &v_values, &x_values, &y_values, &z_values, &x_rotation, &y_rotation);
+				serial_thread.detach();
+			}
+		}
+	}
+
+	//GUI INITIALIZATION
+	UI* gui = UI::Get();
+
+	gui->assignValues(gui, &t_values, &v_values, &x_values, &y_values, &z_values, &x_rotation, &y_rotation);
+	
 	if (!glfwInit())
 		return 2;
 
@@ -69,6 +140,8 @@ int main()
 	}
 
 	gui->Shutdown();
-	
+	CloseHandle(hSerial);
+
 	return 0;
 }
+
