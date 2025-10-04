@@ -11,38 +11,20 @@
 
 #include "imgui.h"
 #include "implot.h"
+#include "implot3d.h"
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 
-/**
- * @class UI
- * @brief Handles the user interface of Constellation
- */
 class UI {
 private:
-	int cameraWidth, cameraHeight = 0;
-	int floatId = 0;
-	int stillNum = 1;
-	time_t start = time(0);
-	GLuint cameraTexture;
-	bool pauseCamera = false;
-	bool mainCamera = true;
-	bool statisticsOpen = false;
-	bool stillsOpen = false;
-	bool stillsTexturesLoaded = false;
-	int selectedController = 0;
-	int quality = 80;
-	float deltaVals[64];
-	float frameVals[64];
-	float depthVals[128];
-	float mainDeltaTime;
-
-	std::vector<GLuint> stillsTextures;
-	std::vector<std::string> output;
-	std::map<std::string, std::string> telemetry;
+	std::vector<float>* v_values;
+	std::vector<float>* t_values;
+	std::vector<float>* x_values;
+	std::vector<float>* y_values;
+	std::vector<float>* z_values;
 
 	static UI* ui;
 
@@ -56,4 +38,12 @@ public:
 	void Shutdown();
 	~UI();
 	static UI* Get();
+
+	void assignValueGroups(UI* ui, std::vector<float>* t_values, std::vector<float>* v_values, std::vector<float>* x_values, std::vector<float>* y_values, std::vector<float>* z_values){
+		ui->t_values = t_values;
+		ui->v_values = v_values;
+		ui->x_values = x_values;
+		ui->y_values = y_values;
+		ui->z_values = z_values;
+	}
 };

@@ -3,7 +3,7 @@
 #
 
 # Add source to this project's executable.
-add_executable (Constellation "Constellation.cpp"  "UI.cpp"  "UI.hpp")
+add_executable (Constellation "Constellation.cpp"  "UI.cpp"  "UI.hpp"  "rocket_model.hpp")
 
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
@@ -34,6 +34,10 @@ add_library("ImGui" "${IMGUI_DIR}/imgui.cpp"
 "${IMGUI_DIR}/implot_items.cpp"
 "${IMGUI_DIR}/implot.cpp"
 "${IMGUI_DIR}/implot.h"
+"${IMGUI_DIR}/implot3d.h"
+"${IMGUI_DIR}/implot3d.cpp"
+"${IMGUI_DIR}/implot3d_internal.h"
+"${IMGUI_DIR}/implot3d_items.cpp"
 
 "${IMGUI_DIR}/imgui_impl_glfw.cpp"
 "${IMGUI_DIR}/imgui_impl_opengl3.cpp")
