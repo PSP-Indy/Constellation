@@ -48,7 +48,7 @@ void UI::Update()
 	ImGui::Begin("Figure 1");
 	if (ImPlot::BeginPlot("Velocity (ft/s) vs Time (s)", ImVec2(-1, -1))) {
 		ImPlot::SetupAxis(ImAxis_X1, "Time (s)"); 
-        ImPlot::SetupAxis(ImAxis_Y1, "Velocity (ft/s)"); 
+        ImPlot::SetupAxis(ImAxis_Y1, "Velocity (ft/s)");
 		ImPlot::PlotLine("As", v_values->data(),  t_values->data(), static_cast<int>(t_values->size()));
 		ImPlot::EndPlot();
 	}
