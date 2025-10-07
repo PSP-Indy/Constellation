@@ -16,21 +16,19 @@
 #include "GLFW/glfw3.h"
 
 class UI {
-private:
-	std::vector<float>* v_values;
-	std::vector<float>* t_values;
-	std::vector<float>* x_values;
-	std::vector<float>* y_values;
-	std::vector<float>* z_values;
-
-	float x_rotation;
-	float y_rotation;
-
-	std::mutex* valueLock;
-
-	static UI* ui;
-
 public:
+	struct data_values {
+		std::vector<float> v_values = {0};
+		std::vector<float> a_values = {0};
+		std::vector<float> t_values = {0};
+		std::vector<float> x_values = {0};
+		std::vector<float> y_values = {0};
+		std::vector<float> z_values = {0};
+
+		float x_rotation = 0;
+		float y_rotation = 0;
+	};
+
 	UI();
 	UI(const UI& obj) = delete;
 	void Init(GLFWwindow* window, const char* glsl_version);
@@ -42,13 +40,12 @@ public:
 	~UI();
 	static UI* Get();
 
-	void assignValues(UI* ui, std::mutex* valueLock, std::vector<float>* t_values, std::vector<float>* v_values, std::vector<float>* x_values, std::vector<float>* y_values, std::vector<float>* z_values, std::atomic<float>* x_rotation, std::atomic<float>* y_rotation){
-		ui->t_values = t_values;
-		ui->v_values = v_values;
-		ui->x_values = x_values;
-		ui->y_values = y_values;
-		ui->z_values = z_values;
-		ui->x_rotation = x_rotation->load();
-		ui->y_rotation = y_rotation->load();
+	void assignValues(data_values* data_values){
+		this->rocket_data = data_values;
 	}
+
+private:
+	data_values* rocket_data;
+
+	static UI* ui;
 };

@@ -7,11 +7,12 @@
 
 #pragma once
 
-#include <iostream>
 #include <chrono>
 #include <thread>
 #include <atomic>
 #include <mutex>
+
+#include <random>
 
 #include <Windows.h>
 
@@ -38,7 +39,32 @@ float CharStringToFloat(char* charString, int idx) {
 	return u.f;
 }
 
-void ProcessSerialData(HANDLE hSerial, std::vector<float>* t_values, std::vector<float>* v_values, std::vector<float>* x_values, std::vector<float>* y_values, std::vector<float>* z_values, std::atomic<float>* x_rotation, std::atomic<float>* y_rotation) {
+void FakeSerialData(UI::data_values* data)
+{
+	std::random_device rd;
+	std::mt19937 engine(rd());
+	std::uniform_int_distribution<int> dist(1, 100);
+
+	while (true) 
+	{
+		valueLock.lock();
+
+		float random_number = dist(engine);
+
+		data->t_values.push_back(data->t_values.back() + 0.5f);
+		data->v_values.push_back(random_number);
+		data->a_values.push_back(random_number);
+		data->x_values.push_back(random_number);
+		data->y_values.push_back(random_number);
+		data->z_values.push_back(random_number);
+		data->y_rotation = random_number;
+		data->x_rotation = random_number;
+		valueLock.unlock();
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
+	}
+}
+
+void ProcessSerialData(HANDLE hSerial, UI::data_values* data) {
 	while (true) 
 	{
 		char readBuffer[27];
@@ -48,13 +74,14 @@ void ProcessSerialData(HANDLE hSerial, std::vector<float>* t_values, std::vector
 			std::cout << "Error reading serial buffer!" << std::endl;
 		} else {
 			valueLock.lock();
-			t_values->push_back(CharStringToFloat(readBuffer, 0));
-			v_values->push_back(CharStringToFloat(readBuffer, 4));
-			x_values->push_back(CharStringToFloat(readBuffer, 8));
-			y_values->push_back(CharStringToFloat(readBuffer, 12));
-			z_values->push_back(CharStringToFloat(readBuffer, 16));
-			*x_rotation = CharStringToFloat(readBuffer, 20);
-			*y_rotation = CharStringToFloat(readBuffer, 24);
+			data->t_values.push_back(CharStringToFloat(readBuffer, 0));
+			data->v_values.push_back(CharStringToFloat(readBuffer, 4));
+			data->a_values.push_back(CharStringToFloat(readBuffer, 8));
+			data->x_values.push_back(CharStringToFloat(readBuffer, 12));
+			data->y_values.push_back(CharStringToFloat(readBuffer, 16));
+			data->z_values.push_back(CharStringToFloat(readBuffer, 20));
+			data->y_rotation = CharStringToFloat(readBuffer, 28);
+			data->x_rotation = CharStringToFloat(readBuffer, 24);
 			valueLock.unlock();
 		}
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -65,13 +92,10 @@ int main()
 {
 	//GLOBAL USE VARIABLES
 
-	std::vector<float> t_values({0, 1, 2, 3});
-	std::vector<float> v_values({0, 10, 20, 30});
-	std::vector<float> x_values({0, 0, 0, 0});
-	std::vector<float> y_values({0, 0, 0, 0});
-	std::vector<float> z_values({0, 10, 30, 60});
-	std::atomic<float> x_rotation = 0.1f;
-	std::atomic<float> y_rotation = 0.2f;
+	UI::data_values data;
+
+	std::thread serial_thread(FakeSerialData, &data);
+	serial_thread.detach();
 
 	//SERIAL INITIALIZATION
 
@@ -101,7 +125,7 @@ int main()
 			if (!SetCommTimeouts(hSerial, &timeouts)) {
 				std::cout << "Failed to set timouts, aborting serial communication." << std::endl;
 			} else {
-				std::thread serial_thread(ProcessSerialData, hSerial, &t_values, &v_values, &x_values, &y_values, &z_values, &x_rotation, &y_rotation);
+				std::thread serial_thread(ProcessSerialData, hSerial, &data);
 				serial_thread.detach();
 			}
 		}
@@ -110,7 +134,7 @@ int main()
 	//GUI INITIALIZATION
 	UI* gui = UI::Get();
 
-	gui->assignValues(gui, &valueLock, &t_values, &v_values, &x_values, &y_values, &z_values, &x_rotation, &y_rotation);
+	gui->assignValues(&data);
 	
 	if (!glfwInit())
 		return 2;
