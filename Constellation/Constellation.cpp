@@ -49,16 +49,14 @@ void FakeSerialData(UI::data_values* data)
 	{
 		valueLock.lock();
 
-		float random_number = dist(engine);
-
 		data->t_values.push_back(data->t_values.back() + 0.5f);
-		data->v_values.push_back(random_number);
-		data->a_values.push_back(random_number);
-		data->x_values.push_back(random_number);
-		data->y_values.push_back(random_number);
-		data->z_values.push_back(random_number);
-		data->y_rotation = random_number;
-		data->x_rotation = random_number;
+		data->v_values.push_back(dist(engine));
+		data->a_values.push_back(dist(engine));
+		data->x_values.push_back(dist(engine));
+		data->y_values.push_back(dist(engine));
+		data->z_values.push_back(dist(engine));
+		data->y_rotation = dist(engine);
+		data->x_rotation = dist(engine);
 		valueLock.unlock();
 		std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	}
@@ -134,7 +132,7 @@ int main()
 	//GUI INITIALIZATION
 	UI* gui = UI::Get();
 
-	gui->assignValues(&data);
+	gui->AssignValues(&data);
 	
 	if (!glfwInit())
 		return 2;
@@ -175,6 +173,8 @@ int main()
 
 	gui->Shutdown();
 	CloseHandle(hSerial);
+
+	delete gui;
 
 	return 0;
 }

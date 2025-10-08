@@ -31,11 +31,13 @@ void UI::Init(GLFWwindow* window, const char* glsl_version)
 }
 
 bool velocity_plot = true;
-bool acceleration_plot = true;
-bool position_plot = true;
+bool acceleration_plot = false;
+bool position_plot = false;
 
 float time_start = 0.0f;
 float time_end = 1.0f;
+
+bool diagnostics_open = false;
 
 void UI::NewFrame()
 {
@@ -49,12 +51,29 @@ void UI::Update()
 	ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 
 	ImGui::BeginMainMenuBar();
-	if (ImGui::MenuItem("Hello There!")) {
-		std::cout << "General Kenobi!" << std::endl;
+	if (ImGui::MenuItem("Application Diagnostics")) {
+		diagnostics_open = !diagnostics_open;
 	}
 	ImGui::EndMainMenuBar();
 
-	ImGui::Begin("Figure 1");
+	if (diagnostics_open)
+	{
+		std::string working_set_size_str = "ERROR";
+		std::string private_bytes_str = "ERROR";
+
+		PROCESS_MEMORY_COUNTERS_EX pmc;
+		if (GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc))) {
+			working_set_size_str = std::string("Working Set Size: ").append(std::to_string(pmc.WorkingSetSize / (1024 * 1024))).append(std::string(" MB"));
+			private_bytes_str = std::string("Private Bytes: ").append(std::to_string(pmc.PrivateUsage / (1024 * 1024))).append(std::string(" MB"));
+		}
+
+		ImGui::Begin("Diagnostics");
+		ImGui::Text(working_set_size_str.c_str());
+		ImGui::Text(private_bytes_str.c_str());
+		ImGui::End();
+	}
+
+	ImGui::Begin("Velocity");
 	if (ImPlot::BeginPlot("Velocity (ft/s) vs Time (s)", ImVec2(-1, -1))) {
 		ImPlot::SetupAxis(ImAxis_X1, "Time (s)", ImPlotAxisFlags_AutoFit); 
         ImPlot::SetupAxis(ImAxis_Y1, "Velocity (ft/s)", ImPlotAxisFlags_AutoFit);
@@ -63,7 +82,7 @@ void UI::Update()
 	}
 	ImGui::End();
 
-	ImGui::Begin("Figure 2");
+	ImGui::Begin("Acceleration");
 	if (ImPlot::BeginPlot("Acceleration (ft/s/s) vs Time (s)", ImVec2(-1, -1))) {
 		ImPlot::SetupAxis(ImAxis_X1, "Time (s)", ImPlotAxisFlags_AutoFit); 
         ImPlot::SetupAxis(ImAxis_Y1, "Acceleration (ft/s/s)", ImPlotAxisFlags_AutoFit);
@@ -72,7 +91,7 @@ void UI::Update()
 	}
 	ImGui::End();
 
-	ImGui::Begin("Figure 3");
+	ImGui::Begin("Position");
 	if (ImPlot::BeginPlot("Position (ft) vs Time (s)", ImVec2(-1, -1))) {
 		ImPlot::SetupAxis(ImAxis_X1, "Time (s)", ImPlotAxisFlags_AutoFit); 
         ImPlot::SetupAxis(ImAxis_Y1, "Position (ft)", ImPlotAxisFlags_AutoFit);
@@ -83,7 +102,7 @@ void UI::Update()
 	}
 	ImGui::End();
 
-	ImGui::Begin("Figure 4");
+	ImGui::Begin("Time Sliced Plot");
 
 	ImGui::Checkbox("Velocity", &velocity_plot);
 	ImGui::SameLine();
@@ -97,14 +116,24 @@ void UI::Update()
 	ImGui::SetNextItemWidth(200.0f);
 	ImGui::SliderFloat("Time End", &time_end, 0.0f, rocket_data->t_values.back());
 
+	int start_index = FindClosestIndex(rocket_data->t_values, time_start);
+	int end_index = FindClosestIndex(rocket_data->t_values, time_end);
+
+	if (end_index <= start_index) { end_index = start_index + 1; }
+	if (start_index >= end_index) { start_index = end_index - 1; }
+
 	if (ImPlot::BeginPlot("Time Sliced Plot", ImVec2(-1, -1))) {
 		ImPlot::SetupAxis(ImAxis_X1, "Time (s)", ImPlotAxisFlags_AutoFit); 
-        ImPlot::SetupAxis(ImAxis_Y1, "Value", ImPlotAxisFlags_AutoFit);
-		if (velocity_plot) { ImPlot::PlotLine("Velocity", rocket_data->t_values.data(),  rocket_data->v_values.data(), static_cast<int>(rocket_data->t_values.size())); }
-		if (acceleration_plot) { ImPlot::PlotLine("Acceleration", rocket_data->t_values.data(),  rocket_data->a_values.data(), static_cast<int>(rocket_data->t_values.size())); }
-		if (position_plot) { ImPlot::PlotLine("X Postion", rocket_data->t_values.data(),  rocket_data->x_values.data(), static_cast<int>(rocket_data->t_values.size())); }
-		if (position_plot) { ImPlot::PlotLine("Y Position", rocket_data->t_values.data(),  rocket_data->y_values.data(), static_cast<int>(rocket_data->t_values.size())); }
-		if (position_plot) { ImPlot::PlotLine("Z Position", rocket_data->t_values.data(),  rocket_data->z_values.data(), static_cast<int>(rocket_data->t_values.size())); }
+        ImPlot::SetupAxis(ImAxis_Y1, "Value");
+
+		std::vector<float> t_values_clipped = SubArray(rocket_data->t_values, start_index, end_index);
+
+		if (velocity_plot) { ImPlot::PlotLine("Velocity", t_values_clipped.data(), SubArray(rocket_data->v_values, start_index, end_index).data(), static_cast<int>(t_values_clipped.size())); }
+		if (acceleration_plot) { ImPlot::PlotLine("Acceleration", t_values_clipped.data(), SubArray(rocket_data->a_values, start_index, end_index).data(), static_cast<int>(t_values_clipped.size())); }
+		if (position_plot) { ImPlot::PlotLine("X Postion", t_values_clipped.data(), SubArray(rocket_data->x_values, start_index, end_index).data(), static_cast<int>(t_values_clipped.size())); }
+		if (position_plot) { ImPlot::PlotLine("Y Position", t_values_clipped.data(), SubArray(rocket_data->y_values, start_index, end_index).data(), static_cast<int>(t_values_clipped.size())); }
+		if (position_plot) { ImPlot::PlotLine("Z Position", t_values_clipped.data(), SubArray(rocket_data->z_values, start_index, end_index).data(), static_cast<int>(t_values_clipped.size())); }
+		
 		ImPlot::EndPlot();
 	}
 	ImGui::End();
@@ -113,7 +142,7 @@ void UI::Update()
 
 	RotateModel(rocket_vertices, &rocket_vertices_rotated, 3.14f / 2.0f + rocket_data->x_rotation, rocket_data->y_rotation);
 
-	ImGui::Begin("Figure 5");
+	ImGui::Begin("3D Rotation Visualizer");
 	if (ImPlot3D::BeginPlot("3D Rotation", ImVec2(-1, -1))) {
 		ImPlot3D::SetupAxisLimits(ImAxis3D_X, 0, 1);
 		ImPlot3D::SetupAxisLimits(ImAxis3D_Y, 0, 1);
@@ -122,6 +151,9 @@ void UI::Update()
 		ImPlot3D::PlotMesh("Orientation", rocket_vertices_rotated.data(), rocket_indices.data(), static_cast<int>(rocket_vertices_rotated.size()), static_cast<int>(rocket_indices.size()), ImPlot3DMeshFlags_NoLegend);
 		ImPlot3D::EndPlot();
 	}
+	ImGui::End();
+
+	ImGui::Begin("Network Manager");
 	ImGui::End();
 }
 
