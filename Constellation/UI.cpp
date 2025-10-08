@@ -33,6 +33,7 @@ void UI::Init(GLFWwindow* window, const char* glsl_version)
 bool velocity_plot = true;
 bool acceleration_plot = false;
 bool position_plot = false;
+bool rotation_plot = false;
 
 float time_start = 0.0f;
 float time_end = 1.0f;
@@ -102,6 +103,16 @@ void UI::Update()
 	}
 	ImGui::End();
 
+	ImGui::Begin("Rotation");
+	if (ImPlot::BeginPlot("Rotation (Rad) vs Time (s)", ImVec2(-1, -1))) {
+		ImPlot::SetupAxis(ImAxis_X1, "Time (s)", ImPlotAxisFlags_AutoFit); 
+        ImPlot::SetupAxis(ImAxis_Y1, "Rotation (Rad)", ImPlotAxisFlags_AutoFit);
+		ImPlot::PlotLine("X Rotation", rocket_data->t_values.data(),  rocket_data->x_rot_values.data(), static_cast<int>(rocket_data->t_values.size()));
+		ImPlot::PlotLine("Y Rotation", rocket_data->t_values.data(),  rocket_data->y_rot_values.data(), static_cast<int>(rocket_data->t_values.size()));
+		ImPlot::EndPlot();
+	}
+	ImGui::End();
+
 	ImGui::Begin("Time Sliced Plot");
 
 	ImGui::Checkbox("Velocity", &velocity_plot);
@@ -110,11 +121,13 @@ void UI::Update()
 	ImGui::SameLine();
 	ImGui::Checkbox("Position", &position_plot);
 	ImGui::SameLine();
-	ImGui::SetNextItemWidth(200.0f);
-	ImGui::SliderFloat("Time Start", &time_start, 0.0f, rocket_data->t_values.back());
+	ImGui::Checkbox("Rotation", &rotation_plot);
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(200.0f);
-	ImGui::SliderFloat("Time End", &time_end, 0.0f, rocket_data->t_values.back());
+	ImGui::SliderFloat("Time Start", &time_start, 0.0f, time_end - 0.01f);
+	ImGui::SameLine();
+	ImGui::SetNextItemWidth(200.0f);
+	ImGui::SliderFloat("Time End", &time_end, time_start + 0.01f, rocket_data->t_values.back());
 
 	int start_index = FindClosestIndex(rocket_data->t_values, time_start);
 	int end_index = FindClosestIndex(rocket_data->t_values, time_end);
@@ -133,6 +146,8 @@ void UI::Update()
 		if (position_plot) { ImPlot::PlotLine("X Postion", t_values_clipped.data(), SubArray(rocket_data->x_values, start_index, end_index).data(), static_cast<int>(t_values_clipped.size())); }
 		if (position_plot) { ImPlot::PlotLine("Y Position", t_values_clipped.data(), SubArray(rocket_data->y_values, start_index, end_index).data(), static_cast<int>(t_values_clipped.size())); }
 		if (position_plot) { ImPlot::PlotLine("Z Position", t_values_clipped.data(), SubArray(rocket_data->z_values, start_index, end_index).data(), static_cast<int>(t_values_clipped.size())); }
+		if (rotation_plot) { ImPlot::PlotLine("X Rotation", t_values_clipped.data(), SubArray(rocket_data->x_rot_values, start_index, end_index).data(), static_cast<int>(t_values_clipped.size())); }
+		if (rotation_plot) { ImPlot::PlotLine("Y Rotation", t_values_clipped.data(), SubArray(rocket_data->y_rot_values, start_index, end_index).data(), static_cast<int>(t_values_clipped.size())); }
 		
 		ImPlot::EndPlot();
 	}
@@ -140,7 +155,7 @@ void UI::Update()
 
 	std::vector<ImPlot3DPoint> rocket_vertices_rotated;
 
-	RotateModel(rocket_vertices, &rocket_vertices_rotated, 3.14f / 2.0f + rocket_data->x_rotation, rocket_data->y_rotation);
+	RotateModel(rocket_vertices, &rocket_vertices_rotated, 3.14f / 2.0f + rocket_data->x_rot_values.back(), rocket_data->y_rot_values.back());
 
 	ImGui::Begin("3D Rotation Visualizer");
 	if (ImPlot3D::BeginPlot("3D Rotation", ImVec2(-1, -1))) {

@@ -28,8 +28,8 @@ public:
 		std::vector<float> y_values = {0};
 		std::vector<float> z_values = {0};
 
-		float x_rotation = 0;
-		float y_rotation = 0;
+		std::vector<float> x_rot_values = {0};
+		std::vector<float> y_rot_values = {0};
 	};
 
 	UI();

@@ -11,7 +11,7 @@
 #include <thread>
 #include <atomic>
 #include <mutex>
-
+#include <fstream>
 #include <random>
 
 #include <Windows.h>
@@ -55,8 +55,9 @@ void FakeSerialData(UI::data_values* data)
 		data->x_values.push_back(dist(engine));
 		data->y_values.push_back(dist(engine));
 		data->z_values.push_back(dist(engine));
-		data->y_rotation = dist(engine);
-		data->x_rotation = dist(engine);
+		data->x_rot_values.push_back(dist(engine));
+		data->y_rot_values.push_back(dist(engine));
+
 		valueLock.unlock();
 		std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	}
@@ -72,18 +73,32 @@ void ProcessSerialData(HANDLE hSerial, UI::data_values* data) {
 			std::cout << "Error reading serial buffer!" << std::endl;
 		} else {
 			valueLock.lock();
+
 			data->t_values.push_back(CharStringToFloat(readBuffer, 0));
 			data->v_values.push_back(CharStringToFloat(readBuffer, 4));
 			data->a_values.push_back(CharStringToFloat(readBuffer, 8));
 			data->x_values.push_back(CharStringToFloat(readBuffer, 12));
 			data->y_values.push_back(CharStringToFloat(readBuffer, 16));
 			data->z_values.push_back(CharStringToFloat(readBuffer, 20));
-			data->y_rotation = CharStringToFloat(readBuffer, 28);
-			data->x_rotation = CharStringToFloat(readBuffer, 24);
+			data->x_rot_values.push_back(CharStringToFloat(readBuffer, 24));
+			data->y_rot_values.push_back(CharStringToFloat(readBuffer, 28));
+
 			valueLock.unlock();
 		}
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
+}
+
+void WriteDataToFile(std::vector<float> data, std::string label, std::ofstream* outputFile) 
+{
+	*outputFile << label.c_str() << ",";
+	for (size_t i = 0; i < data.size(); ++i) {
+		*outputFile << data[i];
+		if (i < data.size() - 1) {
+			*outputFile << ",";
+		}
+	}
+	*outputFile << std::endl;
 }
 
 int main()
@@ -173,6 +188,20 @@ int main()
 
 	gui->Shutdown();
 	CloseHandle(hSerial);
+
+	std::ofstream outputFile;
+	outputFile.open("DATA.csv", std::ios::out); 
+	if (outputFile.is_open()) {
+		WriteDataToFile(data.a_values, std::string("acceleration"), &outputFile);
+		WriteDataToFile(data.v_values, std::string("velocity"), &outputFile);
+		WriteDataToFile(data.x_values, std::string("positionX"), &outputFile);
+		WriteDataToFile(data.y_values, std::string("positionY"), &outputFile);
+		WriteDataToFile(data.z_values, std::string("positionZ"), &outputFile);
+		WriteDataToFile(data.x_rot_values, std::string("rotationX"), &outputFile);
+		WriteDataToFile(data.y_rot_values, std::string("rotationY"), &outputFile);
+
+        outputFile.close();
+    }
 
 	delete gui;
 
