@@ -62,7 +62,3 @@ add_subdirectory("${GLFW_DIR}")
 target_link_libraries(${PROJECT_NAME} "glfw" "${GLFW_LIBRARIES}")
 target_include_directories(${PROJECT_NAME} PRIVATE "${GLFW_DIR}/include")
 target_compile_definitions(${PROJECT_NAME} PRIVATE "GLFW_INCLUDE_NONE")
-
-include_directories(/home/mhsrobotics/opencv/include)
-
-target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})

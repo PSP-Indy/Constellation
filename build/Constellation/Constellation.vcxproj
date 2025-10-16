@@ -86,7 +86,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Code\Constellation\Constellation\lib\glad\include;C:\Code\Constellation\Constellation\lib\ImGui;C:\Code\Constellation\Constellation\lib\glfw3\include;\home\mhsrobotics\opencv\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Code\Constellation\Constellation\lib\glad\include;C:\Code\Constellation\Constellation\lib\ImGui;C:\Code\Constellation\Constellation\lib\glfw3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
@@ -110,10 +110,10 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;_WINDOWS;GLFW_INCLUDE_NONE;CMAKE_INTDIR=\"Debug\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Code\Constellation\Constellation\lib\glad\include;C:\Code\Constellation\Constellation\lib\ImGui;C:\Code\Constellation\Constellation\lib\glfw3\include;\home\mhsrobotics\opencv\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Code\Constellation\Constellation\lib\glad\include;C:\Code\Constellation\Constellation\lib\ImGui;C:\Code\Constellation\Constellation\lib\glfw3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>C:\Code\Constellation\Constellation\lib\glad\include;C:\Code\Constellation\Constellation\lib\ImGui;C:\Code\Constellation\Constellation\lib\glfw3\include;\home\mhsrobotics\opencv\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Code\Constellation\Constellation\lib\glad\include;C:\Code\Constellation\Constellation\lib\ImGui;C:\Code\Constellation\Constellation\lib\glfw3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -140,7 +140,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Code\Constellation\Constellation\lib\glad\include;C:\Code\Constellation\Constellation\lib\ImGui;C:\Code\Constellation\Constellation\lib\glfw3\include;\home\mhsrobotics\opencv\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Code\Constellation\Constellation\lib\glad\include;C:\Code\Constellation\Constellation\lib\ImGui;C:\Code\Constellation\Constellation\lib\glfw3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <ExceptionHandling>Sync</ExceptionHandling>
@@ -165,10 +165,10 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;GLFW_INCLUDE_NONE;CMAKE_INTDIR=\"Release\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Code\Constellation\Constellation\lib\glad\include;C:\Code\Constellation\Constellation\lib\ImGui;C:\Code\Constellation\Constellation\lib\glfw3\include;\home\mhsrobotics\opencv\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Code\Constellation\Constellation\lib\glad\include;C:\Code\Constellation\Constellation\lib\ImGui;C:\Code\Constellation\Constellation\lib\glfw3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>C:\Code\Constellation\Constellation\lib\glad\include;C:\Code\Constellation\Constellation\lib\ImGui;C:\Code\Constellation\Constellation\lib\glfw3\include;\home\mhsrobotics\opencv\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Code\Constellation\Constellation\lib\glad\include;C:\Code\Constellation\Constellation\lib\ImGui;C:\Code\Constellation\Constellation\lib\glfw3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -195,7 +195,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Code\Constellation\Constellation\lib\glad\include;C:\Code\Constellation\Constellation\lib\ImGui;C:\Code\Constellation\Constellation\lib\glfw3\include;\home\mhsrobotics\opencv\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Code\Constellation\Constellation\lib\glad\include;C:\Code\Constellation\Constellation\lib\ImGui;C:\Code\Constellation\Constellation\lib\glfw3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <ExceptionHandling>Sync</ExceptionHandling>
@@ -220,10 +220,10 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;GLFW_INCLUDE_NONE;CMAKE_INTDIR=\"MinSizeRel\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Code\Constellation\Constellation\lib\glad\include;C:\Code\Constellation\Constellation\lib\ImGui;C:\Code\Constellation\Constellation\lib\glfw3\include;\home\mhsrobotics\opencv\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Code\Constellation\Constellation\lib\glad\include;C:\Code\Constellation\Constellation\lib\ImGui;C:\Code\Constellation\Constellation\lib\glfw3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>C:\Code\Constellation\Constellation\lib\glad\include;C:\Code\Constellation\Constellation\lib\ImGui;C:\Code\Constellation\Constellation\lib\glfw3\include;\home\mhsrobotics\opencv\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Code\Constellation\Constellation\lib\glad\include;C:\Code\Constellation\Constellation\lib\ImGui;C:\Code\Constellation\Constellation\lib\glfw3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -250,7 +250,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Code\Constellation\Constellation\lib\glad\include;C:\Code\Constellation\Constellation\lib\ImGui;C:\Code\Constellation\Constellation\lib\glfw3\include;\home\mhsrobotics\opencv\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Code\Constellation\Constellation\lib\glad\include;C:\Code\Constellation\Constellation\lib\ImGui;C:\Code\Constellation\Constellation\lib\glfw3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
@@ -274,10 +274,10 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;GLFW_INCLUDE_NONE;CMAKE_INTDIR=\"RelWithDebInfo\"</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Code\Constellation\Constellation\lib\glad\include;C:\Code\Constellation\Constellation\lib\ImGui;C:\Code\Constellation\Constellation\lib\glfw3\include;\home\mhsrobotics\opencv\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Code\Constellation\Constellation\lib\glad\include;C:\Code\Constellation\Constellation\lib\ImGui;C:\Code\Constellation\Constellation\lib\glfw3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>C:\Code\Constellation\Constellation\lib\glad\include;C:\Code\Constellation\Constellation\lib\ImGui;C:\Code\Constellation\Constellation\lib\glfw3\include;\home\mhsrobotics\opencv\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Code\Constellation\Constellation\lib\glad\include;C:\Code\Constellation\Constellation\lib\ImGui;C:\Code\Constellation\Constellation\lib\glfw3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
