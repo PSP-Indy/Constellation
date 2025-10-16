@@ -35,6 +35,9 @@ bool acceleration_plot = false;
 bool position_plot = false;
 bool rotation_plot = false;
 
+bool auto_scale_slice_plot_X = true;
+bool auto_scale_slice_plot_Y = false;
+
 float time_start = 0.0f;
 float time_end = 1.0f;
 
@@ -129,6 +132,10 @@ void UI::Update()
 	ImGui::SetNextItemWidth(200.0f);
 	ImGui::SliderFloat("Time End", &time_end, time_start + 0.01f, rocket_data->t_values.back());
 
+	ImGui::Checkbox("Auto Scale Time Axis", &auto_scale_slice_plot_X);
+	ImGui::SameLine();
+	ImGui::Checkbox("Auto Scale Value Axis", &auto_scale_slice_plot_Y);
+
 	int start_index = FindClosestIndex(rocket_data->t_values, time_start);
 	int end_index = FindClosestIndex(rocket_data->t_values, time_end);
 
@@ -136,8 +143,11 @@ void UI::Update()
 	if (start_index >= end_index) { start_index = end_index - 1; }
 
 	if (ImPlot::BeginPlot("Time Sliced Plot", ImVec2(-1, -1))) {
-		ImPlot::SetupAxis(ImAxis_X1, "Time (s)", ImPlotAxisFlags_AutoFit); 
+		ImPlot::SetupAxis(ImAxis_X1, "Time (s)"); 
         ImPlot::SetupAxis(ImAxis_Y1, "Value");
+
+		if (auto_scale_slice_plot_X) { ImPlot::SetupAxis(ImAxis_X1, "Time (s)", ImPlotAxisFlags_AutoFit); }
+		if (auto_scale_slice_plot_Y) { ImPlot::SetupAxis(ImAxis_Y1, "Value", ImPlotAxisFlags_AutoFit); }
 
 		std::vector<float> t_values_clipped = SubArray(rocket_data->t_values, start_index, end_index);
 

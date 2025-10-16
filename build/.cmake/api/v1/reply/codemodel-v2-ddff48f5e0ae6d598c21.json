@@ -1,0 +1,728 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1
+					],
+					"jsonFile" : "directory-.-Debug-d0094a50bb2071803777.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						4
+					]
+				},
+				{
+					"build" : "Constellation",
+					"childIndexes" : 
+					[
+						2
+					],
+					"jsonFile" : "directory-Constellation-Debug-7aa30d8f372a30bb74b6.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "Constellation",
+					"targetIndexes" : 
+					[
+						2,
+						3,
+						5
+					]
+				},
+				{
+					"build" : "Constellation/lib/glfw3",
+					"childIndexes" : 
+					[
+						3
+					],
+					"jsonFile" : "directory-Constellation.lib.glfw3-Debug-04b28127e1940bc21146.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 1,
+					"source" : "Constellation/lib/glfw3",
+					"targetIndexes" : 
+					[
+						1
+					]
+				},
+				{
+					"build" : "Constellation/lib/glfw3/src",
+					"jsonFile" : "directory-Constellation.lib.glfw3.src-Debug-0531f68d58daecc2cdc0.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 2,
+					"projectIndex" : 1,
+					"source" : "Constellation/lib/glfw3/src",
+					"targetIndexes" : 
+					[
+						6,
+						7
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"childIndexes" : 
+					[
+						1
+					],
+					"directoryIndexes" : 
+					[
+						0,
+						1
+					],
+					"name" : "Constellation",
+					"targetIndexes" : 
+					[
+						0,
+						2,
+						3,
+						4,
+						5
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						2,
+						3
+					],
+					"name" : "GLFW",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						1,
+						6,
+						7
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "ALL_BUILD::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ALL_BUILD-Debug-5b6e03b598b1d061b8c0.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "ALL_BUILD::@0bd62ad3cf1422454df9",
+					"jsonFile" : "target-ALL_BUILD-Debug-581a6bee39812511c0c0.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "Constellation::@7060dd6bda614f117f30",
+					"jsonFile" : "target-Constellation-Debug-a7314e19793ce7d25331.json",
+					"name" : "Constellation",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "ImGui::@7060dd6bda614f117f30",
+					"jsonFile" : "target-ImGui-Debug-7a4083617de6fa648763.json",
+					"name" : "ImGui",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ZERO_CHECK-Debug-41075f5ede15cadc271b.json",
+					"name" : "ZERO_CHECK",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "glad::@7060dd6bda614f117f30",
+					"jsonFile" : "target-glad-Debug-8f65728c41e426668f80.json",
+					"name" : "glad",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "glfw::@663cf44a9bf1d93027f9",
+					"jsonFile" : "target-glfw-Debug-8e26e2e4107d29e013b0.json",
+					"name" : "glfw",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "update_mappings::@663cf44a9bf1d93027f9",
+					"jsonFile" : "target-update_mappings-Debug-b5cb225ab21b143860b0.json",
+					"name" : "update_mappings",
+					"projectIndex" : 1
+				}
+			]
+		},
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1
+					],
+					"jsonFile" : "directory-.-Release-d0094a50bb2071803777.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						4
+					]
+				},
+				{
+					"build" : "Constellation",
+					"childIndexes" : 
+					[
+						2
+					],
+					"jsonFile" : "directory-Constellation-Release-7aa30d8f372a30bb74b6.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "Constellation",
+					"targetIndexes" : 
+					[
+						2,
+						3,
+						5
+					]
+				},
+				{
+					"build" : "Constellation/lib/glfw3",
+					"childIndexes" : 
+					[
+						3
+					],
+					"jsonFile" : "directory-Constellation.lib.glfw3-Release-04b28127e1940bc21146.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 1,
+					"source" : "Constellation/lib/glfw3",
+					"targetIndexes" : 
+					[
+						1
+					]
+				},
+				{
+					"build" : "Constellation/lib/glfw3/src",
+					"jsonFile" : "directory-Constellation.lib.glfw3.src-Release-0531f68d58daecc2cdc0.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 2,
+					"projectIndex" : 1,
+					"source" : "Constellation/lib/glfw3/src",
+					"targetIndexes" : 
+					[
+						6,
+						7
+					]
+				}
+			],
+			"name" : "Release",
+			"projects" : 
+			[
+				{
+					"childIndexes" : 
+					[
+						1
+					],
+					"directoryIndexes" : 
+					[
+						0,
+						1
+					],
+					"name" : "Constellation",
+					"targetIndexes" : 
+					[
+						0,
+						2,
+						3,
+						4,
+						5
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						2,
+						3
+					],
+					"name" : "GLFW",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						1,
+						6,
+						7
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "ALL_BUILD::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ALL_BUILD-Release-5b6e03b598b1d061b8c0.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "ALL_BUILD::@0bd62ad3cf1422454df9",
+					"jsonFile" : "target-ALL_BUILD-Release-581a6bee39812511c0c0.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "Constellation::@7060dd6bda614f117f30",
+					"jsonFile" : "target-Constellation-Release-23c4b8ccc69cbd308d92.json",
+					"name" : "Constellation",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "ImGui::@7060dd6bda614f117f30",
+					"jsonFile" : "target-ImGui-Release-91aac2b2cf17cd626940.json",
+					"name" : "ImGui",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ZERO_CHECK-Release-41075f5ede15cadc271b.json",
+					"name" : "ZERO_CHECK",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "glad::@7060dd6bda614f117f30",
+					"jsonFile" : "target-glad-Release-b9672ed7c4b69c55180b.json",
+					"name" : "glad",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "glfw::@663cf44a9bf1d93027f9",
+					"jsonFile" : "target-glfw-Release-7dd1dea1a1d0b69aa3d3.json",
+					"name" : "glfw",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "update_mappings::@663cf44a9bf1d93027f9",
+					"jsonFile" : "target-update_mappings-Release-b5cb225ab21b143860b0.json",
+					"name" : "update_mappings",
+					"projectIndex" : 1
+				}
+			]
+		},
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1
+					],
+					"jsonFile" : "directory-.-MinSizeRel-d0094a50bb2071803777.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						4
+					]
+				},
+				{
+					"build" : "Constellation",
+					"childIndexes" : 
+					[
+						2
+					],
+					"jsonFile" : "directory-Constellation-MinSizeRel-7aa30d8f372a30bb74b6.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "Constellation",
+					"targetIndexes" : 
+					[
+						2,
+						3,
+						5
+					]
+				},
+				{
+					"build" : "Constellation/lib/glfw3",
+					"childIndexes" : 
+					[
+						3
+					],
+					"jsonFile" : "directory-Constellation.lib.glfw3-MinSizeRel-04b28127e1940bc21146.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 1,
+					"source" : "Constellation/lib/glfw3",
+					"targetIndexes" : 
+					[
+						1
+					]
+				},
+				{
+					"build" : "Constellation/lib/glfw3/src",
+					"jsonFile" : "directory-Constellation.lib.glfw3.src-MinSizeRel-0531f68d58daecc2cdc0.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 2,
+					"projectIndex" : 1,
+					"source" : "Constellation/lib/glfw3/src",
+					"targetIndexes" : 
+					[
+						6,
+						7
+					]
+				}
+			],
+			"name" : "MinSizeRel",
+			"projects" : 
+			[
+				{
+					"childIndexes" : 
+					[
+						1
+					],
+					"directoryIndexes" : 
+					[
+						0,
+						1
+					],
+					"name" : "Constellation",
+					"targetIndexes" : 
+					[
+						0,
+						2,
+						3,
+						4,
+						5
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						2,
+						3
+					],
+					"name" : "GLFW",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						1,
+						6,
+						7
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "ALL_BUILD::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ALL_BUILD-MinSizeRel-5b6e03b598b1d061b8c0.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "ALL_BUILD::@0bd62ad3cf1422454df9",
+					"jsonFile" : "target-ALL_BUILD-MinSizeRel-581a6bee39812511c0c0.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "Constellation::@7060dd6bda614f117f30",
+					"jsonFile" : "target-Constellation-MinSizeRel-f8df3f50b6932dfebd9f.json",
+					"name" : "Constellation",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "ImGui::@7060dd6bda614f117f30",
+					"jsonFile" : "target-ImGui-MinSizeRel-46585a451b7d1fda7e36.json",
+					"name" : "ImGui",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ZERO_CHECK-MinSizeRel-41075f5ede15cadc271b.json",
+					"name" : "ZERO_CHECK",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "glad::@7060dd6bda614f117f30",
+					"jsonFile" : "target-glad-MinSizeRel-9d5cb738736ac8adca8a.json",
+					"name" : "glad",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "glfw::@663cf44a9bf1d93027f9",
+					"jsonFile" : "target-glfw-MinSizeRel-e53e27b5dd730df09782.json",
+					"name" : "glfw",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "update_mappings::@663cf44a9bf1d93027f9",
+					"jsonFile" : "target-update_mappings-MinSizeRel-b5cb225ab21b143860b0.json",
+					"name" : "update_mappings",
+					"projectIndex" : 1
+				}
+			]
+		},
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1
+					],
+					"jsonFile" : "directory-.-RelWithDebInfo-d0094a50bb2071803777.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						4
+					]
+				},
+				{
+					"build" : "Constellation",
+					"childIndexes" : 
+					[
+						2
+					],
+					"jsonFile" : "directory-Constellation-RelWithDebInfo-7aa30d8f372a30bb74b6.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "Constellation",
+					"targetIndexes" : 
+					[
+						2,
+						3,
+						5
+					]
+				},
+				{
+					"build" : "Constellation/lib/glfw3",
+					"childIndexes" : 
+					[
+						3
+					],
+					"jsonFile" : "directory-Constellation.lib.glfw3-RelWithDebInfo-04b28127e1940bc21146.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 1,
+					"source" : "Constellation/lib/glfw3",
+					"targetIndexes" : 
+					[
+						1
+					]
+				},
+				{
+					"build" : "Constellation/lib/glfw3/src",
+					"jsonFile" : "directory-Constellation.lib.glfw3.src-RelWithDebInfo-0531f68d58daecc2cdc0.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 2,
+					"projectIndex" : 1,
+					"source" : "Constellation/lib/glfw3/src",
+					"targetIndexes" : 
+					[
+						6,
+						7
+					]
+				}
+			],
+			"name" : "RelWithDebInfo",
+			"projects" : 
+			[
+				{
+					"childIndexes" : 
+					[
+						1
+					],
+					"directoryIndexes" : 
+					[
+						0,
+						1
+					],
+					"name" : "Constellation",
+					"targetIndexes" : 
+					[
+						0,
+						2,
+						3,
+						4,
+						5
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						2,
+						3
+					],
+					"name" : "GLFW",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						1,
+						6,
+						7
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "ALL_BUILD::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ALL_BUILD-RelWithDebInfo-5b6e03b598b1d061b8c0.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "ALL_BUILD::@0bd62ad3cf1422454df9",
+					"jsonFile" : "target-ALL_BUILD-RelWithDebInfo-581a6bee39812511c0c0.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "Constellation::@7060dd6bda614f117f30",
+					"jsonFile" : "target-Constellation-RelWithDebInfo-5c891d1e927024899063.json",
+					"name" : "Constellation",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "ImGui::@7060dd6bda614f117f30",
+					"jsonFile" : "target-ImGui-RelWithDebInfo-14ce357d22e4d594ae6a.json",
+					"name" : "ImGui",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ZERO_CHECK-RelWithDebInfo-41075f5ede15cadc271b.json",
+					"name" : "ZERO_CHECK",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "glad::@7060dd6bda614f117f30",
+					"jsonFile" : "target-glad-RelWithDebInfo-7cd0e885271a5c92a409.json",
+					"name" : "glad",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "glfw::@663cf44a9bf1d93027f9",
+					"jsonFile" : "target-glfw-RelWithDebInfo-096c2a2f05b3c199e3c1.json",
+					"name" : "glfw",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "update_mappings::@663cf44a9bf1d93027f9",
+					"jsonFile" : "target-update_mappings-RelWithDebInfo-b5cb225ab21b143860b0.json",
+					"name" : "update_mappings",
+					"projectIndex" : 1
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "C:/Code/Constellation/build",
+		"source" : "C:/Code/Constellation"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 8
+	}
+}

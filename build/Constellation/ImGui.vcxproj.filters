@@ -28,6 +28,9 @@
     <ClCompile Include="C:\Code\Constellation\Constellation\lib\ImGui\implot3d_items.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="C:\Code\Constellation\Constellation\lib\ImGui\imgui-knobs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="C:\Code\Constellation\Constellation\lib\ImGui\imgui_impl_glfw.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -46,6 +49,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="C:\Code\Constellation\Constellation\lib\ImGui\implot3d_internal.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Code\Constellation\Constellation\lib\ImGui\imgui-knobs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

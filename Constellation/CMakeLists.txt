@@ -39,6 +39,9 @@ add_library("ImGui" "${IMGUI_DIR}/imgui.cpp"
 "${IMGUI_DIR}/implot3d_internal.h"
 "${IMGUI_DIR}/implot3d_items.cpp"
 
+"${IMGUI_DIR}/imgui-knobs.h"
+"${IMGUI_DIR}/imgui-knobs.cpp"
+
 "${IMGUI_DIR}/imgui_impl_glfw.cpp"
 "${IMGUI_DIR}/imgui_impl_opengl3.cpp")
 

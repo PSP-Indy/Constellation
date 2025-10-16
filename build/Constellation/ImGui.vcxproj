@@ -309,6 +309,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="C:\Code\Constellation\Constellation\lib\ImGui\implot3d.cpp" />
     <ClInclude Include="C:\Code\Constellation\Constellation\lib\ImGui\implot3d_internal.h" />
     <ClCompile Include="C:\Code\Constellation\Constellation\lib\ImGui\implot3d_items.cpp" />
+    <ClInclude Include="C:\Code\Constellation\Constellation\lib\ImGui\imgui-knobs.h" />
+    <ClCompile Include="C:\Code\Constellation\Constellation\lib\ImGui\imgui-knobs.cpp" />
     <ClCompile Include="C:\Code\Constellation\Constellation\lib\ImGui\imgui_impl_glfw.cpp" />
     <ClCompile Include="C:\Code\Constellation\Constellation\lib\ImGui\imgui_impl_opengl3.cpp" />
   </ItemGroup>
