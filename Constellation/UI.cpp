@@ -41,6 +41,10 @@ bool auto_scale_slice_plot_Y = false;
 float time_start = 0.0f;
 float time_end = 1.0f;
 
+float apogee = -FLT_MAX;
+float fastest_speed = -FLT_MAX;
+float fastest_aceleration = -FLT_MAX;
+
 bool diagnostics_open = false;
 
 void UI::NewFrame()
@@ -178,6 +182,24 @@ void UI::Update()
 	}
 	ImGui::End();
 
+	ImGui::Begin("Flight Data");
+
+	if (rocket_data->z_values.at(rocket_data->z_values.size() - 1) > apogee)
+		apogee = rocket_data->z_values.at(rocket_data->z_values.size() - 1);
+	ImGui::InputFloat("Apogee", &apogee);
+
+	if (rocket_data->v_values.at(rocket_data->v_values.size() - 1) > fastest_speed)
+		fastest_speed = rocket_data->v_values.at(rocket_data->v_values.size() - 1);
+	ImGui::InputFloat("Max Speed", &fastest_speed);
+
+	if (rocket_data->a_values.at(rocket_data->a_values.size() - 1) > fastest_aceleration)
+		fastest_aceleration = rocket_data->a_values.at(rocket_data->a_values.size() - 1);
+	ImGui::InputFloat("Max Acceleration", &fastest_aceleration);
+
+	ImGui::Text();
+
+	ImGui::End();
+	
 	ImGui::Begin("Network Manager");
 	ImGui::End();
 }
