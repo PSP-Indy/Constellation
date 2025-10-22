@@ -1,0 +1,19 @@
+Build config files:
+
+mkdir build
+cd build
+cmake ..
+
+
+Release:
+
+cmake --build . --config Release
+cd Release
+./Constellation.exe
+
+
+Debug:
+
+cmake --build . --config Debug
+cd Debug
+./Constellation.exe
