@@ -7,8 +7,34 @@ UI::UI()
 	
 }
 
+bool velocity_plot = true;
+bool acceleration_plot = false;
+bool position_plot = false;
+bool rotation_plot = false;
+
+bool auto_scale_slice_plot_X = true;
+bool auto_scale_slice_plot_Y = false;
+
+float time_start = 0.0f;
+float time_end = 1.0f;
+
+float apogee = -FLT_MAX;
+float fastest_speed = -FLT_MAX;
+float fastest_aceleration = -FLT_MAX;
+
+bool diagnostics_open = false;
+
+std::string date_string = "";
+
 void UI::Init(GLFWwindow* window, const char* glsl_version)
 {
+	auto now = std::chrono::system_clock::now();
+    std::time_t currentTime_t = std::chrono::system_clock::to_time_t(now);
+    std::tm* localTime = std::localtime(&currentTime_t);
+    std::stringstream ss;
+    ss << std::put_time(localTime, "%Y-%m-%d");
+	date_string = ss.str();
+
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImPlot::CreateContext();
@@ -30,22 +56,6 @@ void UI::Init(GLFWwindow* window, const char* glsl_version)
 	ImGui::StyleColorsDark();
 }
 
-bool velocity_plot = true;
-bool acceleration_plot = false;
-bool position_plot = false;
-bool rotation_plot = false;
-
-bool auto_scale_slice_plot_X = true;
-bool auto_scale_slice_plot_Y = false;
-
-float time_start = 0.0f;
-float time_end = 1.0f;
-
-float apogee = -FLT_MAX;
-float fastest_speed = -FLT_MAX;
-float fastest_aceleration = -FLT_MAX;
-
-bool diagnostics_open = false;
 
 void UI::NewFrame()
 {
@@ -186,21 +196,63 @@ void UI::Update()
 
 	if (rocket_data->z_values.at(rocket_data->z_values.size() - 1) > apogee)
 		apogee = rocket_data->z_values.at(rocket_data->z_values.size() - 1);
-	ImGui::InputFloat("Apogee", &apogee);
+	ImGui::InputFloat("Apogee", &apogee, 0.0f, 0.0f, "%.3f", ImGuiInputTextFlags_ReadOnly);
 
 	if (rocket_data->v_values.at(rocket_data->v_values.size() - 1) > fastest_speed)
 		fastest_speed = rocket_data->v_values.at(rocket_data->v_values.size() - 1);
-	ImGui::InputFloat("Max Speed", &fastest_speed);
+	ImGui::InputFloat("Max Speed", &fastest_speed, 0.0f, 0.0f, "%.3f", ImGuiInputTextFlags_ReadOnly);
 
 	if (rocket_data->a_values.at(rocket_data->a_values.size() - 1) > fastest_aceleration)
 		fastest_aceleration = rocket_data->a_values.at(rocket_data->a_values.size() - 1);
-	ImGui::InputFloat("Max Acceleration", &fastest_aceleration);
+	ImGui::InputFloat("Max Acceleration", &fastest_aceleration, 0.0f, 0.0f, "%.3f", ImGuiInputTextFlags_ReadOnly);
 
-	ImGui::Text();
+	char date_string_input[11] = "";
+	strncpy(date_string_input, date_string.c_str(), 11);
+	ImGui::InputText("Date", date_string_input, 11, ImGuiInputTextFlags_ReadOnly);
+
+	char time_string_input[11];
+	if (rocket_data->launch_time != NULL)
+	{
+		std::tm* tm_time = std::localtime(&rocket_data->launch_time);
+		std::strftime(time_string_input, sizeof(time_string_input), "%H:%M:%S", tm_time);
+	}
+	else
+	{
+		strncpy(time_string_input, "NO LAUNCH", 11);
+	}	
+	ImGui::InputText("Launch Time", time_string_input, 11, ImGuiInputTextFlags_ReadOnly);
+
+	char time_since_launch_string_input[11];
+	if (rocket_data->launch_time != NULL)
+	{
+		auto now = std::chrono::system_clock::now();
+		std::time_t currentTime_t = std::chrono::system_clock::to_time_t(now);
+		int difference_in_seconds = difftime(currentTime_t, rocket_data->launch_time);
+		strncpy(time_since_launch_string_input, std::to_string(difference_in_seconds).c_str(), 11);
+	}
+	else
+	{
+		strncpy(time_since_launch_string_input, "NO LAUNCH", 11);
+	}	
+	ImGui::InputText("Seconds Since Launch", time_since_launch_string_input, 11, ImGuiInputTextFlags_ReadOnly);
 
 	ImGui::End();
-	
-	ImGui::Begin("Network Manager");
+
+	ImGui::Begin("Launch Manager");
+	if (rocket_data->launch_time == NULL)
+	{
+		if (ImGui::Button("Launch Rocket", ImVec2(-1, 70)))
+		{
+			auto now = std::chrono::system_clock::now();
+			std::time_t currentTime_t = std::chrono::system_clock::to_time_t(now);
+			rocket_data->launch_time = currentTime_t;
+
+			if (rocket_data->launch_rocket != NULL)
+			{	
+				rocket_data->launch_rocket(rocket_data->hSerial, rocket_data);
+			}
+		}
+	}
 	ImGui::End();
 }
 

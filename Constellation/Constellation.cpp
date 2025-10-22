@@ -101,6 +101,11 @@ void WriteDataToFile(std::vector<float> data, std::string label, std::ofstream* 
 	*outputFile << std::endl;
 }
 
+void LaunchRocket(HANDLE hSerial, UI::data_values* data)
+{
+
+}
+
 int main()
 {
 	//GLOBAL USE VARIABLES
@@ -138,6 +143,8 @@ int main()
 			if (!SetCommTimeouts(hSerial, &timeouts)) {
 				std::cout << "Failed to set timouts, aborting serial communication." << std::endl;
 			} else {
+				data.launch_rocket = LaunchRocket;
+				data.hSerial = hSerial;
 				std::thread serial_thread(ProcessSerialData, hSerial, &data);
 				serial_thread.detach();
 			}

@@ -31,6 +31,12 @@ public:
 
 		std::vector<float> x_rot_values = {0};
 		std::vector<float> y_rot_values = {0};
+
+    	std::time_t launch_time = NULL;
+
+		HANDLE hSerial;
+
+		void (*launch_rocket)(HANDLE hSerial, data_values* data) = NULL;
 	};
 
 	UI();
