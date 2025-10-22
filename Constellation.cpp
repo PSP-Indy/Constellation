@@ -183,8 +183,6 @@ int main()
 
 	gui->Init(window, glsl_version);
 
-	bool firstFrame = true;
-
 	while (!glfwWindowShouldClose(window)) {
 		auto start = high_resolution_clock::now();
 		glfwPollEvents();

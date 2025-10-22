@@ -54,13 +54,13 @@ public:
 		this->rocket_data = data_values;
 	}
 
-	int FindClosestIndex(std::vector<float> values, float target)
+	int FindClosestIndex(const std::vector<float>* values, float target)
 	{
 		float closest_dist = FLT_MAX;
 		int closest_index = 0;
-		for (int idx = 0; idx < values.size(); idx++)
+		for (size_t idx = 0; idx < values->size(); idx++)
 		{
-			float dist = abs(values.at(idx) - target);
+			float dist = std::fabs(values->at(idx) - target);
 			if (dist < closest_dist)
 			{
 				closest_dist = dist;
@@ -71,12 +71,12 @@ public:
 		return closest_index;
 	}
 
-	std::vector<float> SubArray(std::vector<float> values, int start, int end)
+	std::vector<float> SubArray(const std::vector<float>* values, int start, int end)
 	{
 		std::vector<float> sub_array;
 		for(int i = 0; i < (end-start); i++) 
 		{
-			sub_array.push_back(values.at(start + i));
+			sub_array.push_back(values->at(start + i));
 		}
 		return sub_array;
 	}

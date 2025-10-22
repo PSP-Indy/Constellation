@@ -150,8 +150,8 @@ void UI::Update()
 	ImGui::SameLine();
 	ImGui::Checkbox("Auto Scale Value Axis", &auto_scale_slice_plot_Y);
 
-	int start_index = FindClosestIndex(rocket_data->t_values, time_start);
-	int end_index = FindClosestIndex(rocket_data->t_values, time_end);
+	int start_index = FindClosestIndex(&(rocket_data->t_values), time_start);
+	int end_index = FindClosestIndex(&(rocket_data->t_values), time_end);
 
 	if (end_index <= start_index) { end_index = start_index + 1; }
 	if (start_index >= end_index) { start_index = end_index - 1; }
@@ -163,15 +163,15 @@ void UI::Update()
 		if (auto_scale_slice_plot_X) { ImPlot::SetupAxis(ImAxis_X1, "Time (s)", ImPlotAxisFlags_AutoFit); }
 		if (auto_scale_slice_plot_Y) { ImPlot::SetupAxis(ImAxis_Y1, "Value", ImPlotAxisFlags_AutoFit); }
 
-		std::vector<float> t_values_clipped = SubArray(rocket_data->t_values, start_index, end_index);
+		std::vector<float> t_values_clipped = SubArray(&(rocket_data->t_values), start_index, end_index);
 
-		if (velocity_plot) { ImPlot::PlotLine("Velocity", t_values_clipped.data(), SubArray(rocket_data->v_values, start_index, end_index).data(), static_cast<int>(t_values_clipped.size())); }
-		if (acceleration_plot) { ImPlot::PlotLine("Acceleration", t_values_clipped.data(), SubArray(rocket_data->a_values, start_index, end_index).data(), static_cast<int>(t_values_clipped.size())); }
-		if (position_plot) { ImPlot::PlotLine("X Postion", t_values_clipped.data(), SubArray(rocket_data->x_values, start_index, end_index).data(), static_cast<int>(t_values_clipped.size())); }
-		if (position_plot) { ImPlot::PlotLine("Y Position", t_values_clipped.data(), SubArray(rocket_data->y_values, start_index, end_index).data(), static_cast<int>(t_values_clipped.size())); }
-		if (position_plot) { ImPlot::PlotLine("Z Position", t_values_clipped.data(), SubArray(rocket_data->z_values, start_index, end_index).data(), static_cast<int>(t_values_clipped.size())); }
-		if (rotation_plot) { ImPlot::PlotLine("X Rotation", t_values_clipped.data(), SubArray(rocket_data->x_rot_values, start_index, end_index).data(), static_cast<int>(t_values_clipped.size())); }
-		if (rotation_plot) { ImPlot::PlotLine("Y Rotation", t_values_clipped.data(), SubArray(rocket_data->y_rot_values, start_index, end_index).data(), static_cast<int>(t_values_clipped.size())); }
+		if (velocity_plot) { ImPlot::PlotLine("Velocity", t_values_clipped.data(), SubArray(&(rocket_data->v_values), start_index, end_index).data(), static_cast<int>(t_values_clipped.size())); }
+		if (acceleration_plot) { ImPlot::PlotLine("Acceleration", t_values_clipped.data(), SubArray(&(rocket_data->a_values), start_index, end_index).data(), static_cast<int>(t_values_clipped.size())); }
+		if (position_plot) { ImPlot::PlotLine("X Postion", t_values_clipped.data(), SubArray(&(rocket_data->x_values), start_index, end_index).data(), static_cast<int>(t_values_clipped.size())); }
+		if (position_plot) { ImPlot::PlotLine("Y Position", t_values_clipped.data(), SubArray(&(rocket_data->y_values), start_index, end_index).data(), static_cast<int>(t_values_clipped.size())); }
+		if (position_plot) { ImPlot::PlotLine("Z Position", t_values_clipped.data(), SubArray(&(rocket_data->z_values), start_index, end_index).data(), static_cast<int>(t_values_clipped.size())); }
+		if (rotation_plot) { ImPlot::PlotLine("X Rotation", t_values_clipped.data(), SubArray(&(rocket_data->x_rot_values), start_index, end_index).data(), static_cast<int>(t_values_clipped.size())); }
+		if (rotation_plot) { ImPlot::PlotLine("Y Rotation", t_values_clipped.data(), SubArray(&(rocket_data->y_rot_values), start_index, end_index).data(), static_cast<int>(t_values_clipped.size())); }
 		
 		ImPlot::EndPlot();
 	}
