@@ -126,6 +126,7 @@ void UI::Update()
         ImPlot::SetupAxis(ImAxis_Y1, "Rotation (Rad)", ImPlotAxisFlags_AutoFit);
 		ImPlot::PlotLine("X Rotation", rocket_data->t_values.data(),  rocket_data->x_rot_values.data(), static_cast<int>(rocket_data->t_values.size()));
 		ImPlot::PlotLine("Y Rotation", rocket_data->t_values.data(),  rocket_data->y_rot_values.data(), static_cast<int>(rocket_data->t_values.size()));
+		ImPlot::PlotLine("Z Rotation", rocket_data->t_values.data(),  rocket_data->z_rot_values.data(), static_cast<int>(rocket_data->t_values.size()));
 		ImPlot::EndPlot();
 	}
 	ImGui::End();
@@ -172,6 +173,7 @@ void UI::Update()
 		if (position_plot) { ImPlot::PlotLine("Z Position", t_values_clipped.data(), SubArray(&(rocket_data->z_values), start_index, end_index).data(), static_cast<int>(t_values_clipped.size())); }
 		if (rotation_plot) { ImPlot::PlotLine("X Rotation", t_values_clipped.data(), SubArray(&(rocket_data->x_rot_values), start_index, end_index).data(), static_cast<int>(t_values_clipped.size())); }
 		if (rotation_plot) { ImPlot::PlotLine("Y Rotation", t_values_clipped.data(), SubArray(&(rocket_data->y_rot_values), start_index, end_index).data(), static_cast<int>(t_values_clipped.size())); }
+		if (rotation_plot) { ImPlot::PlotLine("Y Rotation", t_values_clipped.data(), SubArray(&(rocket_data->z_rot_values), start_index, end_index).data(), static_cast<int>(t_values_clipped.size())); }
 		
 		ImPlot::EndPlot();
 	}

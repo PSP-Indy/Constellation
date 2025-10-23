@@ -31,6 +31,7 @@ public:
 
 		std::vector<float> x_rot_values = {0};
 		std::vector<float> y_rot_values = {0};
+		std::vector<float> z_rot_values = {0};
 
     	std::time_t launch_time = NULL;
 

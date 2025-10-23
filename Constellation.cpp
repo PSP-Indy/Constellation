@@ -57,6 +57,7 @@ void FakeSerialData(UI::data_values* data)
 		data->z_values.push_back(dist(engine));
 		data->x_rot_values.push_back(dist(engine));
 		data->y_rot_values.push_back(dist(engine));
+		data->z_rot_values.push_back(dist(engine));
 
 		valueLock.unlock();
 		std::this_thread::sleep_for(std::chrono::milliseconds(500));
@@ -82,6 +83,8 @@ void ProcessSerialData(HANDLE hSerial, UI::data_values* data) {
 			data->z_values.push_back(CharStringToFloat(readBuffer, 20));
 			data->x_rot_values.push_back(CharStringToFloat(readBuffer, 24));
 			data->y_rot_values.push_back(CharStringToFloat(readBuffer, 28));
+			data->z_rot_values.push_back(CharStringToFloat(readBuffer, 32));
+
 
 			valueLock.unlock();
 		}
