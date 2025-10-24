@@ -4,7 +4,6 @@
 
 UI::UI()
 {
-	
 }
 
 float scale_factor = 1.0f;
@@ -30,24 +29,27 @@ static const char* rebuild_ui_config = NULL;
 
 std::string date_string = "";
 
-void UI::Init(GLFWwindow* window, const char* glsl_version)
+void UI::Init(GLFWwindow *window, const char *glsl_version)
 {
 	auto now = std::chrono::system_clock::now();
-    std::time_t currentTime_t = std::chrono::system_clock::to_time_t(now);
-    std::tm* localTime = std::localtime(&currentTime_t);
-    std::stringstream ss;
-    ss << std::put_time(localTime, "%Y-%m-%d");
+	std::time_t currentTime_t = std::chrono::system_clock::to_time_t(now);
+	std::tm *localTime = std::localtime(&currentTime_t);
+	std::stringstream ss;
+	ss << std::put_time(localTime, "%Y-%m-%d");
 	date_string = ss.str();
 
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImPlot::CreateContext();
 	ImPlot3D::CreateContext();
-
-	ImGuiStyle& style = ImGui::GetStyle();
 	ImGuiIO& io = ImGui::GetIO();
 
-	io.IniFilename = "Assets/imgui.ini";
+	float scale_factor = 1.5;
+	ImFont* largeFont = io.Fonts->AddFontFromFileTTF("DuruSans-Regular.ttf", roundf(16 * scale_factor));
+	io.Fonts->Build();
+
+	ImGuiStyle& style = ImGui::GetStyle();
+	style.ScaleAllSizes(scale_factor);
 
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
@@ -72,7 +74,6 @@ void UI::Init(GLFWwindow* window, const char* glsl_version)
 	ImPlot::AddColormap("go_grid_colors", color_ptr, 3);
 }
 
-
 void UI::NewFrame()
 {
 	if (rebuild_ui_config != NULL) 
@@ -92,7 +93,8 @@ void UI::Update()
 
 	#pragma region MenuBar
 	ImGui::BeginMainMenuBar();
-	if (ImGui::MenuItem("Application Diagnostics")) {
+	if (ImGui::MenuItem("Application Diagnostics"))
+	{
 		diagnostics_open = !diagnostics_open;
 	}
 	if (ImGui::BeginMenu("UI Configuraitions")) {
@@ -124,7 +126,8 @@ void UI::Update()
 		std::string private_bytes_str = "ERROR";
 
 		PROCESS_MEMORY_COUNTERS_EX pmc;
-		if (GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc))) {
+		if (GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS *)&pmc, sizeof(pmc)))
+		{
 			working_set_size_str = std::string("Working Set Size: ").append(std::to_string(pmc.WorkingSetSize / (1024 * 1024))).append(std::string(" MB"));
 			private_bytes_str = std::string("Private Bytes: ").append(std::to_string(pmc.PrivateUsage / (1024 * 1024))).append(std::string(" MB"));
 		}
@@ -138,10 +141,11 @@ void UI::Update()
 
 	#pragma region VelocityPlot
 	ImGui::Begin("Velocity");
-	if (ImPlot::BeginPlot("Velocity (ft/s) vs Time (s)", ImVec2(-1, -1))) {
-		ImPlot::SetupAxis(ImAxis_X1, "Time (s)", ImPlotAxisFlags_AutoFit); 
-        ImPlot::SetupAxis(ImAxis_Y1, "Velocity (ft/s)", ImPlotAxisFlags_AutoFit);
-		ImPlot::PlotLine("", rocket_data->t_values.data(),  rocket_data->v_values.data(), static_cast<int>(rocket_data->t_values.size()));
+	if (ImPlot::BeginPlot("Velocity (ft/s) vs Time (s)", ImVec2(-1, -1)))
+	{
+		ImPlot::SetupAxis(ImAxis_X1, "Time (s)", ImPlotAxisFlags_AutoFit);
+		ImPlot::SetupAxis(ImAxis_Y1, "Velocity (ft/s)", ImPlotAxisFlags_AutoFit);
+		ImPlot::PlotLine("", rocket_data->t_values.data(), rocket_data->v_values.data(), static_cast<int>(rocket_data->t_values.size()));
 		ImPlot::EndPlot();
 	}
 	ImGui::End();
@@ -149,10 +153,11 @@ void UI::Update()
 
 	#pragma region AccelerationPlot
 	ImGui::Begin("Acceleration");
-	if (ImPlot::BeginPlot("Acceleration (ft/s/s) vs Time (s)", ImVec2(-1, -1))) {
-		ImPlot::SetupAxis(ImAxis_X1, "Time (s)", ImPlotAxisFlags_AutoFit); 
-        ImPlot::SetupAxis(ImAxis_Y1, "Acceleration (ft/s/s)", ImPlotAxisFlags_AutoFit);
-		ImPlot::PlotLine("", rocket_data->t_values.data(),  rocket_data->a_values.data(), static_cast<int>(rocket_data->t_values.size()));
+	if (ImPlot::BeginPlot("Acceleration (ft/s/s) vs Time (s)", ImVec2(-1, -1)))
+	{
+		ImPlot::SetupAxis(ImAxis_X1, "Time (s)", ImPlotAxisFlags_AutoFit);
+		ImPlot::SetupAxis(ImAxis_Y1, "Acceleration (ft/s/s)", ImPlotAxisFlags_AutoFit);
+		ImPlot::PlotLine("", rocket_data->t_values.data(), rocket_data->a_values.data(), static_cast<int>(rocket_data->t_values.size()));
 		ImPlot::EndPlot();
 	}
 	ImGui::End();
@@ -160,12 +165,13 @@ void UI::Update()
 
 	#pragma region PositionPlot
 	ImGui::Begin("Position");
-	if (ImPlot::BeginPlot("Position (ft) vs Time (s)", ImVec2(-1, -1))) {
-		ImPlot::SetupAxis(ImAxis_X1, "Time (s)", ImPlotAxisFlags_AutoFit); 
-        ImPlot::SetupAxis(ImAxis_Y1, "Position (ft)", ImPlotAxisFlags_AutoFit);
-		ImPlot::PlotLine("X Positition", rocket_data->t_values.data(),  rocket_data->x_values.data(), static_cast<int>(rocket_data->t_values.size()));
-		ImPlot::PlotLine("Y Positition", rocket_data->t_values.data(),  rocket_data->y_values.data(), static_cast<int>(rocket_data->t_values.size()));
-		ImPlot::PlotLine("Z Positition", rocket_data->t_values.data(),  rocket_data->z_values.data(), static_cast<int>(rocket_data->t_values.size()));
+	if (ImPlot::BeginPlot("Position (ft) vs Time (s)", ImVec2(-1, -1)))
+	{
+		ImPlot::SetupAxis(ImAxis_X1, "Time (s)", ImPlotAxisFlags_AutoFit);
+		ImPlot::SetupAxis(ImAxis_Y1, "Position (ft)", ImPlotAxisFlags_AutoFit);
+		ImPlot::PlotLine("X Positition", rocket_data->t_values.data(), rocket_data->x_values.data(), static_cast<int>(rocket_data->t_values.size()));
+		ImPlot::PlotLine("Y Positition", rocket_data->t_values.data(), rocket_data->y_values.data(), static_cast<int>(rocket_data->t_values.size()));
+		ImPlot::PlotLine("Z Positition", rocket_data->t_values.data(), rocket_data->z_values.data(), static_cast<int>(rocket_data->t_values.size()));
 		ImPlot::EndPlot();
 	}
 	ImGui::End();
@@ -173,12 +179,13 @@ void UI::Update()
 
 	#pragma region RotationPlot
 	ImGui::Begin("Rotation");
-	if (ImPlot::BeginPlot("Rotation (Rad) vs Time (s)", ImVec2(-1, -1))) {
-		ImPlot::SetupAxis(ImAxis_X1, "Time (s)", ImPlotAxisFlags_AutoFit); 
-        ImPlot::SetupAxis(ImAxis_Y1, "Rotation (Rad)", ImPlotAxisFlags_AutoFit);
-		ImPlot::PlotLine("X Rotation", rocket_data->t_values.data(),  rocket_data->x_rot_values.data(), static_cast<int>(rocket_data->t_values.size()));
-		ImPlot::PlotLine("Y Rotation", rocket_data->t_values.data(),  rocket_data->y_rot_values.data(), static_cast<int>(rocket_data->t_values.size()));
-		ImPlot::PlotLine("Z Rotation", rocket_data->t_values.data(),  rocket_data->z_rot_values.data(), static_cast<int>(rocket_data->t_values.size()));
+	if (ImPlot::BeginPlot("Rotation (Rad) vs Time (s)", ImVec2(-1, -1)))
+	{
+		ImPlot::SetupAxis(ImAxis_X1, "Time (s)", ImPlotAxisFlags_AutoFit);
+		ImPlot::SetupAxis(ImAxis_Y1, "Rotation (Rad)", ImPlotAxisFlags_AutoFit);
+		ImPlot::PlotLine("X Rotation", rocket_data->t_values.data(), rocket_data->x_rot_values.data(), static_cast<int>(rocket_data->t_values.size()));
+		ImPlot::PlotLine("Y Rotation", rocket_data->t_values.data(), rocket_data->y_rot_values.data(), static_cast<int>(rocket_data->t_values.size()));
+		ImPlot::PlotLine("Z Rotation", rocket_data->t_values.data(), rocket_data->z_rot_values.data(), static_cast<int>(rocket_data->t_values.size()));
 		ImPlot::EndPlot();
 	}
 	ImGui::End();
@@ -208,27 +215,64 @@ void UI::Update()
 	int start_index = FindClosestIndex(&(rocket_data->t_values), time_start);
 	int end_index = FindClosestIndex(&(rocket_data->t_values), time_end);
 
-	if (end_index <= start_index) { end_index = start_index + 1; }
-	if (start_index >= end_index) { start_index = end_index - 1; }
+	if (end_index <= start_index)
+	{
+		end_index = start_index + 1;
+	}
+	if (start_index >= end_index)
+	{
+		start_index = end_index - 1;
+	}
 
-	if (ImPlot::BeginPlot("Time Sliced Plot", ImVec2(-1, -1))) {
-		ImPlot::SetupAxis(ImAxis_X1, "Time (s)"); 
-        ImPlot::SetupAxis(ImAxis_Y1, "Value");
+	if (ImPlot::BeginPlot("Time Sliced Plot", ImVec2(-1, -1)))
+	{
+		ImPlot::SetupAxis(ImAxis_X1, "Time (s)");
+		ImPlot::SetupAxis(ImAxis_Y1, "Value");
 
-		if (auto_scale_slice_plot_X) { ImPlot::SetupAxis(ImAxis_X1, "Time (s)", ImPlotAxisFlags_AutoFit); }
-		if (auto_scale_slice_plot_Y) { ImPlot::SetupAxis(ImAxis_Y1, "Value", ImPlotAxisFlags_AutoFit); }
+		if (auto_scale_slice_plot_X)
+		{
+			ImPlot::SetupAxis(ImAxis_X1, "Time (s)", ImPlotAxisFlags_AutoFit);
+		}
+		if (auto_scale_slice_plot_Y)
+		{
+			ImPlot::SetupAxis(ImAxis_Y1, "Value", ImPlotAxisFlags_AutoFit);
+		}
 
 		std::vector<float> t_values_clipped = SubArray(&(rocket_data->t_values), start_index, end_index);
 
-		if (velocity_plot) { ImPlot::PlotLine("Velocity", t_values_clipped.data(), SubArray(&(rocket_data->v_values), start_index, end_index).data(), static_cast<int>(t_values_clipped.size())); }
-		if (acceleration_plot) { ImPlot::PlotLine("Acceleration", t_values_clipped.data(), SubArray(&(rocket_data->a_values), start_index, end_index).data(), static_cast<int>(t_values_clipped.size())); }
-		if (position_plot) { ImPlot::PlotLine("X Postion", t_values_clipped.data(), SubArray(&(rocket_data->x_values), start_index, end_index).data(), static_cast<int>(t_values_clipped.size())); }
-		if (position_plot) { ImPlot::PlotLine("Y Position", t_values_clipped.data(), SubArray(&(rocket_data->y_values), start_index, end_index).data(), static_cast<int>(t_values_clipped.size())); }
-		if (position_plot) { ImPlot::PlotLine("Z Position", t_values_clipped.data(), SubArray(&(rocket_data->z_values), start_index, end_index).data(), static_cast<int>(t_values_clipped.size())); }
-		if (rotation_plot) { ImPlot::PlotLine("X Rotation", t_values_clipped.data(), SubArray(&(rocket_data->x_rot_values), start_index, end_index).data(), static_cast<int>(t_values_clipped.size())); }
-		if (rotation_plot) { ImPlot::PlotLine("Y Rotation", t_values_clipped.data(), SubArray(&(rocket_data->y_rot_values), start_index, end_index).data(), static_cast<int>(t_values_clipped.size())); }
-		if (rotation_plot) { ImPlot::PlotLine("Y Rotation", t_values_clipped.data(), SubArray(&(rocket_data->z_rot_values), start_index, end_index).data(), static_cast<int>(t_values_clipped.size())); }
-		
+		if (velocity_plot)
+		{
+			ImPlot::PlotLine("Velocity", t_values_clipped.data(), SubArray(&(rocket_data->v_values), start_index, end_index).data(), static_cast<int>(t_values_clipped.size()));
+		}
+		if (acceleration_plot)
+		{
+			ImPlot::PlotLine("Acceleration", t_values_clipped.data(), SubArray(&(rocket_data->a_values), start_index, end_index).data(), static_cast<int>(t_values_clipped.size()));
+		}
+		if (position_plot)
+		{
+			ImPlot::PlotLine("X Postion", t_values_clipped.data(), SubArray(&(rocket_data->x_values), start_index, end_index).data(), static_cast<int>(t_values_clipped.size()));
+		}
+		if (position_plot)
+		{
+			ImPlot::PlotLine("Y Position", t_values_clipped.data(), SubArray(&(rocket_data->y_values), start_index, end_index).data(), static_cast<int>(t_values_clipped.size()));
+		}
+		if (position_plot)
+		{
+			ImPlot::PlotLine("Z Position", t_values_clipped.data(), SubArray(&(rocket_data->z_values), start_index, end_index).data(), static_cast<int>(t_values_clipped.size()));
+		}
+		if (rotation_plot)
+		{
+			ImPlot::PlotLine("X Rotation", t_values_clipped.data(), SubArray(&(rocket_data->x_rot_values), start_index, end_index).data(), static_cast<int>(t_values_clipped.size()));
+		}
+		if (rotation_plot)
+		{
+			ImPlot::PlotLine("Y Rotation", t_values_clipped.data(), SubArray(&(rocket_data->y_rot_values), start_index, end_index).data(), static_cast<int>(t_values_clipped.size()));
+		}
+		if (rotation_plot)
+		{
+			ImPlot::PlotLine("Y Rotation", t_values_clipped.data(), SubArray(&(rocket_data->z_rot_values), start_index, end_index).data(), static_cast<int>(t_values_clipped.size()));
+		}
+
 		ImPlot::EndPlot();
 	}
 	ImGui::End();
@@ -239,12 +283,7 @@ void UI::Update()
 	RotateModel(rocket_vertices, &rocket_vertices_rotated, 3.14f / 2.0f + rocket_data->x_rot_values.back(), rocket_data->y_rot_values.back());
 	
 	ImGui::Begin("3D Rotation Visualizer");
-
-	int x_region_avail = (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x);
-	int y_region_avail = (ImGui::GetContentRegionAvail().y - 230 - ImGui::GetStyle().ItemSpacing.y);
-	int smallest_region = x_region_avail < y_region_avail ? x_region_avail : y_region_avail;
-
-	if (ImPlot3D::BeginPlot("3D Rotation", ImVec2(smallest_region, smallest_region))) {
+	if (ImPlot3D::BeginPlot("3D Rotation", ImVec2(-1, -1))) {
 		ImPlot3D::SetupAxisLimits(ImAxis3D_X, 0, 1);
 		ImPlot3D::SetupAxisLimits(ImAxis3D_Y, 0, 1);
 		ImPlot3D::SetupAxisLimits(ImAxis3D_Z, 0, 1);
@@ -305,13 +344,13 @@ void UI::Update()
 	char time_string_input[11];
 	if (rocket_data->launch_time != NULL)
 	{
-		std::tm* tm_time = std::localtime(&rocket_data->launch_time);
+		std::tm *tm_time = std::localtime(&rocket_data->launch_time);
 		std::strftime(time_string_input, sizeof(time_string_input), "%H:%M:%S", tm_time);
 	}
 	else
 	{
 		strncpy(time_string_input, "NO LAUNCH", 11);
-	}	
+	}
 	ImGui::InputText("Launch Time", time_string_input, 11, ImGuiInputTextFlags_ReadOnly);
 
 	char time_since_launch_string_input[11];
@@ -325,7 +364,7 @@ void UI::Update()
 	else
 	{
 		strncpy(time_since_launch_string_input, "NO LAUNCH", 11);
-	}	
+	}
 	ImGui::InputText("Seconds Since Launch", time_since_launch_string_input, 11, ImGuiInputTextFlags_ReadOnly);
 
 	ImGui::End();
@@ -369,7 +408,7 @@ void UI::Update()
 			rocket_data->launch_time = currentTime_t;
 
 			if (rocket_data->launch_rocket != NULL)
-			{	
+			{
 				rocket_data->launch_rocket(rocket_data->hSerial, rocket_data);
 			}
 		}
@@ -378,7 +417,7 @@ void UI::Update()
 	#pragma endregion
 }
 
-void UI::Render(GLFWwindow* window)
+void UI::Render(GLFWwindow *window)
 {
 	ImGui::Render();
 	glClearColor(1.00f, 1.00f, 1.00f, 1.00f);
@@ -400,27 +439,66 @@ void UI::Shutdown()
 	ImGui::DestroyContext();
 }
 
-void UI::RotateModel(std::vector<ImPlot3DPoint> vertices, std::vector<ImPlot3DPoint>* rotated_vertices, float x_rotation, float y_rotation)
-{
-    for (ImPlot3DPoint vert : vertices) {
-        ImPlot3DPoint centered_vert = {vert[0] - 0.5f, vert[1] - 0.5f, vert[2] - 0.5f};
-		
-		ImPlot3DPoint rotated_vert_x = {centered_vert[0], centered_vert[1] * cos(x_rotation) - centered_vert[2] * sin(x_rotation), centered_vert[1] * sin(x_rotation) + centered_vert[2] * cos(x_rotation)};
-		ImPlot3DPoint rotated_vert_y = {rotated_vert_x[0] * cos(y_rotation) + rotated_vert_x[2] * sin(y_rotation), rotated_vert_x[1], -rotated_vert_x[0] * sin(y_rotation) + rotated_vert_x[2] * cos(y_rotation)};
+#include <vector>
+#include <cmath>
+#include "implot3d.h" // assuming ImPlot3DPoint is {float x,y,z;}
 
-		ImPlot3DPoint final_vert = {rotated_vert_y[0] + 0.5f, rotated_vert_y[1] + 0.5f, rotated_vert_y[2] + 0.5f};
-		rotated_vertices->push_back(final_vert);
-    }
+void UI::RotateModel(const std::vector<ImPlot3DPoint> vertices,
+					 std::vector<ImPlot3DPoint> *rotated_vertices,
+					 float x_rotation, float y_rotation, float z_rotation)
+{
+	rotated_vertices->clear();
+
+	// Precompute trig values
+	float cx = cosf(x_rotation), sx = sinf(x_rotation);
+	float cy = cosf(y_rotation), sy = sinf(y_rotation);
+	float cz = cosf(z_rotation), sz = sinf(z_rotation);
+
+	// Combined rotation matrix R = Rz * Ry * Rx (right-handed)
+	float R[3][3];
+
+	R[0][0] = cz * cy;
+	R[0][1] = cz * sy * sx - sz * cx;
+	R[0][2] = cz * sy * cx + sz * sx;
+
+	R[1][0] = sz * cy;
+	R[1][1] = sz * sy * sx + cz * cx;
+	R[1][2] = sz * sy * cx - cz * sx;
+
+	R[2][0] = -sy;
+	R[2][1] = cy * sx;
+	R[2][2] = cy * cx;
+
+	// Apply rotation to each vertex
+	for (const auto &vert : vertices)
+	{
+		// Center around (0.5, 0.5, 0.5)
+		float x = vert.x - 0.5f;
+		float y = vert.y - 0.5f;
+		float z = vert.z - 0.5f;
+
+		// Apply rotation matrix
+		ImPlot3DPoint r;
+		r.x = R[0][0] * x + R[0][1] * y + R[0][2] * z;
+		r.y = R[1][0] * x + R[1][1] * y + R[1][2] * z;
+		r.z = R[2][0] * x + R[2][1] * y + R[2][2] * z;
+
+		// Translate back
+		r.x += 0.5f;
+		r.y += 0.5f;
+		r.z += 0.5f;
+
+		rotated_vertices->push_back(r);
+	}
 }
 
 UI::~UI()
 {
 }
 
-UI* UI::Get()
+UI *UI::Get()
 {
 	if (ui == nullptr)
 		ui = new UI();
 	return ui;
 }
-

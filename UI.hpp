@@ -57,7 +57,7 @@ public:
 	void Update();
 	void Render(GLFWwindow* window);
 	void Shutdown();
-	void RotateModel(std::vector<ImPlot3DPoint> vertices, std::vector<ImPlot3DPoint>* rotated_vertices, float x_rotation, float y_rotation);
+	void RotateModel(std::vector<ImPlot3DPoint> vertices, std::vector<ImPlot3DPoint>* rotated_vertices, float x_rotation, float y_rotation, float z_rotation);
 	~UI();
 	static UI* Get();
 
