@@ -241,6 +241,21 @@ void UI::Update()
 	ImGui::End();
 
 	ImGui::Begin("Launch Manager");
+	if (ImPlot::BeginPlot("Go Grid", ImVec2(ImGui::GetContentRegionAvail().x-60-ImGui::GetStyle().ItemSpacing.x, ImGui::GetContentRegionAvail().x-60-ImGui::GetStyle().ItemSpacing.x),ImPlotFlags_NoLegend|ImPlotFlags_NoMouseText))
+	{
+		static ImPlotColormap map = ImPlotColormap_Viridis;
+		ImPlot::PushColormap(map);
+		static float scale_min = 0;
+		static float scale_max = 1.0f;
+		static ImPlotAxisFlags axes_flags = ImPlotAxisFlags_Lock | ImPlotAxisFlags_NoGridLines | ImPlotAxisFlags_NoTickMarks;
+		ImPlot::SetupAxes(nullptr, nullptr, axes_flags, axes_flags);
+		ImPlot::PlotHeatmap("Heatmap", rocket_data->go_grid_values[0], 5, 5, scale_min, scale_max, "", ImPlotPoint(0,0), ImPlotPoint(1,1));
+        ImPlot::EndPlot();
+		ImGui::SameLine();
+		ImPlot::ColormapScale("Heatmap Scale",scale_min, scale_max, ImVec2(60,225));
+		ImPlot::PopColormap();
+	}
+
 	if (rocket_data->launch_time == NULL)
 	{
 		if (ImGui::Button("Launch Rocket", ImVec2(-1, 70)))

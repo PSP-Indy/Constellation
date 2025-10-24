@@ -13,6 +13,7 @@
 #include <mutex>
 #include <fstream>
 #include <random>
+#include <cmath>
 
 #include <Windows.h>
 
@@ -58,6 +59,13 @@ void FakeSerialData(UI::data_values* data)
 		data->x_rot_values.push_back(dist(engine));
 		data->y_rot_values.push_back(dist(engine));
 		data->z_rot_values.push_back(dist(engine));
+
+		for (int i = 0; i < 5; i++) {
+			for (int j = 0; j < 5; j++) {
+				data->go_grid_values[i][j] = fmod((data->go_grid_values[i][j] + (dist(engine) / 1000.0f)), 1.0f);
+				std::cout << data->go_grid_values[i][j] << std::endl;
+			}
+		}
 
 		valueLock.unlock();
 		std::this_thread::sleep_for(std::chrono::milliseconds(500));

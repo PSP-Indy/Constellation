@@ -33,6 +33,8 @@ public:
 		std::vector<float> y_rot_values = {0};
 		std::vector<float> z_rot_values = {0};
 
+		float go_grid_values[5][5];
+
     	std::time_t launch_time = NULL;
 
 		HANDLE hSerial;
