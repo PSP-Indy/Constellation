@@ -249,7 +249,14 @@ void UI::Update()
 		static float scale_max = 1.0f;
 		static ImPlotAxisFlags axes_flags = ImPlotAxisFlags_Lock | ImPlotAxisFlags_NoGridLines | ImPlotAxisFlags_NoTickMarks;
 		ImPlot::SetupAxes(nullptr, nullptr, axes_flags, axes_flags);
-		ImPlot::PlotHeatmap("Heatmap", rocket_data->go_grid_values[0], 5, 5, scale_min, scale_max, "", ImPlotPoint(0,0), ImPlotPoint(1,1));
+		ImPlot::PlotHeatmap("Heatmap", rocket_data->go_grid_values[0], 5, 5, scale_min, scale_max, nullptr, ImPlotPoint(0,0), ImPlotPoint(1,1));
+		
+		for (int i = 0; i < 5; i++) {
+			for (int j = 0; j < 5; j++) {
+				ImPlot::PlotText(go_grid_labels[i][4 - j], (i / 5.0f) + (0.5f / 5.0f), (j / 5.0f) + (0.5f / 5.0f));
+			}
+		}
+
         ImPlot::EndPlot();
 		ImGui::SameLine();
 		ImPlot::ColormapScale("Heatmap Scale",scale_min, scale_max, ImVec2(60,225));

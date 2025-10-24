@@ -63,7 +63,6 @@ void FakeSerialData(UI::data_values* data)
 		for (int i = 0; i < 5; i++) {
 			for (int j = 0; j < 5; j++) {
 				data->go_grid_values[i][j] = fmod((data->go_grid_values[i][j] + (dist(engine) / 1000.0f)), 1.0f);
-				std::cout << data->go_grid_values[i][j] << std::endl;
 			}
 		}
 
