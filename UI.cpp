@@ -7,6 +7,8 @@ UI::UI()
 	
 }
 
+float scale_factor = 1.0f;
+
 bool velocity_plot = true;
 bool acceleration_plot = false;
 bool position_plot = false;
@@ -41,7 +43,6 @@ void UI::Init(GLFWwindow* window, const char* glsl_version)
 	ImPlot3D::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
 
-	float scale_factor = 1.5;
 	ImFont* largeFont = io.Fonts->AddFontFromFileTTF("DuruSans-Regular.ttf", roundf(16 * scale_factor));
 	io.Fonts->Build();
 
@@ -78,6 +79,7 @@ void UI::Update()
 	}
 	ImGui::EndMainMenuBar();
 
+	#pragma region Diagnostics
 	if (diagnostics_open)
 	{
 		std::string working_set_size_str = "ERROR";
@@ -94,7 +96,9 @@ void UI::Update()
 		ImGui::Text(private_bytes_str.c_str());
 		ImGui::End();
 	}
+	#pragma endregion
 
+	#pragma region VelocityPlot
 	ImGui::Begin("Velocity");
 	if (ImPlot::BeginPlot("Velocity (ft/s) vs Time (s)", ImVec2(-1, -1))) {
 		ImPlot::SetupAxis(ImAxis_X1, "Time (s)", ImPlotAxisFlags_AutoFit); 
@@ -103,7 +107,9 @@ void UI::Update()
 		ImPlot::EndPlot();
 	}
 	ImGui::End();
+	#pragma endregion
 
+	#pragma region AccelerationPlot
 	ImGui::Begin("Acceleration");
 	if (ImPlot::BeginPlot("Acceleration (ft/s/s) vs Time (s)", ImVec2(-1, -1))) {
 		ImPlot::SetupAxis(ImAxis_X1, "Time (s)", ImPlotAxisFlags_AutoFit); 
@@ -112,7 +118,9 @@ void UI::Update()
 		ImPlot::EndPlot();
 	}
 	ImGui::End();
+	#pragma endregion
 
+	#pragma region PositionPlot
 	ImGui::Begin("Position");
 	if (ImPlot::BeginPlot("Position (ft) vs Time (s)", ImVec2(-1, -1))) {
 		ImPlot::SetupAxis(ImAxis_X1, "Time (s)", ImPlotAxisFlags_AutoFit); 
@@ -123,7 +131,9 @@ void UI::Update()
 		ImPlot::EndPlot();
 	}
 	ImGui::End();
+	#pragma endregion
 
+	#pragma region RotationPlot
 	ImGui::Begin("Rotation");
 	if (ImPlot::BeginPlot("Rotation (Rad) vs Time (s)", ImVec2(-1, -1))) {
 		ImPlot::SetupAxis(ImAxis_X1, "Time (s)", ImPlotAxisFlags_AutoFit); 
@@ -134,7 +144,9 @@ void UI::Update()
 		ImPlot::EndPlot();
 	}
 	ImGui::End();
+	#pragma endregion
 
+	#pragma region TimeSlicedPlot
 	ImGui::Begin("Time Sliced Plot");
 
 	ImGui::Checkbox("Velocity", &velocity_plot);
@@ -182,13 +194,14 @@ void UI::Update()
 		ImPlot::EndPlot();
 	}
 	ImGui::End();
+	#pragma endregion
 
+	#pragma region 3DRotationVisualizer
 	std::vector<ImPlot3DPoint> rocket_vertices_rotated;
-
 	RotateModel(rocket_vertices, &rocket_vertices_rotated, 3.14f / 2.0f + rocket_data->x_rot_values.back(), rocket_data->y_rot_values.back());
-
+	
 	ImGui::Begin("3D Rotation Visualizer");
-	if (ImPlot3D::BeginPlot("3D Rotation", ImVec2(-1, -1))) {
+	if (ImPlot3D::BeginPlot("3D Rotation", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().x))) {
 		ImPlot3D::SetupAxisLimits(ImAxis3D_X, 0, 1);
 		ImPlot3D::SetupAxisLimits(ImAxis3D_Y, 0, 1);
 		ImPlot3D::SetupAxisLimits(ImAxis3D_Z, 0, 1);
@@ -196,11 +209,27 @@ void UI::Update()
 		ImPlot3D::PlotMesh("Orientation", rocket_vertices_rotated.data(), rocket_indices.data(), static_cast<int>(rocket_vertices_rotated.size()), static_cast<int>(rocket_indices.size()), ImPlot3DMeshFlags_NoLegend);
 		ImPlot3D::EndPlot();
 	}
-	ImGui::End();
 
+	if (ImGui::BeginTable("Rotation Rotary Dial Table", 3, ImGuiTableFlags_None, ImVec2(-1, 0))) 
+	{
+		ImGui::TableNextColumn();
+		ImGuiKnobs::Knob("Rotation X", &(rocket_data->x_rot_values.back()), -3.14159, 3.14159, 0.1f, "%.1f rads", ImGuiKnobVariant_WiperOnly);
+
+		ImGui::TableNextColumn();
+		ImGuiKnobs::Knob("Rotation Y", &(rocket_data->y_rot_values.back()), -3.14159, 3.14159, 0.1f, "%.1f rads", ImGuiKnobVariant_WiperOnly);
+
+		ImGui::TableNextColumn();
+		ImGuiKnobs::Knob("Rotation Z", &(rocket_data->z_rot_values.back()), -3.14159, 3.14159, 0.1f, "%.1f rads", ImGuiKnobVariant_WiperOnly);
+
+		ImGui::EndTable();
+	}
+	ImGui::End();
+	#pragma endregion
+
+	#pragma region FlightData
 	ImGui::Begin("Flight Data");
 
-	if (ImGui::BeginTable("Rotary Dial Table", 3, ImGuiTableFlags_None, ImVec2(-1, 0))) 
+	if (ImGui::BeginTable("Flight Data Rotary Dial Table", 3, ImGuiTableFlags_None, ImVec2(-1, 0))) 
 	{
 		ImGui::TableNextColumn();
 		ImGuiKnobs::Knob("Speed", &(rocket_data->v_values.back()), -100.0f, 100.0f, 0.1f, "%.1f", ImGuiKnobVariant_WiperOnly);
@@ -257,7 +286,9 @@ void UI::Update()
 	ImGui::InputText("Seconds Since Launch", time_since_launch_string_input, 11, ImGuiInputTextFlags_ReadOnly);
 
 	ImGui::End();
+	#pragma endregion
 
+	#pragma region LaunchManager
 	ImGui::Begin("Launch Manager");
 	if (ImPlot::BeginPlot("Go Grid", ImVec2(ImGui::GetContentRegionAvail().x - 60, ImGui::GetContentRegionAvail().x - 60), ImPlotFlags_NoLegend | ImPlotFlags_NoMouseText))
 	{
@@ -298,6 +329,7 @@ void UI::Update()
 		}
 	}
 	ImGui::End();
+	#pragma endregion
 }
 
 void UI::Render(GLFWwindow* window)

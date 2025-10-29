@@ -50,11 +50,13 @@ void FakeSerialData(UI::data_values* data)
 	{
 		valueLock.lock();
 
-		float time = data->t_values.back() + 0.5f;
-		float new_z = data->z_values.back() + (data->v_values.back() * 0.5f) + (data->a_values.back() * 0.5f * 0.5f * 0.5f);
+		float dt = 0.2f;
+
+		float time = data->t_values.back() + dt;
+		float new_z = data->z_values.back() + (data->v_values.back() * dt) + (data->a_values.back() * dt * dt * dt);
 
 		data->t_values.push_back(time);
-		data->v_values.push_back(new_z >= 0 ? (data->v_values.back() + (data->a_values.back() * 0.5f)) : 0.0f);
+		data->v_values.push_back(new_z >= 0 ? (data->v_values.back() + (data->a_values.back() * dt)) : 0.0f);
 		data->a_values.push_back(new_z >= 0 ? (time <= 10.0f ? 0.0f : (time <= 20.0f ? 5.0f : -9.8f)) : 0.0f);
 		data->x_values.push_back(0);
 		data->y_values.push_back(0);
@@ -65,12 +67,12 @@ void FakeSerialData(UI::data_values* data)
 
 		for (int i = 0; i < 5; i++) {
 			for (int j = 0; j < 5; j++) {
-				data->go_grid_values[i][j] = fmod((data->go_grid_values[i][j] + (dist(engine) / 1000.0f)), 1.0f);
+				data->go_grid_values[i][j] = fmod(((data->go_grid_values[i][j] + (dist(engine) + 100.0f) / 500.0f)), 1.0f);
 			}
 		}
 
 		valueLock.unlock();
-		std::this_thread::sleep_for(std::chrono::milliseconds(500));
+		std::this_thread::sleep_for(std::chrono::milliseconds((int)(dt * 1000)));
 	}
 }
 
