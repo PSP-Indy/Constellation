@@ -54,6 +54,10 @@ void UI::Init(GLFWwindow* window, const char* glsl_version)
 	ImGui_ImplOpenGL3_Init(glsl_version);
 
 	ImGui::StyleColorsDark();
+
+	const ImVec4 colors[] = {ImVec4{219.0f / 256.0f, 66.0f / 256.0f, 66.0f / 256.0f, 1.0f}, ImVec4{219.0f / 256.0f, 140.0f / 256.0f, 66.0f / 256.0f, 1.0f}, ImVec4{104.0f / 256.0f, 173.0f / 256.0f, 92.0f / 256.0f, 1.0f}};
+	const ImVec4* color_ptr = colors;
+	ImPlot::AddColormap("go_grid_colors", color_ptr, 3);
 }
 
 
@@ -238,16 +242,29 @@ void UI::Update()
 	}	
 	ImGui::InputText("Seconds Since Launch", time_since_launch_string_input, 11, ImGuiInputTextFlags_ReadOnly);
 
+	if (ImGui::BeginTable("ThreeItems", 3, ImGuiTableFlags_None, ImVec2(-1, 0))) 
+	{
+		ImGui::TableNextColumn();
+		ImGuiKnobs::Knob("Speed", &(rocket_data->v_values.back()), 0.0f, 100.0f, 0.1f, "%.1f", ImGuiKnobVariant_WiperOnly);
+
+		ImGui::TableNextColumn();
+		ImGuiKnobs::Knob("Acceleration", &(rocket_data->a_values.back()), 0.0f, 100.0f, 0.1f, "%.1f", ImGuiKnobVariant_WiperOnly);
+
+		ImGui::TableNextColumn();
+		ImGuiKnobs::Knob("Altitude", &(rocket_data->z_values.back()), 0.0f, 100.0f, 0.1f, "%.1f", ImGuiKnobVariant_WiperOnly);
+
+		ImGui::EndTable();
+	}
 	ImGui::End();
 
 	ImGui::Begin("Launch Manager");
-	if (ImPlot::BeginPlot("Go Grid", ImVec2(ImGui::GetContentRegionAvail().x-60-ImGui::GetStyle().ItemSpacing.x, ImGui::GetContentRegionAvail().x-60-ImGui::GetStyle().ItemSpacing.x),ImPlotFlags_NoLegend|ImPlotFlags_NoMouseText))
+	if (ImPlot::BeginPlot("Go Grid", ImVec2(ImGui::GetContentRegionAvail().x - 60, ImGui::GetContentRegionAvail().x - 60), ImPlotFlags_NoLegend | ImPlotFlags_NoMouseText))
 	{
-		static ImPlotColormap map = ImPlotColormap_Viridis;
-		ImPlot::PushColormap(map);
-		static float scale_min = 0;
+		
+		ImPlot::PushColormap(ImPlot::GetColormapIndex("go_grid_colors"));
+		static float scale_min = 0.0f;
 		static float scale_max = 1.0f;
-		static ImPlotAxisFlags axes_flags = ImPlotAxisFlags_Lock | ImPlotAxisFlags_NoGridLines | ImPlotAxisFlags_NoTickMarks;
+		static ImPlotAxisFlags axes_flags = ImPlotAxisFlags_Lock | ImPlotAxisFlags_NoGridLines | ImPlotAxisFlags_NoTickMarks | ImPlotAxisFlags_NoTickLabels;
 		ImPlot::SetupAxes(nullptr, nullptr, axes_flags, axes_flags);
 		ImPlot::PlotHeatmap("Heatmap", rocket_data->go_grid_values[0], 5, 5, scale_min, scale_max, nullptr, ImPlotPoint(0,0), ImPlotPoint(1,1));
 		
@@ -258,8 +275,10 @@ void UI::Update()
 		}
 
         ImPlot::EndPlot();
+
 		ImGui::SameLine();
-		ImPlot::ColormapScale("Heatmap Scale",scale_min, scale_max, ImVec2(60,225));
+		ImPlot::ColormapScale("Heatmap Scale", scale_min, scale_max, ImVec2(60,225));
+
 		ImPlot::PopColormap();
 	}
 
