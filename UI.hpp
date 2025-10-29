@@ -65,7 +65,7 @@ public:
 		this->rocket_data = data_values;
 	}
 
-	int FindClosestIndex(const std::vector<float>* values, float target)
+	int FindClosestIndex(const std::vector<float>* values, int target)
 	{
 		float closest_dist = FLT_MAX;
 		int closest_index = 0;

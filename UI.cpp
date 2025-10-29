@@ -15,8 +15,8 @@ bool rotation_plot = false;
 bool auto_scale_slice_plot_X = true;
 bool auto_scale_slice_plot_Y = false;
 
-float time_start = 0.0f;
-float time_end = 1.0f;
+int time_start = 0;
+int time_end = 1;
 
 float apogee = -FLT_MAX;
 float fastest_speed = -FLT_MAX;
@@ -146,10 +146,10 @@ void UI::Update()
 	ImGui::Checkbox("Rotation", &rotation_plot);
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(200.0f);
-	ImGui::SliderFloat("Time Start", &time_start, 0.0f, time_end - 0.01f);
+	ImGui::SliderInt("Time Start", &time_start, 0.0f, time_end - 0.01f);
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(200.0f);
-	ImGui::SliderFloat("Time End", &time_end, time_start + 0.01f, rocket_data->t_values.back());
+	ImGui::SliderInt("Time End", &time_end, time_start + 0.01f, rocket_data->t_values.back());
 
 	ImGui::Checkbox("Auto Scale Time Axis", &auto_scale_slice_plot_X);
 	ImGui::SameLine();
@@ -200,6 +200,20 @@ void UI::Update()
 
 	ImGui::Begin("Flight Data");
 
+	if (ImGui::BeginTable("Rotary Dial Table", 3, ImGuiTableFlags_None, ImVec2(-1, 0))) 
+	{
+		ImGui::TableNextColumn();
+		ImGuiKnobs::Knob("Speed", &(rocket_data->v_values.back()), -100.0f, 100.0f, 0.1f, "%.1f", ImGuiKnobVariant_WiperOnly);
+
+		ImGui::TableNextColumn();
+		ImGuiKnobs::Knob("Acceleration", &(rocket_data->a_values.back()), -9.8f * 2, 9.8f * 2, 0.1f, "%.1f", ImGuiKnobVariant_WiperOnly);
+
+		ImGui::TableNextColumn();
+		ImGuiKnobs::Knob("Altitude", &(rocket_data->z_values.back()), 0.0f, 10000.0f, 0.1f, "%.1f", ImGuiKnobVariant_WiperOnly);
+
+		ImGui::EndTable();
+	}
+
 	if (rocket_data->z_values.at(rocket_data->z_values.size() - 1) > apogee)
 		apogee = rocket_data->z_values.at(rocket_data->z_values.size() - 1);
 	ImGui::InputFloat("Apogee", &apogee, 0.0f, 0.0f, "%.3f", ImGuiInputTextFlags_ReadOnly);
@@ -242,19 +256,6 @@ void UI::Update()
 	}	
 	ImGui::InputText("Seconds Since Launch", time_since_launch_string_input, 11, ImGuiInputTextFlags_ReadOnly);
 
-	if (ImGui::BeginTable("ThreeItems", 3, ImGuiTableFlags_None, ImVec2(-1, 0))) 
-	{
-		ImGui::TableNextColumn();
-		ImGuiKnobs::Knob("Speed", &(rocket_data->v_values.back()), 0.0f, 100.0f, 0.1f, "%.1f", ImGuiKnobVariant_WiperOnly);
-
-		ImGui::TableNextColumn();
-		ImGuiKnobs::Knob("Acceleration", &(rocket_data->a_values.back()), 0.0f, 100.0f, 0.1f, "%.1f", ImGuiKnobVariant_WiperOnly);
-
-		ImGui::TableNextColumn();
-		ImGuiKnobs::Knob("Altitude", &(rocket_data->z_values.back()), 0.0f, 100.0f, 0.1f, "%.1f", ImGuiKnobVariant_WiperOnly);
-
-		ImGui::EndTable();
-	}
 	ImGui::End();
 
 	ImGui::Begin("Launch Manager");

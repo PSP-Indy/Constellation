@@ -44,21 +44,24 @@ void FakeSerialData(UI::data_values* data)
 {
 	std::random_device rd;
 	std::mt19937 engine(rd());
-	std::uniform_int_distribution<int> dist(1, 100);
+	std::uniform_int_distribution<int> dist(-100, 100);
 
 	while (true) 
 	{
 		valueLock.lock();
 
-		data->t_values.push_back(data->t_values.back() + 0.5f);
-		data->v_values.push_back(dist(engine));
-		data->a_values.push_back(dist(engine));
-		data->x_values.push_back(dist(engine));
-		data->y_values.push_back(dist(engine));
-		data->z_values.push_back(dist(engine));
-		data->x_rot_values.push_back(dist(engine));
-		data->y_rot_values.push_back(dist(engine));
-		data->z_rot_values.push_back(dist(engine));
+		float time = data->t_values.back() + 0.5f;
+		float new_z = data->z_values.back() + (data->v_values.back() * 0.5f) + (data->a_values.back() * 0.5f * 0.5f * 0.5f);
+
+		data->t_values.push_back(time);
+		data->v_values.push_back(new_z >= 0 ? (data->v_values.back() + (data->a_values.back() * 0.5f)) : 0.0f);
+		data->a_values.push_back(new_z >= 0 ? (time <= 10.0f ? 0.0f : (time <= 20.0f ? 5.0f : -9.8f)) : 0.0f);
+		data->x_values.push_back(0);
+		data->y_values.push_back(0);
+		data->z_values.push_back(new_z >= 0 ? new_z : 0.0f);
+		data->x_rot_values.push_back(dist(engine) / 100.0f * (3.14159f * 0.1f));
+		data->y_rot_values.push_back(dist(engine) / 100.0f * (3.14159f * 0.1f));
+		data->z_rot_values.push_back(dist(engine) / 100.0f * (3.14159f * 0.1f));
 
 		for (int i = 0; i < 5; i++) {
 			for (int j = 0; j < 5; j++) {
@@ -209,11 +212,26 @@ int main()
 	if (outputFile.is_open()) {
 		WriteDataToFile(data.a_values, std::string("acceleration"), &outputFile);
 		WriteDataToFile(data.v_values, std::string("velocity"), &outputFile);
+		WriteDataToFile(data.t_values, std::string("time"), &outputFile);
 		WriteDataToFile(data.x_values, std::string("positionX"), &outputFile);
 		WriteDataToFile(data.y_values, std::string("positionY"), &outputFile);
 		WriteDataToFile(data.z_values, std::string("positionZ"), &outputFile);
 		WriteDataToFile(data.x_rot_values, std::string("rotationX"), &outputFile);
 		WriteDataToFile(data.y_rot_values, std::string("rotationY"), &outputFile);
+		WriteDataToFile(data.z_rot_values, std::string("rotationZ"), &outputFile);
+
+		char time_string[11];
+		if (data.launch_time != NULL)
+		{
+			std::tm* tm_time = std::localtime(&(data.launch_time));
+			std::strftime(time_string, sizeof(time_string), "%H:%M:%S", tm_time);
+		}
+		else
+		{
+			strncpy(time_string, "NO_LAUNCH", 11);
+		}	
+
+		outputFile << "launchTime" << "," << time_string << std::endl;
 
         outputFile.close();
     }
