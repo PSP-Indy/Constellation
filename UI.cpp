@@ -26,6 +26,8 @@ float fastest_aceleration = -FLT_MAX;
 
 bool diagnostics_open = false;
 
+static const char* rebuild_ui_config = NULL;
+
 std::string date_string = "";
 
 void UI::Init(GLFWwindow* window, const char* glsl_version)
@@ -45,12 +47,14 @@ void UI::Init(GLFWwindow* window, const char* glsl_version)
 	ImGuiStyle& style = ImGui::GetStyle();
 	ImGuiIO& io = ImGui::GetIO();
 
+	io.IniFilename = "Assets/imgui.ini";
+
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
 	float main_scale = ImGui_ImplGlfw_GetContentScaleForMonitor(glfwGetPrimaryMonitor());
-	ImFont* largeFont = io.Fonts->AddFontFromFileTTF("DuruSans-Regular.ttf", 16);
+	ImFont* largeFont = io.Fonts->AddFontFromFileTTF("Assets/DuruSans-Regular.ttf", 16);
 	style.ScaleAllSizes(main_scale);
     io.ConfigDpiScaleFonts = true;
     io.ConfigDpiScaleViewports = true;
@@ -71,6 +75,12 @@ void UI::Init(GLFWwindow* window, const char* glsl_version)
 
 void UI::NewFrame()
 {
+	if (rebuild_ui_config != NULL) 
+	{
+		ImGui::LoadIniSettingsFromDisk(rebuild_ui_config);
+        rebuild_ui_config = NULL;
+	}
+
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
@@ -80,11 +90,32 @@ void UI::Update()
 {
 	ImGui::DockSpaceOverViewport(ImGui::GetMainViewport()->ID);
 
+	#pragma region MenuBar
 	ImGui::BeginMainMenuBar();
 	if (ImGui::MenuItem("Application Diagnostics")) {
 		diagnostics_open = !diagnostics_open;
 	}
+	if (ImGui::BeginMenu("UI Configuraitions")) {
+		if (ImGui::MenuItem("Default Configuration"))
+		{
+			rebuild_ui_config = "Assets/default.ini";
+		}
+		if (ImGui::MenuItem("Pre Flight Configuration"))
+		{
+			rebuild_ui_config = "Assets/pre_flight.ini";
+		}
+		if (ImGui::MenuItem("Flight Configuration"))
+		{
+			rebuild_ui_config = "Assets/active_flight.ini";
+		}
+		if (ImGui::MenuItem("Post Flight Configuration"))
+		{
+			rebuild_ui_config = "Assets/post_flight.ini";
+		}
+		ImGui::EndMenu();
+	}
 	ImGui::EndMainMenuBar();
+	#pragma endregion
 
 	#pragma region Diagnostics
 	if (diagnostics_open)

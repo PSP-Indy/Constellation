@@ -68,13 +68,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE "${GLFW_DIR}/include")
 target_compile_definitions(${PROJECT_NAME} PRIVATE "GLFW_INCLUDE_NONE")
 
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${CMAKE_SOURCE_DIR}/DuruSans-Regular.ttf"
-        "$<TARGET_FILE_DIR:${PROJECT_NAME}>/DuruSans-Regular.ttf"
-)
-
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${CMAKE_SOURCE_DIR}/imgui.ini"
-        "$<TARGET_FILE_DIR:${PROJECT_NAME}>/imgui.ini"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/Assets"
+        "$<TARGET_FILE_DIR:${PROJECT_NAME}>/Assets"
 )
