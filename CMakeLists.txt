@@ -6,7 +6,7 @@ if (POLICY CMP0141)
   set(CMAKE_CXX_STANDARD 23)
 endif()
 
-project ("Constellation" VERSION 0.1 DESCRIPTION "")
+project ("Constellation" VERSION 0.1.1 DESCRIPTION "")
 
 add_executable (Constellation "Constellation.cpp"  "UI.cpp"  "UI.hpp"  "rocket_model.hpp")
 

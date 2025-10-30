@@ -15,7 +15,7 @@
 #include <random>
 #include <cmath>
 
-#include <Windows.h>
+#include <windows.h>
 
 #include "UI.hpp"
 
@@ -182,7 +182,7 @@ int main()
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
 
-	GLFWwindow* window = glfwCreateWindow(1920, 1080, "Constellation", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(1920, 1080, "Constellation 0.1.1", NULL, NULL);
 
 	if (window == NULL)
 		return 2;
