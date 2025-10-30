@@ -9,13 +9,13 @@ UI::UI()
 
 float scale_factor = 1.0f;
 
-bool velocity_plot = true;
+bool position_plot = true;
+bool velocity_plot = false;
 bool acceleration_plot = false;
-bool position_plot = false;
 bool rotation_plot = false;
 
 bool auto_scale_slice_plot_X = true;
-bool auto_scale_slice_plot_Y = false;
+bool auto_scale_slice_plot_Y = true;
 
 int time_start = 0;
 int time_end = 1;
@@ -149,11 +149,11 @@ void UI::Update()
 	#pragma region TimeSlicedPlot
 	ImGui::Begin("Time Sliced Plot");
 
+	ImGui::Checkbox("Position", &position_plot);
+	ImGui::SameLine();
 	ImGui::Checkbox("Velocity", &velocity_plot);
 	ImGui::SameLine();
 	ImGui::Checkbox("Acceleration", &acceleration_plot);
-	ImGui::SameLine();
-	ImGui::Checkbox("Position", &position_plot);
 	ImGui::SameLine();
 	ImGui::Checkbox("Rotation", &rotation_plot);
 	ImGui::SameLine();
