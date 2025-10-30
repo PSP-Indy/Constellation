@@ -208,7 +208,12 @@ void UI::Update()
 	RotateModel(rocket_vertices, &rocket_vertices_rotated, 3.14f / 2.0f + rocket_data->x_rot_values.back(), rocket_data->y_rot_values.back());
 	
 	ImGui::Begin("3D Rotation Visualizer");
-	if (ImPlot3D::BeginPlot("3D Rotation", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().x))) {
+
+	int x_region_avail = (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x);
+	int y_region_avail = (ImGui::GetContentRegionAvail().y - 230 - ImGui::GetStyle().ItemSpacing.y);
+	int smallest_region = x_region_avail < y_region_avail ? x_region_avail : y_region_avail;
+
+	if (ImPlot3D::BeginPlot("3D Rotation", ImVec2(smallest_region, smallest_region))) {
 		ImPlot3D::SetupAxisLimits(ImAxis3D_X, 0, 1);
 		ImPlot3D::SetupAxisLimits(ImAxis3D_Y, 0, 1);
 		ImPlot3D::SetupAxisLimits(ImAxis3D_Z, 0, 1);
@@ -297,9 +302,9 @@ void UI::Update()
 
 	#pragma region LaunchManager
 	ImGui::Begin("Launch Manager");
-	int x_region_avail = (ImGui::GetContentRegionAvail().x - 70 - ImGui::GetStyle().ItemSpacing.x);
-	int y_region_avail = (ImGui::GetContentRegionAvail().y - 70 - ImGui::GetStyle().ItemSpacing.y);
-	int smallest_region = x_region_avail < y_region_avail ? x_region_avail : y_region_avail;
+	x_region_avail = (ImGui::GetContentRegionAvail().x - 70 - ImGui::GetStyle().ItemSpacing.x);
+	y_region_avail = (ImGui::GetContentRegionAvail().y - 70 - ImGui::GetStyle().ItemSpacing.y);
+	smallest_region = x_region_avail < y_region_avail ? x_region_avail : y_region_avail;
 	if (ImPlot::BeginPlot("Go Grid", ImVec2(smallest_region, smallest_region), ImPlotFlags_NoLegend | ImPlotFlags_NoMouseText))
 	{
 		
@@ -319,7 +324,7 @@ void UI::Update()
         ImPlot::EndPlot();
 
 		ImGui::SameLine();
-		ImPlot::ColormapScale("Heatmap Scale", scale_min, scale_max, ImVec2(70, smallest_region));
+		ImPlot::ColormapScale("Heatmap Scale", scale_min, scale_max, ImVec2(-1, smallest_region));
 
 		ImPlot::PopColormap();
 	}
