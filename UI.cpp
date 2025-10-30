@@ -44,12 +44,10 @@ void UI::Init(GLFWwindow *window, const char *glsl_version)
 	ImPlot3D::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
 
-	float scale_factor = 1.5;
-	ImFont* largeFont = io.Fonts->AddFontFromFileTTF("DuruSans-Regular.ttf", roundf(16 * scale_factor));
-	io.Fonts->Build();
-
 	ImGuiStyle& style = ImGui::GetStyle();
 	style.ScaleAllSizes(scale_factor);
+
+	io.IniFilename = "Assets/imgui.ini";
 
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
@@ -279,11 +277,15 @@ void UI::Update()
 	#pragma endregion
 
 	#pragma region 3DRotationVisualizer
+	ImGui::Begin("3D Rotation");
 	std::vector<ImPlot3DPoint> rocket_vertices_rotated;
-	RotateModel(rocket_vertices, &rocket_vertices_rotated, 3.14f / 2.0f + rocket_data->x_rot_values.back(), rocket_data->y_rot_values.back());
+	RotateModel(rocket_vertices, &rocket_vertices_rotated, 3.14f / 2.0f + rocket_data->x_rot_values.back(), rocket_data->y_rot_values.back(), rocket_data->z_rot_values.back());
 	
-	ImGui::Begin("3D Rotation Visualizer");
-	if (ImPlot3D::BeginPlot("3D Rotation", ImVec2(-1, -1))) {
+	int x_region_avail = (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x);
+	int y_region_avail = (ImGui::GetContentRegionAvail().y - 230 - ImGui::GetStyle().ItemSpacing.y);
+	int smallest_region = x_region_avail < y_region_avail ? x_region_avail : y_region_avail;
+
+	if (ImPlot3D::BeginPlot("3D Rotation", ImVec2(smallest_region, smallest_region))) {
 		ImPlot3D::SetupAxisLimits(ImAxis3D_X, 0, 1);
 		ImPlot3D::SetupAxisLimits(ImAxis3D_Y, 0, 1);
 		ImPlot3D::SetupAxisLimits(ImAxis3D_Z, 0, 1);
