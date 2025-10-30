@@ -174,11 +174,12 @@ int main()
 	if (!glfwInit())
 		return 2;
 
-	const char* glsl_version = "#version 120";
+	const char* glsl_version = "#version 130";
 	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);	
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);	
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);	
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
 
 	GLFWwindow* window = glfwCreateWindow(1920, 1080, "Constellation", NULL, NULL);

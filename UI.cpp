@@ -41,15 +41,22 @@ void UI::Init(GLFWwindow* window, const char* glsl_version)
 	ImGui::CreateContext();
 	ImPlot::CreateContext();
 	ImPlot3D::CreateContext();
-	ImGuiIO& io = ImGui::GetIO();
-
-	ImFont* largeFont = io.Fonts->AddFontFromFileTTF("DuruSans-Regular.ttf", roundf(16 * scale_factor));
-	io.Fonts->Build();
 
 	ImGuiStyle& style = ImGui::GetStyle();
-	style.ScaleAllSizes(scale_factor);
+	ImGuiIO& io = ImGui::GetIO();
 
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+
+	float main_scale = ImGui_ImplGlfw_GetContentScaleForMonitor(glfwGetPrimaryMonitor());
+	ImFont* largeFont = io.Fonts->AddFontFromFileTTF("DuruSans-Regular.ttf", 16);
+	style.ScaleAllSizes(main_scale);
+    io.ConfigDpiScaleFonts = true;
+    io.ConfigDpiScaleViewports = true;
+
+	style.WindowRounding = 0.0f;
+	style.Colors[ImGuiCol_WindowBg].w = 1.0f;
 
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init(glsl_version);
@@ -71,7 +78,7 @@ void UI::NewFrame()
 
 void UI::Update()
 {
-	ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
+	ImGui::DockSpaceOverViewport(ImGui::GetMainViewport()->ID);
 
 	ImGui::BeginMainMenuBar();
 	if (ImGui::MenuItem("Application Diagnostics")) {
@@ -290,7 +297,10 @@ void UI::Update()
 
 	#pragma region LaunchManager
 	ImGui::Begin("Launch Manager");
-	if (ImPlot::BeginPlot("Go Grid", ImVec2(ImGui::GetContentRegionAvail().x - 60, ImGui::GetContentRegionAvail().x - 60), ImPlotFlags_NoLegend | ImPlotFlags_NoMouseText))
+	int x_region_avail = (ImGui::GetContentRegionAvail().x - 70 - ImGui::GetStyle().ItemSpacing.x);
+	int y_region_avail = (ImGui::GetContentRegionAvail().y - 70 - ImGui::GetStyle().ItemSpacing.y);
+	int smallest_region = x_region_avail < y_region_avail ? x_region_avail : y_region_avail;
+	if (ImPlot::BeginPlot("Go Grid", ImVec2(smallest_region, smallest_region), ImPlotFlags_NoLegend | ImPlotFlags_NoMouseText))
 	{
 		
 		ImPlot::PushColormap(ImPlot::GetColormapIndex("go_grid_colors"));
@@ -309,7 +319,7 @@ void UI::Update()
         ImPlot::EndPlot();
 
 		ImGui::SameLine();
-		ImPlot::ColormapScale("Heatmap Scale", scale_min, scale_max, ImVec2(60,225));
+		ImPlot::ColormapScale("Heatmap Scale", scale_min, scale_max, ImVec2(70, smallest_region));
 
 		ImPlot::PopColormap();
 	}
@@ -346,6 +356,7 @@ void UI::Render(GLFWwindow* window)
 
 void UI::Shutdown()
 {
+	ImGui::DestroyPlatformWindows();
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImPlot3D::DestroyContext();
