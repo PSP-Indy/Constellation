@@ -61,9 +61,9 @@ void FakeSerialData(UI::data_values* data)
 		data->x_values.push_back(0);
 		data->y_values.push_back(0);
 		data->z_values.push_back(new_z >= 0 ? new_z : 0.0f);
-		data->x_rot_values.push_back(dist(engine) / 100.0f * (3.14159f * 0.1f));
-		data->y_rot_values.push_back(dist(engine) / 100.0f * (3.14159f * 0.1f));
-		data->z_rot_values.push_back(dist(engine) / 100.0f * (3.14159f * 0.1f));
+		data->x_rot_values.push_back(0);//0.3f * cos(time)
+		data->y_rot_values.push_back(0);//0.3f * sin(time)
+		data->z_rot_values.push_back(1.0f*time);
 
 		for (int i = 0; i < 5; i++) {
 			for (int j = 0; j < 5; j++) {
