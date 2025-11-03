@@ -63,6 +63,10 @@ set(GLFW_INSTALL OFF CACHE INTERNAL "Generate installation target")
 
 add_subdirectory("${GLFW_DIR}")
 
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_definitions(-DDEBUG_MODE)
+endif()
+
 target_link_libraries(${PROJECT_NAME} glfw "${GLFW_LIBRARIES}")
 target_include_directories(${PROJECT_NAME} PRIVATE "${GLFW_DIR}/include")
 target_compile_definitions(${PROJECT_NAME} PRIVATE "GLFW_INCLUDE_NONE")

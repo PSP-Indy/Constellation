@@ -127,11 +127,13 @@ int main()
 
 	UI::data_values data;
 
-	std::thread serial_thread(FakeSerialData, &data);
-	serial_thread.detach();
+	//IF BUILDING IN DEBUG MODE, FAKE SERIAL DATA
+	#ifdef DEBUG_MODE
+		std::thread serial_thread(FakeSerialData, &data);
+		serial_thread.detach();
+	#endif
 
 	//SERIAL INITIALIZATION
-
 	HANDLE hSerial = CreateFile("\\\\.\\COM1", GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 
 	DCB dcbSerialParams = {0};
