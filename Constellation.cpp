@@ -40,6 +40,18 @@ float CharStringToFloat(char* charString, int idx) {
 	return u.f;
 }
 
+int CharStringToInt(char* charString, int idx) {
+	union {
+		int f;
+		char b[4];
+	} u;
+	u.b[3] = charString[idx + 3];
+	u.b[2] = charString[idx + 2];
+	u.b[1] = charString[idx + 1];
+	u.b[0] = charString[idx];
+	return u.f;
+}
+
 void FakeSerialData(UI::data_values* data)
 {
 	std::random_device rd;
@@ -118,7 +130,13 @@ void WriteDataToFile(std::vector<float> data, std::string label, std::ofstream* 
 
 void LaunchRocket(HANDLE hSerial, UI::data_values* data)
 {
-	
+	char dataToSend[32];
+	DWORD bytesWritten;
+
+	memcpy(dataToSend, &(data->fuse_delay), 4);
+	memcpy(dataToSend + 4, &(data->launch_altitude), 4);
+
+	WriteFile(hSerial, dataToSend, 32, &bytesWritten, NULL);
 }
 
 int main()
@@ -128,10 +146,8 @@ int main()
 	UI::data_values data;
 
 	//IF BUILDING IN DEBUG MODE, FAKE SERIAL DATA
-	#ifdef DEBUG_MODE
-		std::thread serial_thread(FakeSerialData, &data);
-		serial_thread.detach();
-	#endif
+	std::thread serial_thread(FakeSerialData, &data);
+	serial_thread.detach();
 
 	//SERIAL INITIALIZATION
 	HANDLE hSerial = CreateFile("\\\\.\\COM1", GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);

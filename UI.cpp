@@ -400,13 +400,18 @@ void UI::Update()
 
 		ImPlot::PopColormap();
 	}
-
-	ImGui::SetNextItemWidth(400);
-	ImGui::InputInt("Launch Alitude (m above sea level)", &(rocket_data->launch_altitude));
 	
 	ImGui::SetNextItemWidth(400);
 	ImGui::InputInt("Fuse Delay (s)", &(rocket_data->fuse_delay));
 
+	if (rocket_data->fuse_delay < 0)
+    {
+        rocket_data->fuse_delay = 0;
+    }
+
+	ImGui::SetNextItemWidth(400);
+	ImGui::InputInt("Launch Alitude (m above sea level)", &(rocket_data->launch_altitude));
+	
 	if (rocket_data->launch_time == NULL)
 	{
 		if (ImGui::Button("Launch Rocket", ImVec2(-1, 70)))
