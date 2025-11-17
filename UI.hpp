@@ -37,7 +37,8 @@ public:
 
     	std::time_t launch_time = NULL;
 
-		int launch_altitude = NULL;
+		int fuse_delay = 0;
+		int launch_altitude = 0;
 
 		HANDLE hSerial;
 

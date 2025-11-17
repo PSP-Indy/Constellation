@@ -403,6 +403,9 @@ void UI::Update()
 
 	ImGui::SetNextItemWidth(400);
 	ImGui::InputInt("Launch Alitude (m above sea level)", &(rocket_data->launch_altitude));
+	
+	ImGui::SetNextItemWidth(400);
+	ImGui::InputInt("Fuse Delay (s)", &(rocket_data->fuse_delay));
 
 	if (rocket_data->launch_time == NULL)
 	{

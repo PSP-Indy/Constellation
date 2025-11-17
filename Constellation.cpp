@@ -118,7 +118,7 @@ void WriteDataToFile(std::vector<float> data, std::string label, std::ofstream* 
 
 void LaunchRocket(HANDLE hSerial, UI::data_values* data)
 {
-
+	
 }
 
 int main()
