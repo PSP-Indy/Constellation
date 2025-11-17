@@ -37,6 +37,8 @@ public:
 
     	std::time_t launch_time = NULL;
 
+		int launch_altitude = NULL;
+
 		HANDLE hSerial;
 
 		void (*launch_rocket)(HANDLE hSerial, data_values* data) = NULL;

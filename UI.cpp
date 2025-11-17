@@ -401,6 +401,9 @@ void UI::Update()
 		ImPlot::PopColormap();
 	}
 
+	ImGui::SetNextItemWidth(400);
+	ImGui::InputInt("Launch Alitude (m above sea level)", &(rocket_data->launch_altitude));
+
 	if (rocket_data->launch_time == NULL)
 	{
 		if (ImGui::Button("Launch Rocket", ImVec2(-1, 70)))
@@ -415,6 +418,7 @@ void UI::Update()
 			}
 		}
 	}
+
 	ImGui::End();
 	#pragma endregion
 }
