@@ -1,11 +1,4 @@
-﻿/**
- * @file Constellation.cpp
- * @brief This is the main entry point of the program.
- *
- * This file contains the main function and initializes all subsystems.
- */
-
-#pragma once
+﻿#pragma once
 
 #include <chrono>
 #include <thread>
@@ -57,24 +50,20 @@ void ProcessSerialData(HANDLE hSerial, UI::data_values* data) {
 		
 		if(header == std::string("C_TS")) 
 		{
-			data->launch_countdown = true;
-
-			std::time_t currentTime_t = time(NULL);
-			data->coundown_start_time = currentTime_t;
+			data->coundown_start_time = time(NULL);
 
 			data->go_grid_values[0][0] = 1;
 		}
 
 		if(header == std::string("C_FI")) 
 		{
-			std::time_t currentTime_t =  time(NULL);
-			data->launch_time = currentTime_t;
+			data->launch_time = time(NULL);
 			data->go_grid_values[0][1] = 1;
 		}
 
 		if(header == std::string("C_FO")) 
 		{
-			data->launch_countdown = false;
+			data->coundown_start_time = NULL;
 			data->go_grid_values[0][2] = 1;
 		}
 
@@ -114,20 +103,24 @@ void WriteDataToFile(std::vector<float> data, std::string label, std::ofstream* 
 
 void LaunchRocket(HANDLE hSerial, UI::data_values* data)
 {
+	// FOR TESTING PURPOSES, COMMENT ON ACTUAL BUILDS:
+	data->coundown_start_time = time(NULL);
+
 	char dataToSend[32];
 	DWORD bytesWritten;
 
 	memcpy(dataToSend, &(data->fuse_delay), 4);
 	memcpy(dataToSend + 4, &(data->launch_altitude), 4);
 
-	WriteFile(hSerial, dataToSend, 32, &bytesWritten, NULL);
+	//WriteFile(hSerial, dataToSend, 32, &bytesWritten, NULL);
 }
 
 int main()
 {
 	//GLOBAL USE VARIABLES
-
 	UI::data_values data;
+
+	data.launch_rocket = LaunchRocket;
 
 	//SERIAL INITIALIZATION
 	HANDLE hSerial = CreateFile("\\\\.\\COM1", GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);

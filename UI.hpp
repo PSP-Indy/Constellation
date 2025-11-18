@@ -34,8 +34,6 @@ public:
 		std::vector<float> z_rot_values = {0};
 
 		float go_grid_values[5][5];
-		
-		bool launch_countdown = false;
 
     	std::time_t launch_time = NULL;
     	std::time_t coundown_start_time = NULL;

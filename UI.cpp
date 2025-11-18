@@ -380,69 +380,73 @@ void UI::Update()
 
 	#pragma region LaunchManager
 	ImGui::Begin("Launch Manager");
-	x_region_avail = (ImGui::GetContentRegionAvail().x - 70 - ImGui::GetStyle().ItemSpacing.x);
-	y_region_avail = (ImGui::GetContentRegionAvail().y - 70 - ImGui::GetStyle().ItemSpacing.y);
-	smallest_region = x_region_avail < y_region_avail ? x_region_avail : y_region_avail;
-	if (ImPlot::BeginPlot("Go Grid", ImVec2(smallest_region, smallest_region), ImPlotFlags_NoLegend | ImPlotFlags_NoMouseText))
+
+	if(rocket_data->coundown_start_time != NULL) 
 	{
-		
-		ImPlot::PushColormap(ImPlot::GetColormapIndex("go_grid_colors"));
-		static float scale_min = 0.0f;
-		static float scale_max = 1.0f;
-		static ImPlotAxisFlags axes_flags = ImPlotAxisFlags_Lock | ImPlotAxisFlags_NoGridLines | ImPlotAxisFlags_NoTickMarks | ImPlotAxisFlags_NoTickLabels;
-		ImPlot::SetupAxes(nullptr, nullptr, axes_flags, axes_flags);
-		ImPlot::PlotHeatmap("Heatmap", rocket_data->go_grid_values[0], 5, 5, scale_min, scale_max, nullptr, ImPlotPoint(0,0), ImPlotPoint(1,1));
-		
-		for (int i = 0; i < 5; i++) {
-			for (int j = 0; j < 5; j++) {
-				ImPlot::PlotText(go_grid_labels[i][4 - j], (i / 5.0f) + (0.5f / 5.0f), (j / 5.0f) + (0.5f / 5.0f));
+		time_t current_time_t = time(NULL);
+		int time_since_countdown = difftime(rocket_data->coundown_start_time, current_time_t);
+		int countdown = 5 - std::abs(time_since_countdown);
+
+		ImFont* largeFont = ImGui::GetIO().Fonts->AddFontFromFileTTF("Assets/DuruSans-Regular.ttf", 64);
+		ImGui::PushFont(largeFont);
+		ImGui::Text((std::string("LAUNCH: T-") + std::to_string(countdown)).c_str());
+		ImGui::PopFont();
+
+		if (countdown < 0) rocket_data->coundown_start_time = NULL;
+	}
+	else
+	{
+		x_region_avail = (ImGui::GetContentRegionAvail().x - 70 - ImGui::GetStyle().ItemSpacing.x);
+		y_region_avail = (ImGui::GetContentRegionAvail().y - 70 - ImGui::GetStyle().ItemSpacing.y);
+		smallest_region = x_region_avail < y_region_avail ? x_region_avail : y_region_avail;
+		if (ImPlot::BeginPlot("Go Grid", ImVec2(smallest_region, smallest_region), ImPlotFlags_NoLegend | ImPlotFlags_NoMouseText))
+		{
+			
+			ImPlot::PushColormap(ImPlot::GetColormapIndex("go_grid_colors"));
+			static float scale_min = 0.0f;
+			static float scale_max = 1.0f;
+			static ImPlotAxisFlags axes_flags = ImPlotAxisFlags_Lock | ImPlotAxisFlags_NoGridLines | ImPlotAxisFlags_NoTickMarks | ImPlotAxisFlags_NoTickLabels;
+			ImPlot::SetupAxes(nullptr, nullptr, axes_flags, axes_flags);
+			ImPlot::PlotHeatmap("Heatmap", rocket_data->go_grid_values[0], 5, 5, scale_min, scale_max, nullptr, ImPlotPoint(0,0), ImPlotPoint(1,1));
+			
+			for (int i = 0; i < 5; i++) {
+				for (int j = 0; j < 5; j++) {
+					ImPlot::PlotText(go_grid_labels[i][4 - j], (i / 5.0f) + (0.5f / 5.0f), (j / 5.0f) + (0.5f / 5.0f));
+				}
 			}
+
+			ImPlot::EndPlot();
+
+			ImGui::SameLine();
+			ImPlot::ColormapScale("Heatmap Scale", scale_min, scale_max, ImVec2(-1, smallest_region));
+
+			ImPlot::PopColormap();
+		}
+		
+		ImGui::SetNextItemWidth(400);
+		ImGui::InputInt("Fuse Delay (s)", &(rocket_data->fuse_delay));
+
+		if (rocket_data->fuse_delay < 0)
+		{
+			rocket_data->fuse_delay = 0;
 		}
 
-        ImPlot::EndPlot();
-
-		ImGui::SameLine();
-		ImPlot::ColormapScale("Heatmap Scale", scale_min, scale_max, ImVec2(-1, smallest_region));
-
-		ImPlot::PopColormap();
-	}
-	
-	ImGui::SetNextItemWidth(400);
-	ImGui::InputInt("Fuse Delay (s)", &(rocket_data->fuse_delay));
-
-	if (rocket_data->fuse_delay < 0)
-    {
-        rocket_data->fuse_delay = 0;
-    }
-
-	ImGui::SetNextItemWidth(400);
-	ImGui::InputInt("Launch Alitude (m above sea level)", &(rocket_data->launch_altitude));
-	
-	if (rocket_data->go_grid_values[0][0] != 1)
-	{
-		if (ImGui::Button("Launch Rocket", ImVec2(-1, 70)))
+		ImGui::SetNextItemWidth(400);
+		ImGui::InputInt("Launch Alitude (m above sea level)", &(rocket_data->launch_altitude));
+		
+		if (rocket_data->go_grid_values[0][0] != 1)
 		{
-			if (rocket_data->launch_rocket != NULL)
+			if (ImGui::Button("Launch Rocket", ImVec2(-1, 70)))
 			{
-				rocket_data->launch_rocket(rocket_data->hSerial, rocket_data);
+				if (rocket_data->launch_rocket != NULL)
+				{
+					rocket_data->launch_rocket(rocket_data->hSerial, rocket_data);
+				}
 			}
 		}
 	}
 
 	ImGui::End();
-	#pragma endregion
-
-	#pragma region LaunchCountdown
-	if(rocket_data->launch_countdown) 
-	{
-		ImGui::Begin("Launch Countdown");
-		time_t current_time_t = time(NULL);
-		int time_since_countdown = difftime(rocket_data->coundown_start_time, current_time_t);
-		int countdown = 5 - std::abs(time_since_countdown);
-		ImGui::Text((std::string("LAUNCH: T-") + std::to_string(countdown)).c_str());
-		ImGui::End();
-	}
-	
 	#pragma endregion
 }
 
