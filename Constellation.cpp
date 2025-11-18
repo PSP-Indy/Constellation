@@ -60,12 +60,15 @@ void ProcessSerialData(HANDLE hSerial, UI::data_values* data) {
 
 		if(header == std::string("C_SC")) 
 		{
-			std::cout << "RAN CONNECTION PROTOCOL" << std::endl;
-			data->go_grid_values[0][3] = 1;
-			char data_to_send[4];
-			strcpy(data_to_send, "C_SS");
-			DWORD bytesWritten;
-			WriteFile(hSerial, data_to_send, 4, &bytesWritten, NULL);
+			if (data->go_grid_values[0][3] != 1)
+			{
+				data->go_grid_values[0][3] = 1;
+				char data_to_send[4];
+				strcpy(data_to_send, "C_SS");
+				DWORD bytesWritten;
+				WriteFile(hSerial, data_to_send, 4, &bytesWritten, NULL);
+			}
+			data->last_ping = time(NULL);
 		}
 		
 		if(header == std::string("C_TS")) 
@@ -104,7 +107,7 @@ void ProcessSerialData(HANDLE hSerial, UI::data_values* data) {
 
 			valueLock.unlock();
 		}
-
+		
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
 }
@@ -211,6 +214,11 @@ int main()
 	gui->Init(window, glsl_version);
 
 	while (!glfwWindowShouldClose(window)) {
+		if (std::abs(difftime(data.last_ping, time(NULL))) > 5)
+		{
+			data.go_grid_values[0][3] = 0;
+		}
+
 		auto start = high_resolution_clock::now();
 		glfwPollEvents();
 		gui->NewFrame();

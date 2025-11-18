@@ -418,8 +418,6 @@ void UI::Update()
 		ImGui::PushFont(largeFont);
 		ImGui::Text((std::string("LAUNCH: T-") + std::to_string(countdown)).c_str());
 		ImGui::PopFont();
-
-		if (countdown < 0) rocket_data->coundown_start_time = NULL;
 	}
 	else
 	{

@@ -29,6 +29,13 @@ void setup() {
 }
 
 void loop() {
+  if (millis() - previous >= 1000 && (!launch_started || fuse_off))
+  {
+    previous = millis();
+    strcpy(header, "C_SC");
+    Serial.print(header);
+  }
+
   if (!successful_connection) {
     digitalWrite(CONN_PIN, HIGH);
     if (Serial.available()) {
@@ -39,15 +46,6 @@ void loop() {
         successful_connection = true;
       }
     }
-    else
-    {
-      if (millis() - previous >= 1000)
-      {
-        previous = millis();
-        strcpy(header, "C_SC");
-        Serial.print(header);
-      }
-    }    
   }
   else 
   {
@@ -84,6 +82,7 @@ void loop() {
 }
 
 void launch_rocket(const char* initialize_data_packet) {
+  Serial.flush();
   launch_started = true;
   // LoRa.beginPacket();
 

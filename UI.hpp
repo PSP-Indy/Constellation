@@ -36,6 +36,7 @@ public:
 		float go_grid_values[5][5];
 
     	std::time_t launch_time = NULL;
+    	std::time_t last_ping = NULL;
     	std::time_t coundown_start_time = NULL;
 
 		int fuse_delay = 2;
