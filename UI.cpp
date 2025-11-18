@@ -381,6 +381,33 @@ void UI::Update()
 	#pragma region LaunchManager
 	ImGui::Begin("Launch Manager");
 
+	x_region_avail = (ImGui::GetContentRegionAvail().x - 70 - ImGui::GetStyle().ItemSpacing.x);
+	y_region_avail = (ImGui::GetContentRegionAvail().y - 70 - ImGui::GetStyle().ItemSpacing.y);
+	smallest_region = x_region_avail < y_region_avail ? x_region_avail : y_region_avail;
+	if (ImPlot::BeginPlot("Go Grid", ImVec2(smallest_region, smallest_region), ImPlotFlags_NoLegend | ImPlotFlags_NoMouseText))
+	{
+		
+		ImPlot::PushColormap(ImPlot::GetColormapIndex("go_grid_colors"));
+		static float scale_min = 0.0f;
+		static float scale_max = 1.0f;
+		static ImPlotAxisFlags axes_flags = ImPlotAxisFlags_Lock | ImPlotAxisFlags_NoGridLines | ImPlotAxisFlags_NoTickMarks | ImPlotAxisFlags_NoTickLabels;
+		ImPlot::SetupAxes(nullptr, nullptr, axes_flags, axes_flags);
+		ImPlot::PlotHeatmap("Heatmap", rocket_data->go_grid_values[0], 5, 5, scale_min, scale_max, nullptr, ImPlotPoint(0,0), ImPlotPoint(1,1));
+		
+		for (int i = 0; i < 5; i++) {
+			for (int j = 0; j < 5; j++) {
+				ImPlot::PlotText(go_grid_labels[i][4 - j], (i / 5.0f) + (0.5f / 5.0f), (j / 5.0f) + (0.5f / 5.0f));
+			}
+		}
+
+		ImPlot::EndPlot();
+
+		ImGui::SameLine();
+		ImPlot::ColormapScale("Heatmap Scale", scale_min, scale_max, ImVec2(-1, smallest_region));
+
+		ImPlot::PopColormap();
+	}
+
 	if(rocket_data->coundown_start_time != NULL) 
 	{
 		time_t current_time_t = time(NULL);
@@ -396,46 +423,19 @@ void UI::Update()
 	}
 	else
 	{
-		x_region_avail = (ImGui::GetContentRegionAvail().x - 70 - ImGui::GetStyle().ItemSpacing.x);
-		y_region_avail = (ImGui::GetContentRegionAvail().y - 70 - ImGui::GetStyle().ItemSpacing.y);
-		smallest_region = x_region_avail < y_region_avail ? x_region_avail : y_region_avail;
-		if (ImPlot::BeginPlot("Go Grid", ImVec2(smallest_region, smallest_region), ImPlotFlags_NoLegend | ImPlotFlags_NoMouseText))
-		{
-			
-			ImPlot::PushColormap(ImPlot::GetColormapIndex("go_grid_colors"));
-			static float scale_min = 0.0f;
-			static float scale_max = 1.0f;
-			static ImPlotAxisFlags axes_flags = ImPlotAxisFlags_Lock | ImPlotAxisFlags_NoGridLines | ImPlotAxisFlags_NoTickMarks | ImPlotAxisFlags_NoTickLabels;
-			ImPlot::SetupAxes(nullptr, nullptr, axes_flags, axes_flags);
-			ImPlot::PlotHeatmap("Heatmap", rocket_data->go_grid_values[0], 5, 5, scale_min, scale_max, nullptr, ImPlotPoint(0,0), ImPlotPoint(1,1));
-			
-			for (int i = 0; i < 5; i++) {
-				for (int j = 0; j < 5; j++) {
-					ImPlot::PlotText(go_grid_labels[i][4 - j], (i / 5.0f) + (0.5f / 5.0f), (j / 5.0f) + (0.5f / 5.0f));
-				}
-			}
-
-			ImPlot::EndPlot();
-
-			ImGui::SameLine();
-			ImPlot::ColormapScale("Heatmap Scale", scale_min, scale_max, ImVec2(-1, smallest_region));
-
-			ImPlot::PopColormap();
-		}
-		
-		ImGui::SetNextItemWidth(400);
-		ImGui::InputInt("Fuse Delay (s)", &(rocket_data->fuse_delay));
-
-		if (rocket_data->fuse_delay < 0)
-		{
-			rocket_data->fuse_delay = 0;
-		}
-
-		ImGui::SetNextItemWidth(400);
-		ImGui::InputInt("Launch Alitude (m above sea level)", &(rocket_data->launch_altitude));
-		
 		if (rocket_data->go_grid_values[0][0] != 1)
 		{
+			ImGui::SetNextItemWidth(400);
+			ImGui::InputInt("Fuse Delay (s)", &(rocket_data->fuse_delay));
+
+			if (rocket_data->fuse_delay < 0)
+			{
+				rocket_data->fuse_delay = 0;
+			}
+
+			ImGui::SetNextItemWidth(400);
+			ImGui::InputInt("Launch Alitude (m above sea level)", &(rocket_data->launch_altitude));
+			
 			if (ImGui::Button("Launch Rocket", ImVec2(-1, 70)))
 			{
 				if (rocket_data->launch_rocket != NULL)

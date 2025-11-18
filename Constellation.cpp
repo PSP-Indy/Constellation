@@ -34,18 +34,38 @@ int CharStringToInt(char* charString, int idx) {
 }
 
 void ProcessSerialData(HANDLE hSerial, UI::data_values* data) {
+	std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
 	while (true) 
 	{
-		char readBuffer[27];
+		char readBuffer[40];
 		DWORD bytesRead;
 
-		if (!ReadFile(hSerial, readBuffer, sizeof(readBuffer), &bytesRead, NULL)) {
-			std::cout << "Error reading serial buffer!" << std::endl;
+		if (!ReadFile(hSerial, readBuffer, sizeof(readBuffer), &bytesRead, NULL)) 
+		{
+			continue;
+		}
+
+		if (bytesRead <= 0) 
+		{
+			continue;
 		}
 
 		std::string header;
 		for (int i = 0; i < 4; i++){
 			header += readBuffer[i];
+		}
+
+		std::cout << header << std::endl;
+
+		if(header == std::string("C_SC")) 
+		{
+			std::cout << "RAN CONNECTION PROTOCOL" << std::endl;
+			data->go_grid_values[0][3] = 1;
+			char data_to_send[4];
+			strcpy(data_to_send, "C_SS");
+			DWORD bytesWritten;
+			WriteFile(hSerial, data_to_send, 4, &bytesWritten, NULL);
 		}
 		
 		if(header == std::string("C_TS")) 
@@ -104,7 +124,7 @@ void WriteDataToFile(std::vector<float> data, std::string label, std::ofstream* 
 void LaunchRocket(HANDLE hSerial, UI::data_values* data)
 {
 	// FOR TESTING PURPOSES, COMMENT ON ACTUAL BUILDS:
-	data->coundown_start_time = time(NULL);
+	//data->coundown_start_time = time(NULL);
 
 	char dataToSend[32];
 	DWORD bytesWritten;
@@ -112,7 +132,7 @@ void LaunchRocket(HANDLE hSerial, UI::data_values* data)
 	memcpy(dataToSend, &(data->fuse_delay), 4);
 	memcpy(dataToSend + 4, &(data->launch_altitude), 4);
 
-	//WriteFile(hSerial, dataToSend, 32, &bytesWritten, NULL);
+	WriteFile(hSerial, dataToSend, 32, &bytesWritten, NULL);
 }
 
 int main()
@@ -123,7 +143,7 @@ int main()
 	data.launch_rocket = LaunchRocket;
 
 	//SERIAL INITIALIZATION
-	HANDLE hSerial = CreateFile("\\\\.\\COM1", GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+	HANDLE hSerial = CreateFile("\\\\.\\COM3", GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 
 	DCB dcbSerialParams = {0};
 	dcbSerialParams.DCBlength = sizeof(dcbSerialParams);
@@ -224,8 +244,14 @@ int main()
 		{
 			strncpy(time_string, "NO_LAUNCH", 11);
 		}	
-
 		outputFile << "launchTime" << "," << time_string << std::endl;
+
+		std::time_t currentTime_t = time(NULL);
+		std::tm *localTime = std::localtime(&currentTime_t);
+		std::stringstream ss;
+		ss << std::put_time(localTime, "%Y-%m-%d");
+
+		outputFile << "launchDate" << "," << ss.str() << std::endl;
 
         outputFile.close();
     }

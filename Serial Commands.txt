@@ -1,4 +1,6 @@
-C_TS = Telemetry Sent
+C_SC = Successful connection with arduino
+C_SS = Confirm successful connection
+C_TS = Telemetry sent
 C_FI = Fuse ignited
 C_FO = Fuse off
 C_UT = Upstream telemetry

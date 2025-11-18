@@ -38,7 +38,7 @@ public:
     	std::time_t launch_time = NULL;
     	std::time_t coundown_start_time = NULL;
 
-		int fuse_delay = 0;
+		int fuse_delay = 2;
 		int launch_altitude = 0;
 
 		HANDLE hSerial;
@@ -50,7 +50,7 @@ public:
 		{"C_TS", "b1", "c1", "d1", "e1"},
 		{"C_FI", "b2", "c2", "d2", "e2"},
 		{"C_FO", "b3", "c3", "d3", "e3"},
-		{"a4", "b4", "c4", "d4", "e4"},
+		{"C_SC", "b4", "c4", "d4", "e4"},
 		{"a5", "b5", "c5", "d5", "e5"}
 	};
 
