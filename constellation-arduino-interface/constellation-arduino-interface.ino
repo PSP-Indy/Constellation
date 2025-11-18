@@ -32,12 +32,15 @@ void loop() {
     for(int i = 0; i < sizeof(lora_recieved_packet); i++) {
       lora_recieved_packet[i] = (char)LoRa.read();
     }
-    Serial.print(lora_recieved_packet);
+    char serial_send[40] = "C_UT";
+    strcat(serial_send, lora_recieved_packet);
+    Serial.print(serial_send);
   }
 
   if (millis() >= turn_off_fuse_time && !fuse_off) {
     digitalWrite(RELAY_PIN, LOW);
     fuse_off = true;
+    Serial.print("C_FO");
   }
   
 }
@@ -49,10 +52,15 @@ void launch_rocket(const char* initialize_data_packet) {
   LoRa.write(packet_in_bytes, 32);
   LoRa.endPacket();
 
+  Serial.print("C_TS");
+
+  delay(5000);
+
   int fuse_time;
   memcpy(&fuse_time, initialize_data_packet, 4);
   
   turn_off_fuse_time = millis() + (fuse_time * 1000);
 
   digitalWrite(RELAY_PIN, HIGH);
+  Serial.print("C_FI");
 }

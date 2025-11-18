@@ -31,8 +31,7 @@ std::string date_string = "";
 
 void UI::Init(GLFWwindow *window, const char *glsl_version)
 {
-	auto now = std::chrono::system_clock::now();
-	std::time_t currentTime_t = std::chrono::system_clock::to_time_t(now);
+	std::time_t currentTime_t = time(NULL);
 	std::tm *localTime = std::localtime(&currentTime_t);
 	std::stringstream ss;
 	ss << std::put_time(localTime, "%Y-%m-%d");
@@ -70,6 +69,14 @@ void UI::Init(GLFWwindow *window, const char *glsl_version)
 	const ImVec4 colors[] = {ImVec4{219.0f / 256.0f, 66.0f / 256.0f, 66.0f / 256.0f, 1.0f}, ImVec4{219.0f / 256.0f, 140.0f / 256.0f, 66.0f / 256.0f, 1.0f}, ImVec4{104.0f / 256.0f, 173.0f / 256.0f, 92.0f / 256.0f, 1.0f}};
 	const ImVec4* color_ptr = colors;
 	ImPlot::AddColormap("go_grid_colors", color_ptr, 3);
+
+	for (int i = 0; i < 5; i++) 
+	{
+		for (int j = 0; j < 5; j++)
+		{
+			rocket_data->go_grid_values[i][j] = 0;
+		}
+	}
 }
 
 void UI::NewFrame()
@@ -358,8 +365,7 @@ void UI::Update()
 	char time_since_launch_string_input[11];
 	if (rocket_data->launch_time != NULL)
 	{
-		auto now = std::chrono::system_clock::now();
-		std::time_t currentTime_t = std::chrono::system_clock::to_time_t(now);
+		std::time_t currentTime_t = time(NULL);
 		int difference_in_seconds = difftime(currentTime_t, rocket_data->launch_time);
 		strncpy(time_since_launch_string_input, std::to_string(difference_in_seconds).c_str(), 11);
 	}
@@ -412,14 +418,10 @@ void UI::Update()
 	ImGui::SetNextItemWidth(400);
 	ImGui::InputInt("Launch Alitude (m above sea level)", &(rocket_data->launch_altitude));
 	
-	if (rocket_data->launch_time == NULL)
+	if (rocket_data->go_grid_values[0][0] != 1)
 	{
 		if (ImGui::Button("Launch Rocket", ImVec2(-1, 70)))
 		{
-			auto now = std::chrono::system_clock::now();
-			std::time_t currentTime_t = std::chrono::system_clock::to_time_t(now);
-			rocket_data->launch_time = currentTime_t;
-
 			if (rocket_data->launch_rocket != NULL)
 			{
 				rocket_data->launch_rocket(rocket_data->hSerial, rocket_data);
@@ -428,6 +430,19 @@ void UI::Update()
 	}
 
 	ImGui::End();
+	#pragma endregion
+
+	#pragma region LaunchCountdown
+	if(rocket_data->launch_countdown) 
+	{
+		ImGui::Begin("Launch Countdown");
+		time_t current_time_t = time(NULL);
+		int time_since_countdown = difftime(rocket_data->coundown_start_time, current_time_t);
+		int countdown = 5 - std::abs(time_since_countdown);
+		ImGui::Text((std::string("LAUNCH: T-") + std::to_string(countdown)).c_str());
+		ImGui::End();
+	}
+	
 	#pragma endregion
 }
 

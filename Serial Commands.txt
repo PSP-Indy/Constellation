@@ -1,0 +1,6 @@
+C_ = Callback from arduino about status
+
+C_TS = Telemetry Sent
+C_FI = Fuse ignited
+C_FO = Fuse off
+C_UT = Upstream telemetry

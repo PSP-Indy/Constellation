@@ -34,8 +34,11 @@ public:
 		std::vector<float> z_rot_values = {0};
 
 		float go_grid_values[5][5];
+		
+		bool launch_countdown = false;
 
     	std::time_t launch_time = NULL;
+    	std::time_t coundown_start_time = NULL;
 
 		int fuse_delay = 0;
 		int launch_altitude = 0;
@@ -45,10 +48,10 @@ public:
 		void (*launch_rocket)(HANDLE hSerial, data_values* data) = NULL;
 	};
 
-	char go_grid_labels[5][5][3] = {
-		{"a1", "b1", "c1", "d1", "e1"},
-		{"a2", "b2", "c2", "d2", "e2"},
-		{"a3", "b3", "c3", "d3", "e3"},
+	char go_grid_labels[5][5][5] = {
+		{"C_TS", "b1", "c1", "d1", "e1"},
+		{"C_FI", "b2", "c2", "d2", "e2"},
+		{"C_FO", "b3", "c3", "d3", "e3"},
 		{"a4", "b4", "c4", "d4", "e4"},
 		{"a5", "b5", "c5", "d5", "e5"}
 	};

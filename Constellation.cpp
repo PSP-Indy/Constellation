@@ -29,63 +29,15 @@ std::mutex valueLock;
 UI* UI::ui = new UI();
 
 float CharStringToFloat(char* charString, int idx) {
-	union {
-		float f;
-		char b[4];
-	} u;
-	u.b[3] = charString[idx + 3];
-	u.b[2] = charString[idx + 2];
-	u.b[1] = charString[idx + 1];
-	u.b[0] = charString[idx];
-	return u.f;
+	float cpy_flt;
+	memcpy(&cpy_flt, charString, 4);
+	return cpy_flt;
 }
 
 int CharStringToInt(char* charString, int idx) {
-	union {
-		int f;
-		char b[4];
-	} u;
-	u.b[3] = charString[idx + 3];
-	u.b[2] = charString[idx + 2];
-	u.b[1] = charString[idx + 1];
-	u.b[0] = charString[idx];
-	return u.f;
-}
-
-void FakeSerialData(UI::data_values* data)
-{
-	std::random_device rd;
-	std::mt19937 engine(rd());
-	std::uniform_int_distribution<int> dist(-100, 100);
-
-	while (true) 
-	{
-		valueLock.lock();
-
-		float dt = 0.2f;
-
-		float time = data->t_values.back() + dt;
-		float new_z = data->z_values.back() + (data->v_values.back() * dt) + (data->a_values.back() * dt * dt * dt);
-
-		data->t_values.push_back(time);
-		data->v_values.push_back(new_z >= 0 ? (data->v_values.back() + (data->a_values.back() * dt)) : 0.0f);
-		data->a_values.push_back(new_z >= 0 ? (time <= 10.0f ? 0.0f : (time <= 20.0f ? 5.0f : -9.8f)) : 0.0f);
-		data->x_values.push_back(0);
-		data->y_values.push_back(0);
-		data->z_values.push_back(new_z >= 0 ? new_z : 0.0f);
-		data->x_rot_values.push_back(0);//0.3f * cos(time)
-		data->y_rot_values.push_back(0);//0.3f * sin(time)
-		data->z_rot_values.push_back(1.0f*time);
-
-		for (int i = 0; i < 5; i++) {
-			for (int j = 0; j < 5; j++) {
-				data->go_grid_values[i][j] = fmod(((data->go_grid_values[i][j] + (dist(engine) + 100.0f) / 500.0f)), 1.0f);
-			}
-		}
-
-		valueLock.unlock();
-		std::this_thread::sleep_for(std::chrono::milliseconds((int)(dt * 1000)));
-	}
+	int cpy_int;
+	memcpy(&cpy_int, charString, 4);
+	return cpy_int;
 }
 
 void ProcessSerialData(HANDLE hSerial, UI::data_values* data) {
@@ -96,22 +48,54 @@ void ProcessSerialData(HANDLE hSerial, UI::data_values* data) {
 
 		if (!ReadFile(hSerial, readBuffer, sizeof(readBuffer), &bytesRead, NULL)) {
 			std::cout << "Error reading serial buffer!" << std::endl;
-		} else {
+		}
+
+		std::string header;
+		for (int i = 0; i < 4; i++){
+			header += readBuffer[i];
+		}
+		
+		if(header == std::string("C_TS")) 
+		{
+			data->launch_countdown = true;
+
+			std::time_t currentTime_t = time(NULL);
+			data->coundown_start_time = currentTime_t;
+
+			data->go_grid_values[0][0] = 1;
+		}
+
+		if(header == std::string("C_FI")) 
+		{
+			std::time_t currentTime_t =  time(NULL);
+			data->launch_time = currentTime_t;
+			data->go_grid_values[0][1] = 1;
+		}
+
+		if(header == std::string("C_FO")) 
+		{
+			data->launch_countdown = false;
+			data->go_grid_values[0][2] = 1;
+		}
+
+		if(header == std::string("C_UT")) 
+		{
 			valueLock.lock();
 
-			data->t_values.push_back(CharStringToFloat(readBuffer, 0));
-			data->v_values.push_back(CharStringToFloat(readBuffer, 4));
-			data->a_values.push_back(CharStringToFloat(readBuffer, 8));
-			data->x_values.push_back(CharStringToFloat(readBuffer, 12));
-			data->y_values.push_back(CharStringToFloat(readBuffer, 16));
-			data->z_values.push_back(CharStringToFloat(readBuffer, 20));
-			data->x_rot_values.push_back(CharStringToFloat(readBuffer, 24));
-			data->y_rot_values.push_back(CharStringToFloat(readBuffer, 28));
-			data->z_rot_values.push_back(CharStringToFloat(readBuffer, 32));
+			data->t_values.push_back(CharStringToFloat(readBuffer, 4));
+			data->v_values.push_back(CharStringToFloat(readBuffer, 8));
+			data->a_values.push_back(CharStringToFloat(readBuffer, 12));
+			data->x_values.push_back(CharStringToFloat(readBuffer, 16));
+			data->y_values.push_back(CharStringToFloat(readBuffer, 20));
+			data->z_values.push_back(CharStringToFloat(readBuffer, 24));
+			data->x_rot_values.push_back(CharStringToFloat(readBuffer, 28));
+			data->y_rot_values.push_back(CharStringToFloat(readBuffer, 32));
+			data->z_rot_values.push_back(CharStringToFloat(readBuffer, 36));
 
 
 			valueLock.unlock();
 		}
+
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
 }
@@ -144,10 +128,6 @@ int main()
 	//GLOBAL USE VARIABLES
 
 	UI::data_values data;
-
-	//IF BUILDING IN DEBUG MODE, FAKE SERIAL DATA
-	std::thread serial_thread(FakeSerialData, &data);
-	serial_thread.detach();
 
 	//SERIAL INITIALIZATION
 	HANDLE hSerial = CreateFile("\\\\.\\COM1", GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
@@ -261,4 +241,3 @@ int main()
 
 	return 0;
 }
-
