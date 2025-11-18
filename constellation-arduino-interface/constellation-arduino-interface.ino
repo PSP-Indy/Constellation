@@ -29,12 +29,7 @@ void setup() {
 }
 
 void loop() {
-  if (millis() - previous >= 1000 && (!launch_started || fuse_off))
-  {
-    previous = millis();
-    strcpy(header, "C_SC");
-    Serial.print(header);
-  }
+  
 
   if (!successful_connection) {
     digitalWrite(CONN_PIN, HIGH);
@@ -44,6 +39,15 @@ void loop() {
       if (successful_connecton_packet[0] == 'C' && successful_connecton_packet[1] == '_' && successful_connecton_packet[2] == 'S' && successful_connecton_packet[3] == 'S')
       {
         successful_connection = true;
+      }
+    }
+    else
+    {
+      if (millis() - previous >= 1000)
+      {
+        previous = millis();
+        strcpy(header, "C_SC");
+        Serial.print(header);
       }
     }
   }

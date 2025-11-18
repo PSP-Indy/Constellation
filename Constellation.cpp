@@ -76,22 +76,27 @@ void ProcessSerialData(HANDLE hSerial, UI::data_values* data) {
 			data->coundown_start_time = time(NULL);
 
 			data->go_grid_values[0][0] = 1;
+			data->last_ping = time(NULL);
 		}
 
 		if(header == std::string("C_FI")) 
 		{
 			data->launch_time = time(NULL);
 			data->go_grid_values[0][1] = 1;
+			data->last_ping = time(NULL);
 		}
 
 		if(header == std::string("C_FO")) 
 		{
 			data->coundown_start_time = NULL;
 			data->go_grid_values[0][2] = 1;
+			data->last_ping = time(NULL);
 		}
 
 		if(header == std::string("C_UT")) 
 		{
+			data->last_ping = time(NULL);
+
 			valueLock.lock();
 
 			data->t_values.push_back(CharStringToFloat(readBuffer, 4));

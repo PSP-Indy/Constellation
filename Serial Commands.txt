@@ -1,4 +1,4 @@
-C_SC = Successful connection with arduino
+C_SC = Successful connection with arduino (GOES RED IF HASNT RECIEVED DATA IN 5 SECONDS)
 C_SS = Confirm successful connection
 C_TS = Telemetry sent
 C_FI = Fuse ignited
