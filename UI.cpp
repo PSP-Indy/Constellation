@@ -434,11 +434,19 @@ void UI::Update()
 			ImGui::SetNextItemWidth(400);
 			ImGui::InputInt("Launch Alitude (m above sea level)", &(rocket_data->launch_altitude));
 			
+			if (ImGui::Button("Prime Rocket", ImVec2(-1, 70)))
+			{
+				if (rocket_data->prime_rocket != NULL)
+				{
+					rocket_data->prime_rocket(rocket_data->hSerial, rocket_data);
+				}
+			}
+
 			if (ImGui::Button("Launch Rocket", ImVec2(-1, 70)))
 			{
 				if (rocket_data->launch_rocket != NULL)
 				{
-					rocket_data->launch_rocket(rocket_data->hSerial, rocket_data);
+					rocket_data->launch_rocket(rocket_data->hSerial);
 				}
 			}
 		}

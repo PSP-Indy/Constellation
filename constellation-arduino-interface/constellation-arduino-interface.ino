@@ -1,5 +1,6 @@
 #include <SPI.h>
 #include <LoRa.h>
+#include <time.h>
 
 #define RELAY_PIN 24
 #define CONN_PIN 23
@@ -7,12 +8,16 @@
 char header[40];
 
 bool successful_connection = false;
+bool rocket_primed = false;
 bool launched = false;
 bool launch_started = false;
 bool fuse_off = false;
 
+int fuse_time;
+
+time_t last_successful_ping;
+
 char successful_connecton_packet[4];
-char initialize_data_packet[32];
 char lora_recieved_packet[36];
 
 int turn_off_fuse_time;
@@ -29,40 +34,51 @@ void setup() {
 }
 
 void loop() {
-  
-
-  if (!successful_connection) {
-    digitalWrite(CONN_PIN, HIGH);
-    if (Serial.available()) {
-      Serial.readBytes(successful_connecton_packet, 4);
-
-      if (successful_connecton_packet[0] == 'C' && successful_connecton_packet[1] == '_' && successful_connecton_packet[2] == 'S' && successful_connecton_packet[3] == 'S')
-      {
-        successful_connection = true;
-      }
-    }
-    else
+  if (Serial.available() == 4)
+  {
+    String command;
+    for (int i = 0; i < 4; i++) 
     {
-      if (millis() - previous >= 1000)
+      command += Serial.read();
+    }
+
+    if (command == "C_SS") 
+    {
+      last_successful_ping = time(NULL);
+      successful_connection = true;
+    }
+
+    if (command == "C_LR")
+    {
+      if (rocket_primed && successful_connection)
       {
-        previous = millis();
-        strcpy(header, "C_SC");
-        Serial.print(header);
+        LaunchRocket();
       }
     }
   }
+  else if (Serial.available() == 32) 
+  {
+    if (successful_connection)
+    {
+      char initialize_data_packet[32];
+
+      for(int i = 0; i < 32; i++) {
+        initialize_data_packet[i] = Serial.read();
+      } 
+
+      PrimeRocket(initialize_data_packet);
+      rocket_primed = true;
+    }
+  } 
   else 
   {
-    digitalWrite(CONN_PIN, LOW);
+    if (millis() - previous >= 1000)
+    {
+      previous = millis();
+      strcpy(header, "C_SC");
+      Serial.print(header);
+    }
   }
-
-  if (Serial.available() == 32 && !launch_started && successful_connection) {
-    for(int i = 0; i < 32; i++) {
-      initialize_data_packet[i] = Serial.read();
-    } 
-
-    launch_rocket(initialize_data_packet);
-  } 
 
   if (launched)
   {
@@ -83,11 +99,34 @@ void loop() {
       Serial.print(header);
     }
   }
+
+  if (abs(difftime(last_successful_ping, time(NULL))) > 5)
+  {
+    successful_connection = false;
+  }
+
+  digitalWrite(CONN_PIN, !successful_connection);  
 }
 
-void launch_rocket(const char* initialize_data_packet) {
-  Serial.flush();
+void LaunchRocket()
+{
   launch_started = true;
+  Serial.flush();
+
+  delay(5000);
+  
+  turn_off_fuse_time = millis() + (fuse_time * 1000);
+
+  digitalWrite(RELAY_PIN, HIGH);
+  strcpy(header, "C_FI");
+  Serial.print(header);
+  launched = true;
+}
+
+void PrimeRocket(const char* initialize_data_packet) {
+  memcpy(&fuse_time, initialize_data_packet, 4);
+
+  Serial.flush();
   // LoRa.beginPacket();
 
   uint8_t packet_in_bytes[32];
@@ -97,16 +136,4 @@ void launch_rocket(const char* initialize_data_packet) {
 
   strcpy(header, "C_TS");
   Serial.print(header);
-
-  delay(5000);
-
-  int fuse_time;
-  memcpy(&fuse_time, initialize_data_packet, 4);
-  
-  turn_off_fuse_time = millis() + (fuse_time * 1000);
-
-  digitalWrite(RELAY_PIN, HIGH);
-  strcpy(header, "C_FI");
-  Serial.print(header);
-  launched = true;
 }

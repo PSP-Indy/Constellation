@@ -44,7 +44,8 @@ public:
 
 		HANDLE hSerial;
 
-		void (*launch_rocket)(HANDLE hSerial, data_values* data) = NULL;
+		void (*prime_rocket)(HANDLE hSerial, data_values* data) = NULL;
+		void (*launch_rocket)(HANDLE hSerial) = NULL;
 	};
 
 	char go_grid_labels[5][5][5] = {

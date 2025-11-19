@@ -4,3 +4,4 @@ C_TS = Telemetry sent
 C_FI = Fuse ignited
 C_FO = Fuse off
 C_UT = Upstream telemetry
+C_LR = Launch rocket

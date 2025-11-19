@@ -60,14 +60,11 @@ void ProcessSerialData(HANDLE hSerial, UI::data_values* data) {
 
 		if(header == std::string("C_SC")) 
 		{
-			if (data->go_grid_values[0][3] != 1)
-			{
-				data->go_grid_values[0][3] = 1;
-				char data_to_send[4];
-				strcpy(data_to_send, "C_SS");
-				DWORD bytesWritten;
-				WriteFile(hSerial, data_to_send, 4, &bytesWritten, NULL);
-			}
+			data->go_grid_values[0][3] = 1;
+			char data_to_send[4];
+			strcpy(data_to_send, "C_SS");
+			DWORD bytesWritten;
+			WriteFile(hSerial, data_to_send, 4, &bytesWritten, NULL);
 			data->last_ping = time(NULL);
 		}
 		
@@ -129,11 +126,8 @@ void WriteDataToFile(std::vector<float> data, std::string label, std::ofstream* 
 	*outputFile << std::endl;
 }
 
-void LaunchRocket(HANDLE hSerial, UI::data_values* data)
+void PrimeRocket(HANDLE hSerial, UI::data_values* data)
 {
-	// FOR TESTING PURPOSES, COMMENT ON ACTUAL BUILDS:
-	//data->coundown_start_time = time(NULL);
-
 	char dataToSend[32];
 	DWORD bytesWritten;
 
@@ -143,11 +137,20 @@ void LaunchRocket(HANDLE hSerial, UI::data_values* data)
 	WriteFile(hSerial, dataToSend, 32, &bytesWritten, NULL);
 }
 
+void LaunchRocket(HANDLE hSerial)
+{
+	char data_to_send[4];
+	strcpy(data_to_send, "C_LR");
+	DWORD bytesWritten;
+	WriteFile(hSerial, data_to_send, 4, &bytesWritten, NULL);
+}
+
 int main()
 {
 	//GLOBAL USE VARIABLES
 	UI::data_values data;
 
+	data.prime_rocket = PrimeRocket;
 	data.launch_rocket = LaunchRocket;
 
 	//SERIAL INITIALIZATION
