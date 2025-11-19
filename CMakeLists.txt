@@ -8,7 +8,7 @@ endif()
 
 project ("Constellation" VERSION 0.1.1 DESCRIPTION "")
 
-add_executable (Constellation "Constellation.cpp"  "UI.cpp"  "UI.hpp"  "rocket_model.hpp")
+add_executable (Constellation "Constellation.cpp"  "UI.cpp"  "UI.hpp"  "rocket_model.hpp"  "SerialHandling.hpp"  "SerialHandling.cpp")
 
 set_property(TARGET Constellation PROPERTY CXX_STANDARD 20)
 

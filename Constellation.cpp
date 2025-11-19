@@ -11,106 +11,15 @@
 #include <windows.h>
 
 #include "UI.hpp"
+#include "SerialHandling.hpp"
 
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 
-using namespace std::chrono;
-
 std::mutex valueLock;
 
 UI* UI::ui = new UI();
-
-float CharStringToFloat(char* charString, int idx) {
-	float cpy_flt;
-	memcpy(&cpy_flt, charString, 4);
-	return cpy_flt;
-}
-
-int CharStringToInt(char* charString, int idx) {
-	int cpy_int;
-	memcpy(&cpy_int, charString, 4);
-	return cpy_int;
-}
-
-void ProcessSerialData(HANDLE hSerial, UI::data_values* data) {
-	std::this_thread::sleep_for(std::chrono::milliseconds(500));
-
-	while (true) 
-	{
-		char readBuffer[40];
-		DWORD bytesRead;
-
-		if (!ReadFile(hSerial, readBuffer, sizeof(readBuffer), &bytesRead, NULL)) 
-		{
-			continue;
-		}
-
-		if (bytesRead <= 0) 
-		{
-			continue;
-		}
-
-		std::string header;
-		for (int i = 0; i < 4; i++){
-			header += readBuffer[i];
-		}
-
-		std::cout << header << std::endl;
-
-		if(header == std::string("C_SC")) 
-		{
-			data->go_grid_values[0][3] = 1;
-			char data_to_send[4];
-			strcpy(data_to_send, "C_SS");
-			DWORD bytesWritten;
-			WriteFile(hSerial, data_to_send, 4, &bytesWritten, NULL);
-			data->last_ping = time(NULL);
-		}
-		
-		if(header == std::string("C_TS")) 
-		{
-			data->go_grid_values[0][0] = 1;
-			data->last_ping = time(NULL);
-		}
-
-		if(header == std::string("C_FI")) 
-		{
-			data->launch_time = time(NULL);
-			data->go_grid_values[0][1] = 1;
-			data->last_ping = time(NULL);
-		}
-
-		if(header == std::string("C_FO")) 
-		{
-			data->coundown_start_time = NULL;
-			data->go_grid_values[0][2] = 1;
-			data->last_ping = time(NULL);
-		}
-
-		if(header == std::string("C_UT")) 
-		{
-			data->last_ping = time(NULL);
-
-			valueLock.lock();
-
-			data->t_values.push_back(CharStringToFloat(readBuffer, 4));
-			data->v_values.push_back(CharStringToFloat(readBuffer, 8));
-			data->a_values.push_back(CharStringToFloat(readBuffer, 12));
-			data->x_values.push_back(CharStringToFloat(readBuffer, 16));
-			data->y_values.push_back(CharStringToFloat(readBuffer, 20));
-			data->z_values.push_back(CharStringToFloat(readBuffer, 24));
-			data->x_rot_values.push_back(CharStringToFloat(readBuffer, 28));
-			data->y_rot_values.push_back(CharStringToFloat(readBuffer, 32));
-			data->z_rot_values.push_back(CharStringToFloat(readBuffer, 36));
-
-
-			valueLock.unlock();
-		}
-		
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
-	}
-}
+SerialHandling* SerialHandling::serialhandling = new SerialHandling();
 
 void WriteDataToFile(std::vector<float> data, std::string label, std::ofstream* outputFile) 
 {
@@ -150,6 +59,13 @@ int main()
 	//GLOBAL USE VARIABLES
 	UI::data_values data;
 
+	//GUI INITIALIZATION
+	UI* gui = UI::Get();
+	SerialHandling* serialHandling = SerialHandling::Get();
+
+	gui->AssignValues(&data);
+	serialHandling->SetValueLock(&valueLock);
+
 	//SERIAL INITIALIZATION
 	HANDLE hSerial = CreateFile("\\\\.\\COM3", GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 
@@ -181,16 +97,11 @@ int main()
 				data.launch_rocket = LaunchRocket;
 
 				data.hSerial = hSerial;
-				std::thread serial_thread(ProcessSerialData, hSerial, &data);
+				std::thread serial_thread(&SerialHandling::ProcessSerialData, serialHandling, hSerial, &data);
 				serial_thread.detach();
 			}
 		}
 	}
-
-	//GUI INITIALIZATION
-	UI* gui = UI::Get();
-
-	gui->AssignValues(&data);
 	
 	if (!glfwInit())
 		return 2;
@@ -226,7 +137,7 @@ int main()
 			data.go_grid_values[0][3] = 0;
 		}
 
-		auto start = high_resolution_clock::now();
+		auto start = std::chrono::high_resolution_clock::now();
 		glfwPollEvents();
 		gui->NewFrame();
 		gui->Update();

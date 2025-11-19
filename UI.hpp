@@ -48,14 +48,6 @@ public:
 		void (*launch_rocket)(HANDLE hSerial, data_values* data) = NULL;
 	};
 
-	char go_grid_labels[5][5][5] = {
-		{"C_TS", "b1", "c1", "d1", "e1"},
-		{"C_FI", "b2", "c2", "d2", "e2"},
-		{"C_FO", "b3", "c3", "d3", "e3"},
-		{"C_SC", "b4", "c4", "d4", "e4"},
-		{"a5", "b5", "c5", "d5", "e5"}
-	};
-
 	UI();
 	UI(const UI& obj) = delete;
 	void Init(GLFWwindow* window, const char* glsl_version);
@@ -67,9 +59,19 @@ public:
 	~UI();
 	static UI* Get();
 
-	void AssignValues(data_values* data_values){
+	void AssignValues(data_values* data_values)
+	{
 		this->rocket_data = data_values;
 	}
+
+private:
+	char go_grid_labels[5][5][5] = {
+		{"C_TS", "b1", "c1", "d1", "e1"},
+		{"C_FI", "b2", "c2", "d2", "e2"},
+		{"C_FO", "b3", "c3", "d3", "e3"},
+		{"C_SC", "b4", "c4", "d4", "e4"},
+		{"a5", "b5", "c5", "d5", "e5"}
+	};
 
 	int FindClosestIndex(const std::vector<float>* values, int target)
 	{
@@ -98,7 +100,6 @@ public:
 		return sub_array;
 	}
 
-private:
 	data_values* rocket_data;
 
 	static UI* ui;
