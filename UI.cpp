@@ -384,6 +384,7 @@ void UI::Update()
 	x_region_avail = (ImGui::GetContentRegionAvail().x - 70 - ImGui::GetStyle().ItemSpacing.x);
 	y_region_avail = (ImGui::GetContentRegionAvail().y - 70 - ImGui::GetStyle().ItemSpacing.y);
 	smallest_region = x_region_avail < y_region_avail ? x_region_avail : y_region_avail;
+
 	if (ImPlot::BeginPlot("Go Grid", ImVec2(smallest_region, smallest_region), ImPlotFlags_NoLegend | ImPlotFlags_NoMouseText))
 	{
 		
@@ -441,12 +442,15 @@ void UI::Update()
 					rocket_data->prime_rocket(rocket_data->hSerial, rocket_data);
 				}
 			}
-
-			if (ImGui::Button("Launch Rocket", ImVec2(-1, 70)))
+			
+			if (rocket_data->go_grid_values[0][0] == 1)
 			{
-				if (rocket_data->launch_rocket != NULL)
+				if (ImGui::Button("Launch Rocket", ImVec2(-1, 70)))
 				{
-					rocket_data->launch_rocket(rocket_data->hSerial);
+					if (rocket_data->launch_rocket != NULL)
+					{
+						rocket_data->launch_rocket(rocket_data->hSerial, rocket_data);
+					}
 				}
 			}
 		}

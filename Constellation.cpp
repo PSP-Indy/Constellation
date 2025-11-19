@@ -70,8 +70,6 @@ void ProcessSerialData(HANDLE hSerial, UI::data_values* data) {
 		
 		if(header == std::string("C_TS")) 
 		{
-			data->coundown_start_time = time(NULL);
-
 			data->go_grid_values[0][0] = 1;
 			data->last_ping = time(NULL);
 		}
@@ -137,8 +135,10 @@ void PrimeRocket(HANDLE hSerial, UI::data_values* data)
 	WriteFile(hSerial, dataToSend, 32, &bytesWritten, NULL);
 }
 
-void LaunchRocket(HANDLE hSerial)
+void LaunchRocket(HANDLE hSerial, UI::data_values* data)
 {
+	data->coundown_start_time = time(NULL);
+
 	char data_to_send[4];
 	strcpy(data_to_send, "C_LR");
 	DWORD bytesWritten;
@@ -149,9 +149,6 @@ int main()
 {
 	//GLOBAL USE VARIABLES
 	UI::data_values data;
-
-	data.prime_rocket = PrimeRocket;
-	data.launch_rocket = LaunchRocket;
 
 	//SERIAL INITIALIZATION
 	HANDLE hSerial = CreateFile("\\\\.\\COM3", GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
@@ -180,7 +177,9 @@ int main()
 			if (!SetCommTimeouts(hSerial, &timeouts)) {
 				std::cout << "Failed to set timouts, aborting serial communication." << std::endl;
 			} else {
+				data.prime_rocket = PrimeRocket;
 				data.launch_rocket = LaunchRocket;
+				
 				data.hSerial = hSerial;
 				std::thread serial_thread(ProcessSerialData, hSerial, &data);
 				serial_thread.detach();
