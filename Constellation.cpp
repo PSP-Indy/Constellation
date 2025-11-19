@@ -35,23 +35,27 @@ void WriteDataToFile(std::vector<float> data, std::string label, std::ofstream* 
 
 void PrimeRocket(HANDLE hSerial, UI::data_values* data)
 {
+	char header[5];
+	strcpy(header, "C_ST");
+	DWORD bytesWrittenHeader;
+	WriteFile(hSerial, header, 5, &bytesWrittenHeader, NULL);
+	
 	char dataToSend[32];
-	DWORD bytesWritten;
-
+	DWORD bytesWrittenData;
 	memcpy(dataToSend, &(data->fuse_delay), 4);
 	memcpy(dataToSend + 4, &(data->launch_altitude), 4);
 
-	WriteFile(hSerial, dataToSend, 32, &bytesWritten, NULL);
+	WriteFile(hSerial, dataToSend, 32, &bytesWrittenData, NULL);
 }
 
 void LaunchRocket(HANDLE hSerial, UI::data_values* data)
 {
 	data->coundown_start_time = time(NULL);
 
-	char data_to_send[4];
+	char data_to_send[5];
 	strcpy(data_to_send, "C_LR");
 	DWORD bytesWritten;
-	WriteFile(hSerial, data_to_send, 4, &bytesWritten, NULL);
+	WriteFile(hSerial, data_to_send, 5, &bytesWritten, NULL);
 }
 
 int main()

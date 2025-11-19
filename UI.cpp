@@ -438,15 +438,14 @@ void UI::Update()
 					rocket_data->prime_rocket(rocket_data->hSerial, rocket_data);
 				}
 			}
-			
-			if (rocket_data->go_grid_values[0][0] == 1)
+		} 
+		else if (rocket_data->coundown_start_time == NULL && rocket_data->launch_time == NULL)
+		{
+			if (ImGui::Button("Launch Rocket", ImVec2(-1, 70)))
 			{
-				if (ImGui::Button("Launch Rocket", ImVec2(-1, 70)))
+				if (rocket_data->launch_rocket != NULL)
 				{
-					if (rocket_data->launch_rocket != NULL)
-					{
-						rocket_data->launch_rocket(rocket_data->hSerial, rocket_data);
-					}
+					rocket_data->launch_rocket(rocket_data->hSerial, rocket_data);
 				}
 			}
 		}

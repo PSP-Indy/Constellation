@@ -15,14 +15,11 @@ bool fuse_off = false;
 
 int fuse_time;
 
-time_t last_successful_ping;
+unsigned long last_successful_ping = 0;
+unsigned long previous = 0;
+unsigned long turn_off_fuse_time = 0;
 
-char successful_connecton_packet[4];
 char lora_recieved_packet[36];
-
-int turn_off_fuse_time;
-
-int previous = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -31,20 +28,20 @@ void setup() {
 
   pinMode(RELAY_PIN, OUTPUT);
   pinMode(CONN_PIN, OUTPUT);
+  pinMode(8, OUTPUT);
+
 }
 
 void loop() {
-  if (Serial.available() == 4)
+  if (Serial.available() == 5)
   {
-    String command;
-    for (int i = 0; i < 4; i++) 
-    {
-      command += Serial.read();
-    }
+    char command_buffer[5];
+    Serial.readBytes(command_buffer, 5);
+    String command = String(command_buffer);
 
     if (command == "C_SS") 
     {
-      last_successful_ping = time(NULL);
+      last_successful_ping = millis();
       successful_connection = true;
     }
 
@@ -55,29 +52,25 @@ void loop() {
         LaunchRocket();
       }
     }
-  }
-  else if (Serial.available() == 32) 
-  {
-    if (successful_connection)
+
+    if (command == "C_ST") 
     {
+      while (Serial.available() != 32) {}
+
       char initialize_data_packet[32];
 
-      for(int i = 0; i < 32; i++) {
-        initialize_data_packet[i] = Serial.read();
-      } 
+      Serial.readBytes(initialize_data_packet, 32);
 
       PrimeRocket(initialize_data_packet);
       rocket_primed = true;
     }
-  } 
-  else 
+  }
+
+  if ((millis() - previous >= 1000) && !(Serial.available() > 0))
   {
-    if (millis() - previous >= 1000)
-    {
-      previous = millis();
-      strcpy(header, "C_SC");
-      Serial.print(header);
-    }
+    previous = millis();
+    strcpy(header, "C_SC");
+    Serial.print(header);
   }
 
   if (launched)
@@ -93,6 +86,7 @@ void loop() {
     // }
 
     if (millis() >= turn_off_fuse_time && !fuse_off) {
+      delay(100);
       digitalWrite(RELAY_PIN, LOW);
       fuse_off = true;
       strcpy(header, "C_FO");
@@ -100,12 +94,12 @@ void loop() {
     }
   }
 
-  if (abs(difftime(last_successful_ping, time(NULL))) > 5)
+  if ((millis() - last_successful_ping) >= 5000)
   {
     successful_connection = false;
   }
 
-  digitalWrite(CONN_PIN, !successful_connection);  
+  digitalWrite(CONN_PIN, !successful_connection);
 }
 
 void LaunchRocket()
@@ -124,9 +118,9 @@ void LaunchRocket()
 }
 
 void PrimeRocket(const char* initialize_data_packet) {
+  delay(100);
   memcpy(&fuse_time, initialize_data_packet, 4);
 
-  Serial.flush();
   // LoRa.beginPacket();
 
   uint8_t packet_in_bytes[32];

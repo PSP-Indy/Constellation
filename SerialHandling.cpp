@@ -28,15 +28,15 @@ void SerialHandling::ProcessSerialData(HANDLE hSerial, UI::data_values* data)
 			header += readBuffer[i];
 		}
 
-		std::cout << header << std::endl;
+        std::cout << header << std::endl;
 
 		if(header == std::string("C_SC")) 
 		{
 			data->go_grid_values[0][3] = 1;
-			char data_to_send[4];
+			char data_to_send[5];
 			strcpy(data_to_send, "C_SS");
 			DWORD bytesWritten;
-			WriteFile(hSerial, data_to_send, 4, &bytesWritten, NULL);
+			WriteFile(hSerial, data_to_send, 5, &bytesWritten, NULL);
 			data->last_ping = time(NULL);
 		}
 		
