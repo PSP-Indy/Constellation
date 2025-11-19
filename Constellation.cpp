@@ -250,10 +250,10 @@ int main()
 			strncpy(time_string, "NO_LAUNCH", 11);
 		}	
 
-		std::time_t currentTime_t = time(NULL);
-		std::tm *localTime = std::localtime(&currentTime_t);
-		std::stringstream ss;
-		ss << std::put_time(localTime, "%Y-%m-%d");
+		char date_string[11];
+		time_t current_time = time(NULL);
+		std::tm *localTime = std::localtime(&current_time);
+		std::strftime(date_string, sizeof(date_string), "%m/%d/%Y", localTime);
 
 		WriteDataToFile(data.a_values, std::string("acceleration"), &outputFile);
 		WriteDataToFile(data.v_values, std::string("velocity"), &outputFile);
@@ -266,7 +266,7 @@ int main()
 		WriteDataToFile(data.z_rot_values, std::string("rotationZ"), &outputFile);
 
 		outputFile << "launchTime," << time_string << std::endl;
-		outputFile << "launchDate," << ss.str() << std::endl;
+		outputFile << "launchDate," << date_string << std::endl;
 		outputFile << "fuseDelay," << data.fuse_delay << std::endl;
 		outputFile << "launchAltitude," << data.launch_altitude << std::endl;
 

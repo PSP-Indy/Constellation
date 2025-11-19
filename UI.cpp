@@ -27,15 +27,13 @@ bool diagnostics_open = false;
 
 static const char* rebuild_ui_config = NULL;
 
-std::string date_string = "";
+char date_string[11];
 
 void UI::Init(GLFWwindow *window, const char *glsl_version)
 {
-	std::time_t currentTime_t = time(NULL);
-	std::tm *localTime = std::localtime(&currentTime_t);
-	std::stringstream ss;
-	ss << std::put_time(localTime, "%Y-%m-%d");
-	date_string = ss.str();
+	time_t current_time = time(NULL);
+	std::tm *localTime = std::localtime(&current_time);
+	std::strftime(date_string, sizeof(date_string), "%m/%d/%Y", localTime);
 
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -346,9 +344,7 @@ void UI::Update()
 		fastest_aceleration = rocket_data->a_values.at(rocket_data->a_values.size() - 1);
 	ImGui::InputFloat("Max Acceleration", &fastest_aceleration, 0.0f, 0.0f, "%.3f", ImGuiInputTextFlags_ReadOnly);
 
-	char date_string_input[11] = "";
-	strncpy(date_string_input, date_string.c_str(), 11);
-	ImGui::InputText("Date", date_string_input, 11, ImGuiInputTextFlags_ReadOnly);
+	ImGui::InputText("Date", date_string, 11, ImGuiInputTextFlags_ReadOnly);
 
 	char time_string_input[11];
 	if (rocket_data->launch_time != NULL)
