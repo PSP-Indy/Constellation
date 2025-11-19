@@ -179,7 +179,7 @@ int main()
 			} else {
 				data.prime_rocket = PrimeRocket;
 				data.launch_rocket = LaunchRocket;
-				
+
 				data.hSerial = hSerial;
 				std::thread serial_thread(ProcessSerialData, hSerial, &data);
 				serial_thread.detach();
@@ -239,16 +239,6 @@ int main()
 	std::ofstream outputFile;
 	outputFile.open("DATA.csv", std::ios::out); 
 	if (outputFile.is_open()) {
-		WriteDataToFile(data.a_values, std::string("acceleration"), &outputFile);
-		WriteDataToFile(data.v_values, std::string("velocity"), &outputFile);
-		WriteDataToFile(data.t_values, std::string("time"), &outputFile);
-		WriteDataToFile(data.x_values, std::string("positionX"), &outputFile);
-		WriteDataToFile(data.y_values, std::string("positionY"), &outputFile);
-		WriteDataToFile(data.z_values, std::string("positionZ"), &outputFile);
-		WriteDataToFile(data.x_rot_values, std::string("rotationX"), &outputFile);
-		WriteDataToFile(data.y_rot_values, std::string("rotationY"), &outputFile);
-		WriteDataToFile(data.z_rot_values, std::string("rotationZ"), &outputFile);
-
 		char time_string[11];
 		if (data.launch_time != NULL)
 		{
@@ -259,14 +249,26 @@ int main()
 		{
 			strncpy(time_string, "NO_LAUNCH", 11);
 		}	
-		outputFile << "launchTime" << "," << time_string << std::endl;
 
 		std::time_t currentTime_t = time(NULL);
 		std::tm *localTime = std::localtime(&currentTime_t);
 		std::stringstream ss;
 		ss << std::put_time(localTime, "%Y-%m-%d");
 
-		outputFile << "launchDate" << "," << ss.str() << std::endl;
+		WriteDataToFile(data.a_values, std::string("acceleration"), &outputFile);
+		WriteDataToFile(data.v_values, std::string("velocity"), &outputFile);
+		WriteDataToFile(data.t_values, std::string("time"), &outputFile);
+		WriteDataToFile(data.x_values, std::string("positionX"), &outputFile);
+		WriteDataToFile(data.y_values, std::string("positionY"), &outputFile);
+		WriteDataToFile(data.z_values, std::string("positionZ"), &outputFile);
+		WriteDataToFile(data.x_rot_values, std::string("rotationX"), &outputFile);
+		WriteDataToFile(data.y_rot_values, std::string("rotationY"), &outputFile);
+		WriteDataToFile(data.z_rot_values, std::string("rotationZ"), &outputFile);
+
+		outputFile << "launchTime," << time_string << std::endl;
+		outputFile << "launchDate," << ss.str() << std::endl;
+		outputFile << "fuseDelay," << data.fuse_delay << std::endl;
+		outputFile << "launchAltitude," << data.launch_altitude << std::endl;
 
         outputFile.close();
     }
