@@ -15,7 +15,8 @@ public:
     SerialHandling();
 	SerialHandling(const SerialHandling& obj) = delete;
     
-    void ProcessSerialData(HANDLE hSerial, UI::data_values* data);
+    void ProcessSerialDataTeleBT(HANDLE hSerial, UI::data_values* data);
+    void ProcessSerialDataSRAD(HANDLE hSerial, UI::data_values* data);
 
     ~SerialHandling();
 	static SerialHandling* Get();

@@ -71,37 +71,55 @@ int main()
 	serialHandling->SetValueLock(&valueLock);
 
 	//SERIAL INITIALIZATION
-	HANDLE hSerial = CreateFile("\\\\.\\COM3", GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+	HANDLE hSerialSRAD = CreateFile("\\\\.\\COM3", GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+	HANDLE hSerialTeleBT = CreateFile("\\\\.\\COM4", GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 
-	DCB dcbSerialParams = {0};
-	dcbSerialParams.DCBlength = sizeof(dcbSerialParams);
+	DCB dcbSerialParamsSRAD = {0};
+	dcbSerialParamsSRAD.DCBlength = sizeof(dcbSerialParamsSRAD);
 
-	if (!GetCommState(hSerial, &dcbSerialParams)) {
+	DCB dcbSerialParamsTeleBT = {0};
+	dcbSerialParamsTeleBT.DCBlength = sizeof(dcbSerialParamsTeleBT);
+
+	if (!GetCommState(hSerialSRAD, &dcbSerialParamsSRAD) && !GetCommState(hSerialTeleBT, &dcbSerialParamsTeleBT)) {
 		std::cout << "Failed to get comm state, aborting serial communication." << std::endl;
 	} else {
-		dcbSerialParams.BaudRate = CBR_9600;
-		dcbSerialParams.ByteSize = 8;
-		dcbSerialParams.StopBits = ONESTOPBIT;
-		dcbSerialParams.Parity = NOPARITY;
+		dcbSerialParamsSRAD.BaudRate = CBR_9600;
+		dcbSerialParamsSRAD.ByteSize = 8;
+		dcbSerialParamsSRAD.StopBits = ONESTOPBIT;
+		dcbSerialParamsSRAD.Parity = NOPARITY;
 
-		if (!SetCommState(hSerial, &dcbSerialParams)) {
+		dcbSerialParamsTeleBT.BaudRate = CBR_9600;
+		dcbSerialParamsTeleBT.ByteSize = 8;
+		dcbSerialParamsTeleBT.StopBits = ONESTOPBIT;
+		dcbSerialParamsTeleBT.Parity = NOPARITY;
+
+		if (!SetCommState(hSerialSRAD, &dcbSerialParamsSRAD) && !SetCommState(hSerialTeleBT, &dcbSerialParamsTeleBT)) {
 			std::cout << "Failed to set comm state, aborting serial communication." << std::endl;
 		} else {
-			COMMTIMEOUTS timeouts = {0};
-			timeouts.ReadIntervalTimeout = 50;
-			timeouts.ReadTotalTimeoutConstant = 50;
-			timeouts.ReadTotalTimeoutMultiplier = 10;
-			timeouts.WriteTotalTimeoutConstant = 50;
-			timeouts.WriteTotalTimeoutMultiplier = 10;
+			COMMTIMEOUTS timeoutsSRAD = {0};
+			timeoutsSRAD.ReadIntervalTimeout = 50;
+			timeoutsSRAD.ReadTotalTimeoutConstant = 50;
+			timeoutsSRAD.ReadTotalTimeoutMultiplier = 10;
+			timeoutsSRAD.WriteTotalTimeoutConstant = 50;
+			timeoutsSRAD.WriteTotalTimeoutMultiplier = 10;
 
-			if (!SetCommTimeouts(hSerial, &timeouts)) {
+			COMMTIMEOUTS timeoutsTeleBT = {0};
+			timeoutsTeleBT.ReadIntervalTimeout = 50;
+			timeoutsTeleBT.ReadTotalTimeoutConstant = 50;
+			timeoutsTeleBT.ReadTotalTimeoutMultiplier = 10;
+			timeoutsTeleBT.WriteTotalTimeoutConstant = 50;
+			timeoutsTeleBT.WriteTotalTimeoutMultiplier = 10;
+
+			if (!SetCommTimeouts(hSerialSRAD, &timeoutsSRAD) && !SetCommTimeouts(hSerialTeleBT, &timeoutsTeleBT)) {
 				std::cout << "Failed to set timouts, aborting serial communication." << std::endl;
 			} else {
 				data.prime_rocket = PrimeRocket;
 				data.launch_rocket = LaunchRocket;
 
-				data.hSerial = hSerial;
-				std::thread serial_thread(&SerialHandling::ProcessSerialData, serialHandling, hSerial, &data);
+				data.hSerial = hSerialSRAD;
+				std::thread serial_thread(&SerialHandling::ProcessSerialData, serialHandling, hSerialSRAD, &data);
+				std::thread serial_thread(&SerialHandling::ProcessSerialData, serialHandling, hSerialTeleBT, &data);
+
 				serial_thread.detach();
 			}
 		}
@@ -149,7 +167,8 @@ int main()
 	}
 
 	gui->Shutdown();
-	CloseHandle(hSerial);
+	CloseHandle(hSerialSRAD);
+	CloseHandle(hSerialTeleBT);
 
 	std::ofstream outputFile;
 	outputFile.open("DATA.csv", std::ios::out); 

@@ -299,7 +299,7 @@ void UI::Update()
 		ImPlot3D::EndPlot();
 	}
 
-	if (ImGui::BeginTable("Rotation Rotary Dial Table", 3, ImGuiTableFlags_None, ImVec2(-1, 0))) 
+	if (ImGui::BeginTable("Rotation Rotary Dial Table", 3, ImGuiTableFlags_None, ImVec2(-1, -1))) 
 	{
 		ImGui::TableNextColumn();
 		ImGuiKnobs::Knob("Rotation X", &(rocket_data->x_rot_values.back()), -3.14159, 3.14159, 0.1f, "%.1f rads", ImGuiKnobVariant_WiperOnly);
@@ -420,7 +420,7 @@ void UI::Update()
 	{
 		if (rocket_data->go_grid_values[0][0] != 1)
 		{
-			ImGui::SetNextItemWidth(400);
+			ImGui::SetNextItemWidth(300);
 			ImGui::InputInt("Fuse Delay (s)", &(rocket_data->fuse_delay));
 
 			if (rocket_data->fuse_delay < 0)
@@ -428,7 +428,7 @@ void UI::Update()
 				rocket_data->fuse_delay = 0;
 			}
 
-			ImGui::SetNextItemWidth(400);
+			ImGui::SetNextItemWidth(300);
 			ImGui::InputInt("Launch Alitude (m above sea level)", &(rocket_data->launch_altitude));
 			
 			if (ImGui::Button("Prime Rocket", ImVec2(-1, 70)))

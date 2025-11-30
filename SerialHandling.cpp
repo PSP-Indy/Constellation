@@ -4,7 +4,19 @@ SerialHandling::SerialHandling()
 {
 }
 
-void SerialHandling::ProcessSerialData(HANDLE hSerial, UI::data_values* data) 
+
+void SerialHandling::ProcessSerialDataTeleBT(HANDLE hSerial, UI::data_values* data)
+{
+	std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+	while (true) 
+	{
+		
+	}
+}
+
+
+void SerialHandling::ProcessSerialDataSRAD(HANDLE hSerial, UI::data_values* data) 
 {
 	std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
