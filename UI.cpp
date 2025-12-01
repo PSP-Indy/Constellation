@@ -148,7 +148,7 @@ void UI::Update()
 	{
 		ImPlot::SetupAxis(ImAxis_X1, "Time (s)", ImPlotAxisFlags_AutoFit);
 		ImPlot::SetupAxis(ImAxis_Y1, "Velocity (ft/s)", ImPlotAxisFlags_AutoFit);
-		ImPlot::PlotLine("", rocket_data->t_values.data(), rocket_data->v_values.data(), static_cast<int>(rocket_data->t_values.size()));
+		ImPlot::PlotLine("", rocket_data->t_values_SRAD.data(), rocket_data->v_values.data(), static_cast<int>(rocket_data->t_values_SRAD.size()));
 		ImPlot::EndPlot();
 	}
 	ImGui::End();
@@ -160,7 +160,8 @@ void UI::Update()
 	{
 		ImPlot::SetupAxis(ImAxis_X1, "Time (s)", ImPlotAxisFlags_AutoFit);
 		ImPlot::SetupAxis(ImAxis_Y1, "Acceleration (ft/s/s)", ImPlotAxisFlags_AutoFit);
-		ImPlot::PlotLine("", rocket_data->t_values.data(), rocket_data->a_values.data(), static_cast<int>(rocket_data->t_values.size()));
+		ImPlot::PlotLine("SRAD Acceleration", rocket_data->t_values_SRAD.data(), rocket_data->a_values_SRAD.data(), static_cast<int>(rocket_data->t_values_SRAD.size()));
+		ImPlot::PlotLine("TeleBT Acceleration", rocket_data->t_values_teleBT.data(), rocket_data->a_values_teleBT.data(), static_cast<int>(rocket_data->t_values_teleBT.size()));
 		ImPlot::EndPlot();
 	}
 	ImGui::End();
@@ -172,9 +173,9 @@ void UI::Update()
 	{
 		ImPlot::SetupAxis(ImAxis_X1, "Time (s)", ImPlotAxisFlags_AutoFit);
 		ImPlot::SetupAxis(ImAxis_Y1, "Position (ft)", ImPlotAxisFlags_AutoFit);
-		ImPlot::PlotLine("X Positition", rocket_data->t_values.data(), rocket_data->x_values.data(), static_cast<int>(rocket_data->t_values.size()));
-		ImPlot::PlotLine("Y Positition", rocket_data->t_values.data(), rocket_data->y_values.data(), static_cast<int>(rocket_data->t_values.size()));
-		ImPlot::PlotLine("Z Positition", rocket_data->t_values.data(), rocket_data->z_values.data(), static_cast<int>(rocket_data->t_values.size()));
+		ImPlot::PlotLine("X Positition", rocket_data->t_values_SRAD.data(), rocket_data->x_values.data(), static_cast<int>(rocket_data->t_values_SRAD.size()));
+		ImPlot::PlotLine("Y Positition", rocket_data->t_values_SRAD.data(), rocket_data->y_values.data(), static_cast<int>(rocket_data->t_values_SRAD.size()));
+		ImPlot::PlotLine("Z Positition", rocket_data->t_values_SRAD.data(), rocket_data->z_values.data(), static_cast<int>(rocket_data->t_values_SRAD.size()));
 		ImPlot::EndPlot();
 	}
 	ImGui::End();
@@ -186,9 +187,9 @@ void UI::Update()
 	{
 		ImPlot::SetupAxis(ImAxis_X1, "Time (s)", ImPlotAxisFlags_AutoFit);
 		ImPlot::SetupAxis(ImAxis_Y1, "Rotation (Rad)", ImPlotAxisFlags_AutoFit);
-		ImPlot::PlotLine("X Rotation", rocket_data->t_values.data(), rocket_data->x_rot_values.data(), static_cast<int>(rocket_data->t_values.size()));
-		ImPlot::PlotLine("Y Rotation", rocket_data->t_values.data(), rocket_data->y_rot_values.data(), static_cast<int>(rocket_data->t_values.size()));
-		ImPlot::PlotLine("Z Rotation", rocket_data->t_values.data(), rocket_data->z_rot_values.data(), static_cast<int>(rocket_data->t_values.size()));
+		ImPlot::PlotLine("X Rotation", rocket_data->t_values_SRAD.data(), rocket_data->x_rot_values.data(), static_cast<int>(rocket_data->t_values_SRAD.size()));
+		ImPlot::PlotLine("Y Rotation", rocket_data->t_values_SRAD.data(), rocket_data->y_rot_values.data(), static_cast<int>(rocket_data->t_values_SRAD.size()));
+		ImPlot::PlotLine("Z Rotation", rocket_data->t_values_SRAD.data(), rocket_data->z_rot_values.data(), static_cast<int>(rocket_data->t_values_SRAD.size()));
 		ImPlot::EndPlot();
 	}
 	ImGui::End();
@@ -209,14 +210,14 @@ void UI::Update()
 	ImGui::SliderInt("Time Start", &time_start, 0.0f, time_end - 0.01f);
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(200.0f);
-	ImGui::SliderInt("Time End", &time_end, time_start + 0.01f, rocket_data->t_values.back());
+	ImGui::SliderInt("Time End", &time_end, time_start + 0.01f, rocket_data->t_values_SRAD.back());
 
 	ImGui::Checkbox("Auto Scale Time Axis", &auto_scale_slice_plot_X);
 	ImGui::SameLine();
 	ImGui::Checkbox("Auto Scale Value Axis", &auto_scale_slice_plot_Y);
 
-	int start_index = FindClosestIndex(&(rocket_data->t_values), time_start);
-	int end_index = FindClosestIndex(&(rocket_data->t_values), time_end);
+	int start_index = FindClosestIndex(&(rocket_data->t_values_SRAD), time_start);
+	int end_index = FindClosestIndex(&(rocket_data->t_values_SRAD), time_end);
 
 	if (end_index <= start_index)
 	{
@@ -241,7 +242,7 @@ void UI::Update()
 			ImPlot::SetupAxis(ImAxis_Y1, "Value", ImPlotAxisFlags_AutoFit);
 		}
 
-		std::vector<float> t_values_clipped = SubArray(&(rocket_data->t_values), start_index, end_index);
+		std::vector<float> t_values_clipped = SubArray(&(rocket_data->t_values_SRAD), start_index, end_index);
 
 		if (velocity_plot)
 		{
@@ -249,7 +250,7 @@ void UI::Update()
 		}
 		if (acceleration_plot)
 		{
-			ImPlot::PlotLine("Acceleration", t_values_clipped.data(), SubArray(&(rocket_data->a_values), start_index, end_index).data(), static_cast<int>(t_values_clipped.size()));
+			ImPlot::PlotLine("Acceleration", t_values_clipped.data(), SubArray(&(rocket_data->a_values_SRAD), start_index, end_index).data(), static_cast<int>(t_values_clipped.size()));
 		}
 		if (position_plot)
 		{
@@ -324,7 +325,7 @@ void UI::Update()
 		ImGuiKnobs::Knob("Speed", &(rocket_data->v_values.back()), -100.0f, 100.0f, 0.1f, "%.1f", ImGuiKnobVariant_WiperOnly);
 
 		ImGui::TableNextColumn();
-		ImGuiKnobs::Knob("Acceleration", &(rocket_data->a_values.back()), -9.8f * 2, 9.8f * 2, 0.1f, "%.1f", ImGuiKnobVariant_WiperOnly);
+		ImGuiKnobs::Knob("Acceleration", &(rocket_data->a_values_SRAD.back()), -9.8f * 2, 9.8f * 2, 0.1f, "%.1f", ImGuiKnobVariant_WiperOnly);
 
 		ImGui::TableNextColumn();
 		ImGuiKnobs::Knob("Altitude", &(rocket_data->z_values.back()), 0.0f, 10000.0f, 0.1f, "%.1f", ImGuiKnobVariant_WiperOnly);
@@ -340,8 +341,8 @@ void UI::Update()
 		fastest_speed = rocket_data->v_values.at(rocket_data->v_values.size() - 1);
 	ImGui::InputFloat("Max Speed", &fastest_speed, 0.0f, 0.0f, "%.3f", ImGuiInputTextFlags_ReadOnly);
 
-	if (rocket_data->a_values.at(rocket_data->a_values.size() - 1) > fastest_aceleration)
-		fastest_aceleration = rocket_data->a_values.at(rocket_data->a_values.size() - 1);
+	if (rocket_data->a_values_SRAD.at(rocket_data->a_values_SRAD.size() - 1) > fastest_aceleration)
+		fastest_aceleration = rocket_data->a_values_SRAD.at(rocket_data->a_values_SRAD.size() - 1);
 	ImGui::InputFloat("Max Acceleration", &fastest_aceleration, 0.0f, 0.0f, "%.3f", ImGuiInputTextFlags_ReadOnly);
 
 	ImGui::InputText("Date", date_string, 11, ImGuiInputTextFlags_ReadOnly);
@@ -435,7 +436,7 @@ void UI::Update()
 			{
 				if (rocket_data->prime_rocket != NULL)
 				{
-					rocket_data->prime_rocket(rocket_data->hSerial, rocket_data);
+					rocket_data->prime_rocket(rocket_data->hSerialSRAD, rocket_data);
 				}
 			}
 		} 
@@ -445,7 +446,7 @@ void UI::Update()
 			{
 				if (rocket_data->launch_rocket != NULL)
 				{
-					rocket_data->launch_rocket(rocket_data->hSerial, rocket_data);
+					rocket_data->launch_rocket(rocket_data->hSerialSRAD, rocket_data);
 				}
 			}
 		}

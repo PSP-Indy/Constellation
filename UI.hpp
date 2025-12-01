@@ -23,8 +23,6 @@ class UI {
 public:
 	struct data_values {
 		std::vector<float> v_values = {0};
-		std::vector<float> a_values = {0};
-		std::vector<float> t_values = {0};
 		std::vector<float> x_values = {0};
 		std::vector<float> y_values = {0};
 		std::vector<float> z_values = {0};
@@ -32,6 +30,12 @@ public:
 		std::vector<float> x_rot_values = {0};
 		std::vector<float> y_rot_values = {0};
 		std::vector<float> z_rot_values = {0};
+
+		std::vector<float> a_values_teleBT = {0};
+		std::vector<float> t_values_teleBT = {0};
+
+		std::vector<float> a_values_SRAD = {0};
+		std::vector<float> t_values_SRAD = {0};
 
 		float go_grid_values[5][5];
 
@@ -42,7 +46,7 @@ public:
 		int fuse_delay = 2;
 		int launch_altitude = 0;
 
-		HANDLE hSerial;
+		HANDLE hSerialSRAD;
 
 		void (*prime_rocket)(HANDLE hSerial, data_values* data) = NULL;
 		void (*launch_rocket)(HANDLE hSerial, data_values* data) = NULL;
@@ -70,7 +74,7 @@ private:
 		{"C_FI", "b2", "c2", "d2", "e2"},
 		{"C_FO", "b3", "c3", "d3", "e3"},
 		{"C_SC", "b4", "c4", "d4", "e4"},
-		{"a5", "b5", "c5", "d5", "e5"}
+		{"AT_T", "b5", "c5", "d5", "e5"}
 	};
 
 	int FindClosestIndex(const std::vector<float>* values, int target)

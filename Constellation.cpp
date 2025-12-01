@@ -116,11 +116,12 @@ int main()
 				data.prime_rocket = PrimeRocket;
 				data.launch_rocket = LaunchRocket;
 
-				data.hSerial = hSerialSRAD;
-				std::thread serial_thread(&SerialHandling::ProcessSerialData, serialHandling, hSerialSRAD, &data);
-				std::thread serial_thread(&SerialHandling::ProcessSerialData, serialHandling, hSerialTeleBT, &data);
+				data.hSerialSRAD = hSerialSRAD;
+				std::thread serial_thread_SRAD(&SerialHandling::ProcessSerialDataSRAD, serialHandling, hSerialSRAD, &data);
+				std::thread serial_thread_TeleBT(&SerialHandling::ProcessSerialDataTeleBT, serialHandling, hSerialTeleBT, &data);
 
-				serial_thread.detach();
+				serial_thread_SRAD.detach();
+				serial_thread_TeleBT.detach();
 			}
 		}
 	}
@@ -189,9 +190,11 @@ int main()
 		std::tm *localTime = std::localtime(&current_time);
 		std::strftime(date_string, sizeof(date_string), "%m/%d/%Y", localTime);
 
-		WriteDataToFile(data.a_values, std::string("acceleration"), &outputFile);
+		WriteDataToFile(data.a_values_SRAD, std::string("acceleration (SRAD)"), &outputFile);
+		WriteDataToFile(data.a_values_teleBT, std::string("acceleration (TeleBT)"), &outputFile);
 		WriteDataToFile(data.v_values, std::string("velocity"), &outputFile);
-		WriteDataToFile(data.t_values, std::string("time"), &outputFile);
+		WriteDataToFile(data.a_values_SRAD, std::string("time (SRAD)"), &outputFile);
+		WriteDataToFile(data.a_values_teleBT, std::string("time (TeleBT)"), &outputFile);
 		WriteDataToFile(data.x_values, std::string("positionX"), &outputFile);
 		WriteDataToFile(data.y_values, std::string("positionY"), &outputFile);
 		WriteDataToFile(data.z_values, std::string("positionZ"), &outputFile);

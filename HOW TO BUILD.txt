@@ -17,3 +17,5 @@ Debug:
 cmake --build . --config Debug
 cd Debug
 ./Constellation.exe
+
+cmake --build . --config Debug ; cd Debug ; ./Constellation.exe ; cd ..

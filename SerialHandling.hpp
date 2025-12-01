@@ -5,6 +5,7 @@
 #include <fstream>
 #include <random>
 #include <cmath>
+#include <cstdlib>
 
 #include <windows.h>
 
@@ -36,6 +37,12 @@ private:
     int CharStringToInt(char* charString, int idx) {
         int cpy_int;
         memcpy(&cpy_int, charString, 4);
+        return cpy_int;
+    }
+
+    int CharStringToUInt16(char* charString, int idx) {
+        int cpy_int;
+        memcpy(&cpy_int, charString, 2);
         return cpy_int;
     }
 
