@@ -10,14 +10,15 @@
 #include <windows.h>
 
 #include "UI.hpp"
+#include "DataValues.hpp"
 
 class SerialHandling {
 public:
     SerialHandling();
 	SerialHandling(const SerialHandling& obj) = delete;
     
-    void ProcessSerialDataTeleBT(HANDLE hSerial, UI::data_values* data);
-    void ProcessSerialDataSRAD(HANDLE hSerial, UI::data_values* data);
+    void ProcessSerialDataTeleBT(HANDLE hSerial, DataValueHandler::DataValues* data);
+    void ProcessSerialDataSRAD(HANDLE hSerial, DataValueHandler::DataValues* data);
 
     ~SerialHandling();
 	static SerialHandling* Get();

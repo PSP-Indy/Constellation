@@ -5,7 +5,7 @@ SerialHandling::SerialHandling()
 }
 
 
-void SerialHandling::ProcessSerialDataTeleBT(HANDLE hSerial, UI::data_values* data)
+void SerialHandling::ProcessSerialDataTeleBT(HANDLE hSerial, DataValueHandler::DataValues* data)
 {
 	while (true) 
 	{
@@ -37,10 +37,14 @@ void SerialHandling::ProcessSerialDataTeleBT(HANDLE hSerial, UI::data_values* da
 		if (flightData[4] == 0x0A) //TRIGGERS IF PACKET IS TeleMetrum v2 Sensor Data
 		{
 			valueLock->lock();
+			
+			DataValueHandler::DataValueSnapshot snapshot;
+			float time = (float)(CharStringToUInt16(flightData, 2)) / 100.0f;
+			snapshot.a_value = (float)(CharStringToUInt16(flightData, 6));
 
-			data->t_values_teleBT.push_back((float)(CharStringToUInt16(flightData, 2)) / 100.0f);
+			data->InsertDataSnapshot(time, snapshot);
+
 			data->go_grid_values[0][4] = (float)(CharStringToUInt16(flightData, 12)) / (100.0f * 50.0f); 
-			data->a_values_teleBT.push_back((float)(CharStringToUInt16(flightData, 6)));
 
 			valueLock->unlock();
 		}
@@ -62,7 +66,7 @@ void SerialHandling::ProcessSerialDataTeleBT(HANDLE hSerial, UI::data_values* da
 }
 
 
-void SerialHandling::ProcessSerialDataSRAD(HANDLE hSerial, UI::data_values* data) 
+void SerialHandling::ProcessSerialDataSRAD(HANDLE hSerial, DataValueHandler::DataValues* data) 
 {
 	while (true) 
 	{
@@ -135,17 +139,21 @@ void SerialHandling::ProcessSerialDataSRAD(HANDLE hSerial, UI::data_values* data
 		if(header == std::string("C_UT")) 
 		{
 			valueLock->lock();
-
 			data->last_ping = time(NULL);
-			data->t_values_SRAD.push_back(CharStringToFloat(readBuffer, 4));
-			data->v_values.push_back(CharStringToFloat(readBuffer, 8));
-			data->a_values_SRAD.push_back(CharStringToFloat(readBuffer, 12));
-			data->x_values.push_back(CharStringToFloat(readBuffer, 16));
-			data->y_values.push_back(CharStringToFloat(readBuffer, 20));
-			data->z_values.push_back(CharStringToFloat(readBuffer, 24));
-			data->x_rot_values.push_back(CharStringToFloat(readBuffer, 28));
-			data->y_rot_values.push_back(CharStringToFloat(readBuffer, 32));
-			data->z_rot_values.push_back(CharStringToFloat(readBuffer, 36));
+
+			DataValueHandler::DataValueSnapshot snapshot;
+
+			float time = CharStringToFloat(readBuffer, 4);
+			snapshot.v_value = CharStringToFloat(readBuffer, 8);
+			snapshot.a_value = CharStringToFloat(readBuffer, 12);
+			snapshot.x_value = CharStringToFloat(readBuffer, 16);
+			snapshot.y_value = CharStringToFloat(readBuffer, 20);
+			snapshot.z_value = CharStringToFloat(readBuffer, 24);
+			snapshot.x_rot_value = CharStringToFloat(readBuffer, 28);
+			snapshot.y_rot_value = CharStringToFloat(readBuffer, 32);
+			snapshot.z_rot_value = CharStringToFloat(readBuffer, 36);
+
+			data->InsertDataSnapshot(time, snapshot);
 
 
 			valueLock->unlock();

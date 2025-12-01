@@ -18,40 +18,10 @@
 
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
+#include "DataValues.hpp"
 
 class UI {
 public:
-	struct data_values {
-		std::vector<float> v_values = {0};
-		std::vector<float> x_values = {0};
-		std::vector<float> y_values = {0};
-		std::vector<float> z_values = {0};
-
-		std::vector<float> x_rot_values = {0};
-		std::vector<float> y_rot_values = {0};
-		std::vector<float> z_rot_values = {0};
-
-		std::vector<float> a_values_teleBT = {0};
-		std::vector<float> t_values_teleBT = {0};
-
-		std::vector<float> a_values_SRAD = {0};
-		std::vector<float> t_values_SRAD = {0};
-
-		float go_grid_values[5][5];
-
-    	std::time_t launch_time = NULL;
-    	std::time_t last_ping = NULL;
-    	std::time_t coundown_start_time = NULL;
-
-		int fuse_delay = 2;
-		int launch_altitude = 0;
-
-		HANDLE hSerialSRAD;
-
-		void (*prime_rocket)(HANDLE hSerial, data_values* data) = NULL;
-		void (*launch_rocket)(HANDLE hSerial, data_values* data) = NULL;
-	};
-
 	UI();
 	UI(const UI& obj) = delete;
 	void Init(GLFWwindow* window, const char* glsl_version);
@@ -63,7 +33,7 @@ public:
 	~UI();
 	static UI* Get();
 
-	void AssignValues(data_values* data_values)
+	void AssignValues(DataValueHandler::DataValues* data_values)
 	{
 		this->rocket_data = data_values;
 	}
@@ -104,7 +74,7 @@ private:
 		return sub_array;
 	}
 
-	data_values* rocket_data;
+	DataValueHandler::DataValues* rocket_data;
 
 	static UI* ui;
 };

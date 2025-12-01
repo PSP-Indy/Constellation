@@ -12,6 +12,7 @@
 
 #include "UI.hpp"
 #include "SerialHandling.hpp"
+#include "DataValues.hpp"
 
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
@@ -33,7 +34,7 @@ void WriteDataToFile(std::vector<float> data, std::string label, std::ofstream* 
 	*outputFile << std::endl;
 }
 
-void PrimeRocket(HANDLE hSerial, UI::data_values* data)
+void PrimeRocket(HANDLE hSerial, DataValueHandler::DataValues* data)
 {
 	char header[5];
 	strcpy(header, "C_ST");
@@ -48,7 +49,7 @@ void PrimeRocket(HANDLE hSerial, UI::data_values* data)
 	WriteFile(hSerial, dataToSend, 32, &bytesWrittenData, NULL);
 }
 
-void LaunchRocket(HANDLE hSerial, UI::data_values* data)
+void LaunchRocket(HANDLE hSerial, DataValueHandler::DataValues* data)
 {
 	data->coundown_start_time = time(NULL);
 
@@ -61,7 +62,7 @@ void LaunchRocket(HANDLE hSerial, UI::data_values* data)
 int main()
 {
 	//GLOBAL USE VARIABLES
-	UI::data_values data;
+	DataValueHandler::DataValues data;
 
 	//GUI INITIALIZATION
 	UI* gui = UI::Get();
@@ -190,17 +191,17 @@ int main()
 		std::tm *localTime = std::localtime(&current_time);
 		std::strftime(date_string, sizeof(date_string), "%m/%d/%Y", localTime);
 
-		WriteDataToFile(data.a_values_SRAD, std::string("acceleration (SRAD)"), &outputFile);
-		WriteDataToFile(data.a_values_teleBT, std::string("acceleration (TeleBT)"), &outputFile);
-		WriteDataToFile(data.v_values, std::string("velocity"), &outputFile);
-		WriteDataToFile(data.a_values_SRAD, std::string("time (SRAD)"), &outputFile);
-		WriteDataToFile(data.a_values_teleBT, std::string("time (TeleBT)"), &outputFile);
-		WriteDataToFile(data.x_values, std::string("positionX"), &outputFile);
-		WriteDataToFile(data.y_values, std::string("positionY"), &outputFile);
-		WriteDataToFile(data.z_values, std::string("positionZ"), &outputFile);
-		WriteDataToFile(data.x_rot_values, std::string("rotationX"), &outputFile);
-		WriteDataToFile(data.y_rot_values, std::string("rotationY"), &outputFile);
-		WriteDataToFile(data.z_rot_values, std::string("rotationZ"), &outputFile);
+		DataValueHandler::DataValueList dataValueList = data.getDataValueList();
+		
+		WriteDataToFile(dataValueList.a_values, std::string("acceleration"), &outputFile);
+		WriteDataToFile(dataValueList.v_values, std::string("velocity"), &outputFile);
+		WriteDataToFile(dataValueList.a_values, std::string("time"), &outputFile);
+		WriteDataToFile(dataValueList.x_values, std::string("positionX"), &outputFile);
+		WriteDataToFile(dataValueList.y_values, std::string("positionY"), &outputFile);
+		WriteDataToFile(dataValueList.z_values, std::string("positionZ"), &outputFile);
+		WriteDataToFile(dataValueList.x_rot_values, std::string("rotationX"), &outputFile);
+		WriteDataToFile(dataValueList.y_rot_values, std::string("rotationY"), &outputFile);
+		WriteDataToFile(dataValueList.z_rot_values, std::string("rotationZ"), &outputFile);
 
 		outputFile << "launchTime," << time_string << std::endl;
 		outputFile << "launchDate," << date_string << std::endl;
