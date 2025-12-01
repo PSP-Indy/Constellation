@@ -38,7 +38,7 @@ void SerialHandling::ProcessSerialDataTeleBT(HANDLE hSerial, UI::data_values* da
 		{
 			valueLock->lock();
 
-			data->t_values_teleBT.push_back((float)(CharStringToUInt16(flightData, 2)));
+			data->t_values_teleBT.push_back((float)(CharStringToUInt16(flightData, 2)) / 100.0f);
 			data->go_grid_values[0][4] = (float)(CharStringToUInt16(flightData, 12)) / (100.0f * 50.0f); 
 			data->a_values_teleBT.push_back((float)(CharStringToUInt16(flightData, 6)));
 
