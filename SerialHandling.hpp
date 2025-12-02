@@ -17,8 +17,8 @@ public:
     SerialHandling();
 	SerialHandling(const SerialHandling& obj) = delete;
     
-    void ProcessSerialDataTeleBT(HANDLE hSerial, DataValueHandler::DataValues* data);
-    void ProcessSerialDataSRAD(HANDLE hSerial, DataValueHandler::DataValues* data);
+    void ProcessSerialDataTeleBT(HANDLE hSerial);
+    void ProcessSerialDataSRAD(HANDLE hSerial);
 
     ~SerialHandling();
 	static SerialHandling* Get();
@@ -26,6 +26,11 @@ public:
     void SetValueLock(std::mutex* valueLock)
     {
         this->valueLock = valueLock;
+    }
+
+    void SetDataHandle(DataValueHandler::DataValues* data)
+    {
+        this->data = data;
     }
 
 private:
@@ -49,5 +54,6 @@ private:
 
     std::mutex* valueLock;
 
+    DataValueHandler::DataValues* data;
     static SerialHandling* serialhandling;
 };

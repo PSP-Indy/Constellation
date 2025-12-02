@@ -5,7 +5,7 @@ SerialHandling::SerialHandling()
 }
 
 
-void SerialHandling::ProcessSerialDataTeleBT(HANDLE hSerial, DataValueHandler::DataValues* data)
+void SerialHandling::ProcessSerialDataTeleBT(HANDLE hSerial)
 {
 	while (true) 
 	{
@@ -70,7 +70,7 @@ void SerialHandling::ProcessSerialDataTeleBT(HANDLE hSerial, DataValueHandler::D
 }
 
 
-void SerialHandling::ProcessSerialDataSRAD(HANDLE hSerial, DataValueHandler::DataValues* data) 
+void SerialHandling::ProcessSerialDataSRAD(HANDLE hSerial) 
 {
 	while (true) 
 	{

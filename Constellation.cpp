@@ -122,8 +122,11 @@ int main()
 				data.launch_rocket = LaunchRocket;
 
 				data.hSerialSRAD = hSerialSRAD;
-				std::thread serial_thread_SRAD(&SerialHandling::ProcessSerialDataSRAD, serialHandling, hSerialSRAD, &data);
-				std::thread serial_thread_TeleBT(&SerialHandling::ProcessSerialDataTeleBT, serialHandling, hSerialTeleBT, &data);
+
+				serialHandling->SetDataHandle(&data);
+
+				std::thread serial_thread_SRAD(&SerialHandling::ProcessSerialDataSRAD, serialHandling, hSerialSRAD);
+				std::thread serial_thread_TeleBT(&SerialHandling::ProcessSerialDataTeleBT, serialHandling, hSerialTeleBT);
 
 				serial_thread_SRAD.detach();
 				serial_thread_TeleBT.detach();

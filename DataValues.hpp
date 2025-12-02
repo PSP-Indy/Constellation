@@ -7,15 +7,15 @@
 class DataValueHandler {
 public:
 	struct DataValueList {
-		std::vector<float> t_values;
-		std::vector<float> a_values;
-		std::vector<float> v_values;
-		std::vector<float> x_values;
-		std::vector<float> y_values;
-		std::vector<float> z_values;
-		std::vector<float> x_rot_values;
-		std::vector<float> y_rot_values;
-		std::vector<float> z_rot_values;
+		std::vector<float> t_values = {0};
+		std::vector<float> a_values = {0};
+		std::vector<float> v_values = {0};
+		std::vector<float> x_values = {0};
+		std::vector<float> y_values = {0};
+		std::vector<float> z_values = {0};
+		std::vector<float> x_rot_values = {0};
+		std::vector<float> y_rot_values = {0};
+		std::vector<float> z_rot_values = {0};
 	};
 
 	struct DataValueSnapshot {
