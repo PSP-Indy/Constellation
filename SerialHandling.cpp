@@ -70,10 +70,10 @@ void SerialHandling::ProcessSerialDataSRAD(HANDLE hSerial, DataValueHandler::Dat
 {
 	while (true) 
 	{
-		char readBuffer[40];
+		char command_buffer[9];
 		DWORD bytesRead;
 
-		if (!ReadFile(hSerial, readBuffer, sizeof(readBuffer), &bytesRead, NULL)) 
+		if (!ReadFile(hSerial, command_buffer, sizeof(command_buffer), &bytesRead, NULL)) 
 		{
 			continue;
 		}
@@ -84,11 +84,23 @@ void SerialHandling::ProcessSerialDataSRAD(HANDLE hSerial, DataValueHandler::Dat
 		}
 
 		std::string header;
+		int message_size = 0;
 		for (int i = 0; i < 4; i++){
-			header += readBuffer[i];
+			header += command_buffer[i];
+		}
+		memcpy(&message_size, command_buffer + 4, 4);
+
+		char* dataPacket = new char[message_size];
+
+		if (!ReadFile(hSerial, dataPacket, sizeof(dataPacket), &bytesRead, NULL)) 
+		{
+			continue;
 		}
 
-        std::cout << header << std::endl;
+		if (bytesRead <= 0) 
+		{
+			continue;
+		}
 
 		if(header == std::string("C_SC")) 
 		{
@@ -136,22 +148,25 @@ void SerialHandling::ProcessSerialDataSRAD(HANDLE hSerial, DataValueHandler::Dat
 			valueLock->unlock();
 		}
 
-		if(header == std::string("C_UT")) 
-		{
+		if(header == std::string("C_UT") && message_size >= 44) 
+		{			
 			valueLock->lock();
 			data->last_ping = time(NULL);
 
+			data->go_grid_values[1][0] = CharStringToFloat(dataPacket, 36);
+			data->go_grid_values[1][1] = CharStringToFloat(dataPacket, 40);
+
 			DataValueHandler::DataValueSnapshot snapshot;
 
-			float time = CharStringToFloat(readBuffer, 4);
-			snapshot.v_value = CharStringToFloat(readBuffer, 8);
-			snapshot.a_value = CharStringToFloat(readBuffer, 12);
-			snapshot.x_value = CharStringToFloat(readBuffer, 16);
-			snapshot.y_value = CharStringToFloat(readBuffer, 20);
-			snapshot.z_value = CharStringToFloat(readBuffer, 24);
-			snapshot.x_rot_value = CharStringToFloat(readBuffer, 28);
-			snapshot.y_rot_value = CharStringToFloat(readBuffer, 32);
-			snapshot.z_rot_value = CharStringToFloat(readBuffer, 36);
+			float time = CharStringToFloat(dataPacket, 0);
+			snapshot.a_value = CharStringToFloat(dataPacket, 4);
+			snapshot.v_value = CharStringToFloat(dataPacket, 8);
+			snapshot.x_value = CharStringToFloat(dataPacket, 12);
+			snapshot.y_value = CharStringToFloat(dataPacket, 16);
+			snapshot.z_value = CharStringToFloat(dataPacket, 20);
+			snapshot.x_rot_value = CharStringToFloat(dataPacket, 24);
+			snapshot.y_rot_value = CharStringToFloat(dataPacket, 28);
+			snapshot.z_rot_value = CharStringToFloat(dataPacket, 32);
 
 			data->InsertDataSnapshot(time, snapshot);
 
