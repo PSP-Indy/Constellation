@@ -40,11 +40,11 @@ public:
 
 private:
 	char go_grid_labels[5][5][5] = {
-		{"C_TS", "b1", "c1", "d1", "e1"},
-		{"C_FI", "b2", "c2", "d2", "e2"},
-		{"C_FO", "b3", "c3", "d3", "e3"},
-		{"C_SC", "b4", "c4", "d4", "e4"},
-		{"AT_T", "b5", "c5", "d5", "e5"}
+		{"C_TS", "BART", "c1", "d1", "e1"},
+		{"C_FI", "IMUT", "c2", "d2", "e2"},
+		{"C_FO", "AT_T", "c3", "d3", "e3"},
+		{"C_SC", "AT_V", "c4", "d4", "e4"},
+		{"a5", "b5", "c5", "d5", "e5"}
 	};
 
 	int FindClosestIndex(const std::vector<float>* values, int target)

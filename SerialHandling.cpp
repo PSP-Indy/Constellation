@@ -40,11 +40,15 @@ void SerialHandling::ProcessSerialDataTeleBT(HANDLE hSerial, DataValueHandler::D
 			
 			DataValueHandler::DataValueSnapshot snapshot;
 			float time = (float)(CharStringToUInt16(flightData, 2)) / 100.0f;
-			snapshot.a_value = (float)(CharStringToUInt16(flightData, 6));
+			snapshot.a_value = (float)(CharStringToUInt16(flightData, 14));
+			snapshot.v_value = (float)(CharStringToUInt16(flightData, 16));
+			snapshot.z_value = (float)(CharStringToUInt16(flightData, 18));
 
 			data->InsertDataSnapshot(time, snapshot);
 
-			data->go_grid_values[0][4] = (float)(CharStringToUInt16(flightData, 12)) / (100.0f * 50.0f); 
+			data->go_grid_values[1][2] = (float)(CharStringToUInt16(flightData, 12)) / (100.0f); 
+			data->go_grid_values[1][3] = (float)(CharStringToUInt16(flightData, 20)); 
+			
 
 			valueLock->unlock();
 		}
