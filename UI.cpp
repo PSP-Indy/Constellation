@@ -27,6 +27,8 @@ float fastest_aceleration = -FLT_MAX;
 
 bool diagnostics_open = false;
 
+static int window_x, window_y, window_w, window_h;
+
 static const char* rebuild_ui_config = NULL;
 
 char date_string[11];
@@ -66,6 +68,8 @@ void UI::Init(GLFWwindow *window, const char *glsl_version)
 
 	style.WindowRounding = 0.0f;
 	style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+	style.Colors[ImGuiCol_ChildBg].w = 1.0f;
+	style.Colors[ImGuiCol_PopupBg].w = 1.0f;
 
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init(glsl_version);
@@ -116,11 +120,24 @@ void UI::Update()
 			isFullscreen = !isFullscreen;
 			if(isFullscreen)
 			{
-				glfwSetWindowMonitor(window, monitor, 1920, 1080, mode->width, mode->height, mode->refreshRate);
+				glfwGetWindowPos(window, &window_x, &window_y);
+				glfwGetWindowSize(window, &window_w, &window_h);
+
+				glfwSetWindowAttrib(window, GLFW_DECORATED, GLFW_FALSE);
+				glfwSetWindowAttrib(window, GLFW_RESIZABLE, GLFW_FALSE);
+				glfwSetWindowAttrib(window, GLFW_FLOATING, GLFW_TRUE);
+				glfwSetWindowSize(window, mode->width, mode->height + 1);
+				glfwSetWindowPos(window, 0, 0);
 			}
 			else
 			{
-				glfwSetWindowMonitor(window, NULL, 0, 0, mode->width, mode->height, mode->refreshRate);
+				glfwSetWindowAttrib(window, GLFW_DECORATED, GLFW_TRUE);
+				glfwSetWindowAttrib(window, GLFW_RESIZABLE, GLFW_TRUE);
+				glfwSetWindowAttrib(window, GLFW_FLOATING, GLFW_FALSE);
+
+				glfwSetWindowSize(window, window_w, window_h);
+				glfwSetWindowPos(window, window_x, window_y);
+				glfwMakeContextCurrent(window);
 			}
 		}
 		if (ImGui::MenuItem("Exit"))
@@ -569,7 +586,7 @@ void UI::SetColorStyles()
 	ImVec4 PSP_Rush_Dark = ImVec4(218.0f / 255.0f / 2.0f, 170 / 255.0f/ 2.0f, 0.0f, 1.0f);
 	ImVec4 PSP_Rush_Medium = ImVec4(218.0f / 255.0f * 0.75f, 170 / 255.0f * 0.75f, 0.0f, 1.0f);
 	ImVec4 PSP_Moondust = ImVec4(242.0f / 255.0f, 239.0f / 255.0f, 233.0f / 255.0f, 1.0f);
-	ImVec4 PSP_White = ImVec4(1.0f,1.0f,1.0f,1.0f);
+	ImVec4 PSP_White = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 
 	style.Colors[ImGuiCol_Text]                   = PSP_Moondust;
     style.Colors[ImGuiCol_TextDisabled]           = PSP_Moondust;

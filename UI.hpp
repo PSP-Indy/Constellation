@@ -30,7 +30,6 @@ public:
 	void Render();
 	void Shutdown();
 	void RotateModel(std::vector<ImPlot3DPoint> vertices, std::vector<ImPlot3DPoint>* rotated_vertices, float x_rotation, float y_rotation, float z_rotation);
-	void SetColorStyles();
 	~UI();
 	static UI* Get();
 
@@ -43,6 +42,8 @@ private:
 	GLFWmonitor* monitor;
 	const GLFWvidmode* mode;
 	GLFWwindow* window;
+
+	void SetColorStyles();
 
 	char go_grid_labels[5][5][5] = {
 		{"C_TS", "BART", "c1", "d1", "e1"},
