@@ -33,11 +33,6 @@ public:
 	~UI();
 	static UI* Get();
 
-	void AssignValues(DataValueHandler::DataValues* data_values)
-	{
-		this->rocket_data = data_values;
-	}
-
 private:
 	GLFWmonitor* monitor;
 	const GLFWvidmode* mode;
@@ -79,8 +74,6 @@ private:
 		}
 		return sub_array;
 	}
-
-	DataValueHandler::DataValues* rocket_data;
 
 	static UI* ui;
 };

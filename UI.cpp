@@ -83,7 +83,7 @@ void UI::Init(GLFWwindow *window, const char *glsl_version)
 	{
 		for (int j = 0; j < 5; j++)
 		{
-			rocket_data->go_grid_values[i][j] = 0;
+			DataValues::Get()->go_grid_values[i][j] = 0;
 		}
 	}
 }
@@ -103,9 +103,11 @@ void UI::NewFrame()
 
 void UI::Update()
 {
+	DataValues* rocket_data = DataValues::Get();
+	
 	ImGui::DockSpaceOverViewport(ImGui::GetMainViewport()->ID);
 
-	DataValueHandler::DataValueList dataValueList = rocket_data->getDataValueList();
+	DataValues::DataValueList dataValueList = rocket_data->getDataValueList();
 
 	#pragma region MenuBar
 	ImGui::BeginMainMenuBar();
@@ -483,7 +485,7 @@ void UI::Update()
 			{
 				if (rocket_data->prime_rocket != NULL)
 				{
-					rocket_data->prime_rocket(rocket_data->hSerialSRAD, rocket_data);
+					rocket_data->prime_rocket(rocket_data->hSerialSRAD);
 				}
 			}
 		} 
@@ -493,7 +495,7 @@ void UI::Update()
 			{
 				if (rocket_data->launch_rocket != NULL)
 				{
-					rocket_data->launch_rocket(rocket_data->hSerialSRAD, rocket_data);
+					rocket_data->launch_rocket(rocket_data->hSerialSRAD);
 				}
 			}
 		}

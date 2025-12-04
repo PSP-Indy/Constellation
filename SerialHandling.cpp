@@ -7,6 +7,8 @@ SerialHandling::SerialHandling()
 
 void SerialHandling::ProcessSerialDataTeleBT(HANDLE hSerial)
 {
+	DataValues* data = DataValues::Get();
+
 	while (true) 
 	{
 		char headerSubPacket[6];
@@ -38,7 +40,7 @@ void SerialHandling::ProcessSerialDataTeleBT(HANDLE hSerial)
 		{
 			valueLock->lock();
 			
-			DataValueHandler::DataValueSnapshot snapshot;
+			DataValues::DataValueSnapshot snapshot;
 			float time = (float)(CharStringToUInt16(flightData, 2)) / 100.0f;
 			snapshot.a_value = (float)(CharStringToUInt16(flightData, 14));
 			snapshot.v_value = (float)(CharStringToUInt16(flightData, 16));
@@ -72,6 +74,8 @@ void SerialHandling::ProcessSerialDataTeleBT(HANDLE hSerial)
 
 void SerialHandling::ProcessSerialDataSRAD(HANDLE hSerial) 
 {
+	DataValues* data = DataValues::Get();
+
 	while (true) 
 	{
 		char command_buffer[9];
@@ -160,7 +164,7 @@ void SerialHandling::ProcessSerialDataSRAD(HANDLE hSerial)
 			data->go_grid_values[1][0] = CharStringToFloat(dataPacket, 36);
 			data->go_grid_values[1][1] = CharStringToFloat(dataPacket, 40);
 
-			DataValueHandler::DataValueSnapshot snapshot;
+			DataValues::DataValueSnapshot snapshot;
 
 			float time = CharStringToFloat(dataPacket, 0);
 			snapshot.a_value = CharStringToFloat(dataPacket, 4);

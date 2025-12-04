@@ -33,6 +33,7 @@ std::mutex valueLock;
 
 UI* UI::ui = new UI();
 SerialHandling* SerialHandling::serialhandling = new SerialHandling();
+DataValues* DataValues::dataValues = new DataValues();
 
 void WriteDataToFile(std::vector<float> data, std::string label, std::ofstream* outputFile) 
 {
@@ -46,8 +47,9 @@ void WriteDataToFile(std::vector<float> data, std::string label, std::ofstream* 
 	*outputFile << std::endl;
 }
 
-void PrimeRocket(HANDLE hSerial, DataValueHandler::DataValues* data)
+void PrimeRocket(HANDLE hSerial)
 {
+	DataValues* data = DataValues::Get();
 	char header[9];
 	char dataToSend[9];
 	size_t data_length = sizeof(dataToSend);
@@ -65,8 +67,9 @@ void PrimeRocket(HANDLE hSerial, DataValueHandler::DataValues* data)
 	WriteFile(hSerial, dataToSend, data_length, &bytesWrittenData, NULL);
 }
 
-void LaunchRocket(HANDLE hSerial, DataValueHandler::DataValues* data)
+void LaunchRocket(HANDLE hSerial)
 {
+	DataValues* data = DataValues::Get();
 	data->coundown_start_time = time(NULL);
 
 	char data_to_send[5];
@@ -77,14 +80,11 @@ void LaunchRocket(HANDLE hSerial, DataValueHandler::DataValues* data)
 
 int main()
 {
-	//GLOBAL USE VARIABLES
-	DataValueHandler::DataValues data;
-
 	//GUI INITIALIZATION
 	UI* gui = UI::Get();
 	SerialHandling* serialHandling = SerialHandling::Get();
+	DataValues* data = DataValues::Get();
 
-	gui->AssignValues(&data);
 	serialHandling->SetValueLock(&valueLock);
 
 	//SERIAL INITIALIZATION
@@ -130,12 +130,10 @@ int main()
 			if (!SetCommTimeouts(hSerialSRAD, &timeoutsSRAD) && !SetCommTimeouts(hSerialTeleBT, &timeoutsTeleBT)) {
 				std::cout << "Failed to set timouts, aborting serial communication." << std::endl;
 			} else {
-				data.prime_rocket = PrimeRocket;
-				data.launch_rocket = LaunchRocket;
+				data->prime_rocket = PrimeRocket;
+				data->launch_rocket = LaunchRocket;
 
-				data.hSerialSRAD = hSerialSRAD;
-
-				serialHandling->SetDataHandle(&data);
+				data->hSerialSRAD = hSerialSRAD;
 
 				std::thread serial_thread_SRAD(&SerialHandling::ProcessSerialDataSRAD, serialHandling, hSerialSRAD);
 				std::thread serial_thread_TeleBT(&SerialHandling::ProcessSerialDataTeleBT, serialHandling, hSerialTeleBT);
@@ -195,9 +193,9 @@ int main()
 	gui->Init(window, glsl_version);
 
 	while (!glfwWindowShouldClose(window)) {
-		if (std::abs(difftime(data.last_ping, time(NULL))) > 5)
+		if (std::abs(difftime(data->last_ping, time(NULL))) > 5)
 		{
-			data.go_grid_values[0][3] = 0;
+			data->go_grid_values[0][3] = 0;
 		}
 
 		auto start = std::chrono::high_resolution_clock::now();
@@ -215,9 +213,9 @@ int main()
 	outputFile.open("DATA.csv", std::ios::out); 
 	if (outputFile.is_open()) {
 		char time_string[11];
-		if (data.launch_time != NULL)
+		if (data->launch_time != NULL)
 		{
-			std::tm* tm_time = std::localtime(&(data.launch_time));
+			std::tm* tm_time = std::localtime(&(data->launch_time));
 			std::strftime(time_string, sizeof(time_string), "%H:%M:%S", tm_time);
 		}
 		else
@@ -230,7 +228,7 @@ int main()
 		std::tm *localTime = std::localtime(&current_time);
 		std::strftime(date_string, sizeof(date_string), "%m/%d/%Y", localTime);
 
-		DataValueHandler::DataValueList dataValueList = data.getDataValueList();
+		DataValues::DataValueList dataValueList = data->getDataValueList();
 		
 		WriteDataToFile(dataValueList.a_values, std::string("acceleration"), &outputFile);
 		WriteDataToFile(dataValueList.v_values, std::string("velocity"), &outputFile);
@@ -244,8 +242,8 @@ int main()
 
 		outputFile << "launchTime," << time_string << std::endl;
 		outputFile << "launchDate," << date_string << std::endl;
-		outputFile << "fuseDelay," << data.fuse_delay << std::endl;
-		outputFile << "launchAltitude," << data.launch_altitude << std::endl;
+		outputFile << "fuseDelay," << data->fuse_delay << std::endl;
+		outputFile << "launchAltitude," << data->launch_altitude << std::endl;
 
         outputFile.close();
     }

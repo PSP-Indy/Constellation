@@ -28,11 +28,6 @@ public:
         this->valueLock = valueLock;
     }
 
-    void SetDataHandle(DataValueHandler::DataValues* data)
-    {
-        this->data = data;
-    }
-
 private:
     float CharStringToFloat(char* charString, int idx) {
         float cpy_flt;
@@ -54,6 +49,5 @@ private:
 
     std::mutex* valueLock;
 
-    DataValueHandler::DataValues* data;
     static SerialHandling* serialhandling;
 };
