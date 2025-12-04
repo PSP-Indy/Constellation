@@ -115,7 +115,7 @@ void UI::Update()
 		{
 			diagnostics_open = !diagnostics_open;
 		}
-		if (ImGui::MenuItem("Fullscreen (Slightly buggy, expect weird things to happen)"))
+		if (ImGui::MenuItem("Fullscreen"))
 		{
 			isFullscreen = !isFullscreen;
 			if(isFullscreen)
