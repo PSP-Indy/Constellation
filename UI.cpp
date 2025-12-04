@@ -337,6 +337,8 @@ void UI::Update()
 	int smallest_region = x_region_avail < y_region_avail ? x_region_avail : y_region_avail;
 
 	if (ImPlot3D::BeginPlot("3D Rotation", ImVec2(smallest_region, smallest_region))) {
+		ImPlot3D::SetNextFillStyle(ImVec4(1.0f, 1.0f, 1.0f, 0.8f));
+		ImPlot3D::SetNextLineStyle(ImVec4(37.0f / 255.0f, 37 / 255.0f, 38 / 255.0f, 1.00f));
 		ImPlot3D::SetupAxisLimits(ImAxis3D_X, 0, 1);
 		ImPlot3D::SetupAxisLimits(ImAxis3D_Y, 0, 1);
 		ImPlot3D::SetupAxisLimits(ImAxis3D_Z, 0, 1);
