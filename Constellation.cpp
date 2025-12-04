@@ -14,8 +14,20 @@
 #include "SerialHandling.hpp"
 #include "DataValues.hpp"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 #include "glad/glad.h"
-#include "GLFW/glfw3.h"
+
+#ifdef _WIN32
+	#define GLFW_EXPOSE_NATIVE_WIN32
+	#include "GLFW/glfw3.h"
+	#include "GLFW/glfw3native.h"
+	#pragma comment(lib, "Dwmapi.lib")
+	#include <dwmapi.h>
+#else
+	#include "GLFW/glfw3.h"
+#endif
 
 std::mutex valueLock;
 
@@ -150,6 +162,26 @@ int main()
 	if (window == NULL)
 		return 2;
 
+	int width, height, channels;
+	unsigned char* pixels = stbi_load("assets\\icon.png", &width, &height, &channels, STBI_rgb_alpha);
+	if (!pixels) {
+		return 3;
+	}
+
+	GLFWimage icon_image;
+	icon_image.width = width;
+	icon_image.height = height;
+	icon_image.pixels = pixels;
+	glfwSetWindowIcon(window, 1, &icon_image);
+	stbi_image_free(pixels);
+
+	#ifdef _WIN32
+		HWND hwnd = glfwGetWin32Window(window);
+		COLORREF titleBarColor = 0x00000000;
+		DwmSetWindowAttribute(hwnd, DWMWA_BORDER_COLOR, &titleBarColor, sizeof(titleBarColor));
+		DwmSetWindowAttribute(hwnd, DWMWA_CAPTION_COLOR, &titleBarColor, sizeof(titleBarColor));
+	#endif
+
 	glfwMakeContextCurrent(window);
 	glfwSwapInterval(1);
 
@@ -172,7 +204,7 @@ int main()
 		glfwPollEvents();
 		gui->NewFrame();
 		gui->Update();
-		gui->Render(window);
+		gui->Render();
 	}
 
 	gui->Shutdown();

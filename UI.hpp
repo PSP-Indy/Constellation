@@ -27,9 +27,10 @@ public:
 	void Init(GLFWwindow* window, const char* glsl_version);
 	void NewFrame();
 	void Update();
-	void Render(GLFWwindow* window);
+	void Render();
 	void Shutdown();
 	void RotateModel(std::vector<ImPlot3DPoint> vertices, std::vector<ImPlot3DPoint>* rotated_vertices, float x_rotation, float y_rotation, float z_rotation);
+	void SetColorStyles();
 	~UI();
 	static UI* Get();
 
@@ -39,6 +40,10 @@ public:
 	}
 
 private:
+	GLFWmonitor* monitor;
+	const GLFWvidmode* mode;
+	GLFWwindow* window;
+
 	char go_grid_labels[5][5][5] = {
 		{"C_TS", "BART", "c1", "d1", "e1"},
 		{"C_FI", "IMUT", "c2", "d2", "e2"},

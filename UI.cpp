@@ -16,6 +16,8 @@ bool rotation_plot = false;
 bool auto_scale_slice_plot_X = true;
 bool auto_scale_slice_plot_Y = true;
 
+bool isFullscreen = false;
+
 int time_start = 0;
 int time_end = 1;
 
@@ -35,6 +37,10 @@ void UI::Init(GLFWwindow *window, const char *glsl_version)
 	std::tm *localTime = std::localtime(&current_time);
 	std::strftime(date_string, sizeof(date_string), "%m/%d/%Y", localTime);
 
+	this->window = window;
+	monitor = glfwGetPrimaryMonitor();
+	mode = glfwGetVideoMode(monitor);
+
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImPlot::CreateContext();
@@ -43,6 +49,8 @@ void UI::Init(GLFWwindow *window, const char *glsl_version)
 
 	ImGuiStyle& style = ImGui::GetStyle();
 	style.ScaleAllSizes(scale_factor);
+	
+	SetColorStyles();
 
 	io.IniFilename = "Assets/imgui.ini";
 
@@ -62,7 +70,6 @@ void UI::Init(GLFWwindow *window, const char *glsl_version)
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init(glsl_version);
 
-	ImGui::StyleColorsDark();
 
 	const ImVec4 colors[] = {ImVec4{219.0f / 256.0f, 66.0f / 256.0f, 66.0f / 256.0f, 1.0f}, ImVec4{219.0f / 256.0f, 140.0f / 256.0f, 66.0f / 256.0f, 1.0f}, ImVec4{104.0f / 256.0f, 173.0f / 256.0f, 92.0f / 256.0f, 1.0f}};
 	const ImVec4* color_ptr = colors;
@@ -98,9 +105,29 @@ void UI::Update()
 
 	#pragma region MenuBar
 	ImGui::BeginMainMenuBar();
-	if (ImGui::MenuItem("Application Diagnostics"))
+	if (ImGui::BeginMenu("Application Controls"))
 	{
-		diagnostics_open = !diagnostics_open;
+		if (ImGui::MenuItem("Application Diagnostics"))
+		{
+			diagnostics_open = !diagnostics_open;
+		}
+		if (ImGui::MenuItem("Fullscreen (Slightly buggy, expect weird things to happen)"))
+		{
+			isFullscreen = !isFullscreen;
+			if(isFullscreen)
+			{
+				glfwSetWindowMonitor(window, monitor, 1920, 1080, mode->width, mode->height, mode->refreshRate);
+			}
+			else
+			{
+				glfwSetWindowMonitor(window, NULL, 0, 0, mode->width, mode->height, mode->refreshRate);
+			}
+		}
+		if (ImGui::MenuItem("Exit"))
+		{
+			glfwSetWindowShouldClose(window, GLFW_TRUE);
+		}
+		ImGui::EndMenu();
 	}
 	if (ImGui::BeginMenu("UI Configuraitions")) {
 		if (ImGui::MenuItem("Default Configuration"))
@@ -457,7 +484,7 @@ void UI::Update()
 	#pragma endregion
 }
 
-void UI::Render(GLFWwindow *window)
+void UI::Render()
 {
 	ImGui::Render();
 	glClearColor(1.00f, 1.00f, 1.00f, 1.00f);
@@ -530,6 +557,78 @@ void UI::RotateModel(const std::vector<ImPlot3DPoint> vertices,
 
 		rotated_vertices->push_back(r);
 	}
+}
+
+void UI::SetColorStyles()
+{
+	ImGuiStyle& style = ImGui::GetStyle();
+
+	ImVec4 PSP_Black = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
+	ImVec4 PSP_NightSky = ImVec4(37.0f / 255.0f, 37 / 255.0f, 38 / 255.0f, 1.00f);
+	ImVec4 PSP_Rush = ImVec4(218.0f / 255.0f, 170 / 255.0f, 0.0f, 1.0f);
+	ImVec4 PSP_Rush_Dark = ImVec4(218.0f / 255.0f / 2.0f, 170 / 255.0f/ 2.0f, 0.0f, 1.0f);
+	ImVec4 PSP_Rush_Medium = ImVec4(218.0f / 255.0f * 0.75f, 170 / 255.0f * 0.75f, 0.0f, 1.0f);
+	ImVec4 PSP_Moondust = ImVec4(242.0f / 255.0f, 239.0f / 255.0f, 233.0f / 255.0f, 1.0f);
+	ImVec4 PSP_White = ImVec4(1.0f,1.0f,1.0f,1.0f);
+
+	style.Colors[ImGuiCol_Text]                   = PSP_Moondust;
+    style.Colors[ImGuiCol_TextDisabled]           = PSP_Moondust;
+    style.Colors[ImGuiCol_WindowBg]               = PSP_Black;
+    style.Colors[ImGuiCol_ChildBg]                = PSP_NightSky;
+    style.Colors[ImGuiCol_PopupBg]                = PSP_NightSky;
+    style.Colors[ImGuiCol_Border]                 = PSP_Rush_Dark;
+    style.Colors[ImGuiCol_BorderShadow]           = PSP_NightSky;
+    style.Colors[ImGuiCol_FrameBg]                = PSP_NightSky;
+    style.Colors[ImGuiCol_FrameBgHovered]         = PSP_NightSky;
+    style.Colors[ImGuiCol_FrameBgActive]          = PSP_NightSky;
+    style.Colors[ImGuiCol_TitleBg]                = PSP_NightSky;
+    style.Colors[ImGuiCol_TitleBgActive]          = PSP_NightSky;
+    style.Colors[ImGuiCol_TitleBgCollapsed]       = PSP_NightSky;
+    style.Colors[ImGuiCol_MenuBarBg]              = PSP_Black;
+    style.Colors[ImGuiCol_ScrollbarBg]            = PSP_Black;
+    style.Colors[ImGuiCol_ScrollbarGrab]          = PSP_NightSky;
+    style.Colors[ImGuiCol_ScrollbarGrabHovered]   = ImVec4(0.41f, 0.41f, 0.41f, 1.00f);
+    style.Colors[ImGuiCol_ScrollbarGrabActive]    = ImVec4(0.51f, 0.51f, 0.51f, 1.00f);
+    style.Colors[ImGuiCol_CheckMark]              = PSP_Rush;
+    style.Colors[ImGuiCol_SliderGrab]             = PSP_Rush_Medium;
+    style.Colors[ImGuiCol_SliderGrabActive]       = PSP_Rush;
+    style.Colors[ImGuiCol_Button]                 = PSP_NightSky;
+    style.Colors[ImGuiCol_ButtonHovered]          = PSP_Rush_Medium;
+    style.Colors[ImGuiCol_ButtonActive]           = PSP_Rush;
+    style.Colors[ImGuiCol_Header]                 = PSP_Rush_Dark;
+    style.Colors[ImGuiCol_HeaderHovered]          = PSP_Rush_Medium;
+    style.Colors[ImGuiCol_HeaderActive]           = PSP_Rush;
+    style.Colors[ImGuiCol_Separator]              = style.Colors[ImGuiCol_Border];
+    style.Colors[ImGuiCol_SeparatorHovered]       = PSP_Rush_Medium;
+    style.Colors[ImGuiCol_SeparatorActive]        = PSP_Rush;
+    style.Colors[ImGuiCol_ResizeGrip]             = PSP_Rush_Dark;
+    style.Colors[ImGuiCol_ResizeGripHovered]      = PSP_Rush_Medium;
+    style.Colors[ImGuiCol_ResizeGripActive]       = PSP_Rush;
+    style.Colors[ImGuiCol_InputTextCursor]        = style.Colors[ImGuiCol_Text];
+    style.Colors[ImGuiCol_TabHovered]             = style.Colors[ImGuiCol_HeaderHovered];
+    style.Colors[ImGuiCol_Tab]                    = style.Colors[ImGuiCol_Header];
+    style.Colors[ImGuiCol_TabSelected]            = style.Colors[ImGuiCol_HeaderActive];
+    style.Colors[ImGuiCol_TabSelectedOverline]    = style.Colors[ImGuiCol_HeaderActive];
+    style.Colors[ImGuiCol_TabDimmed]              = style.Colors[ImGuiCol_Tab];
+    style.Colors[ImGuiCol_TabDimmedSelected]      = style.Colors[ImGuiCol_TabSelected];
+    style.Colors[ImGuiCol_TabDimmedSelectedOverline] = ImVec4(0.50f, 0.50f, 0.50f, 0.00f);
+    style.Colors[ImGuiCol_PlotLines]              = ImVec4(0.61f, 0.61f, 0.61f, 1.00f);
+    style.Colors[ImGuiCol_PlotLinesHovered]       = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
+    style.Colors[ImGuiCol_PlotHistogram]          = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
+    style.Colors[ImGuiCol_PlotHistogramHovered]   = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
+    style.Colors[ImGuiCol_TableHeaderBg]          = ImVec4(0.19f, 0.19f, 0.20f, 1.00f);
+    style.Colors[ImGuiCol_TableBorderStrong]      = ImVec4(0.31f, 0.31f, 0.35f, 1.00f);
+    style.Colors[ImGuiCol_TableBorderLight]       = ImVec4(0.23f, 0.23f, 0.25f, 1.00f);
+    style.Colors[ImGuiCol_TableRowBg]             = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+    style.Colors[ImGuiCol_TableRowBgAlt]          = ImVec4(1.00f, 1.00f, 1.00f, 0.06f);
+    style.Colors[ImGuiCol_TextLink]               = style.Colors[ImGuiCol_HeaderActive];
+    style.Colors[ImGuiCol_TextSelectedBg]         = ImVec4(0.26f, 0.59f, 0.98f, 0.35f);
+    style.Colors[ImGuiCol_TreeLines]              = style.Colors[ImGuiCol_Border];
+    style.Colors[ImGuiCol_DragDropTarget]         = ImVec4(1.00f, 1.00f, 0.00f, 0.90f);
+    style.Colors[ImGuiCol_NavCursor]              = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
+    style.Colors[ImGuiCol_NavWindowingHighlight]  = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
+    style.Colors[ImGuiCol_NavWindowingDimBg]      = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
+    style.Colors[ImGuiCol_ModalWindowDimBg]       = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
 }
 
 UI::~UI()
