@@ -71,8 +71,18 @@ target_link_libraries(${PROJECT_NAME} glfw "${GLFW_LIBRARIES}")
 target_include_directories(${PROJECT_NAME} PRIVATE "${GLFW_DIR}/include")
 target_compile_definitions(${PROJECT_NAME} PRIVATE "GLFW_INCLUDE_NONE")
 
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${CMAKE_SOURCE_DIR}/Assets"
-        "$<TARGET_FILE_DIR:${PROJECT_NAME}>/Assets"
+add_custom_command(
+  TARGET ${PROJECT_NAME} 
+  POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy_directory
+    "${CMAKE_SOURCE_DIR}/Assets"
+    "$<TARGET_FILE_DIR:${PROJECT_NAME}>/Assets"
+)
+
+add_custom_command(
+  TARGET ${PROJECT_NAME}
+  POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy
+    "${CMAKE_SOURCE_DIR}/Assets/default.ini"
+    "$<TARGET_FILE_DIR:${PROJECT_NAME}>/Assets/imgui.ini"
 )
