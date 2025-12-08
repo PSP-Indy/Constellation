@@ -103,6 +103,9 @@ int main()
 	DCB dcbSerialParamsTeleBT = {0};
 	dcbSerialParamsTeleBT.DCBlength = sizeof(dcbSerialParamsTeleBT);
 
+	std::thread fakeSerialThread(&DataValues::FakeData, data, &valueLock);
+	fakeSerialThread.detach();
+
 	if (!GetCommState(hSerialSRAD, &dcbSerialParamsSRAD) && !GetCommState(hSerialTeleBT, &dcbSerialParamsTeleBT)) {
 		std::cout << "Failed to get comm state, aborting serial communication." << std::endl;
 	} else {

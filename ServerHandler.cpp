@@ -8,46 +8,65 @@ void ServerHandler::Server(std::mutex* valueLock)
 
     auto ret = svr.set_mount_point("/assets", "./assets");
 
-    svr.Get("/", [](const httplib::Request &, httplib::Response &res) {
+    svr.Get("/", [](const httplib::Request &req, httplib::Response &res) {
         res.set_file_content("./assets/index.html", "text/html");
     });
 
-    svr.Get("/favicon.ico", [](const httplib::Request &, httplib::Response &res) {
+    svr.Get("/favicon.ico", [](const httplib::Request &req, httplib::Response &res) {
         res.set_file_content("./assets/icon.png", "image/png");
     });
 
-    svr.Get("/go-grid.txt", [&valueLock, &data](const httplib::Request &, httplib::Response &res) {
-        std::string goGridText;
-
+    svr.Get("/data.json/:id", [&valueLock, &data](const httplib::Request &req, httplib::Response &res) {
         valueLock->lock();
 
-        for(int i = 0; i < 5; i++){
-            for(int j = 0; j < 5; j++){
-                goGridText += "(";
-                goGridText += std::to_string(data->go_grid_values[i][j]);
-                goGridText += ",";
-                goGridText += UI::Get()->go_grid_labels[j][i];
-                goGridText += "),";
-            }
-        } 
+        float lastTimeStamp = std::stof(req.path_params.at("id"));
+        std::map<float, DataValues::DataValueSnapshot>* dataMap = data->getValueSnapshotMap();
 
-        if(data->coundown_start_time != NULL)
-        {
-            time_t current_time_t = time(NULL);
-            int time_since_countdown = difftime(data->coundown_start_time, current_time_t);
-            int countdown = data->fuse_delay - std::abs(time_since_countdown);
-
-            goGridText += std::to_string(countdown);
-        }
-	    else
-        {
-            goGridText += "N/A";
-        }
+        std::map<float, nlohmann::json> filteredMap;
         
+        std::map<std::string, std::string> jsonMap;
+
+        auto filterStart = dataMap->upper_bound(lastTimeStamp);
+        for (auto current = filterStart; current != dataMap->end(); current++) {
+            nlohmann::json j;
+            current->second.to_json(j, current->second);
+            filteredMap[current->first] = j;
+        }
+
+        nlohmann::json valuesUpdate = filteredMap;
+
+        nlohmann::json goGridValueArray;
+        for (const auto& row : data->go_grid_values) {
+            nlohmann::json jsonRow = nlohmann::json::array();
+            for (int element : row) {
+                jsonRow.push_back(element);
+            }
+            goGridValueArray.push_back(jsonRow);
+        }
+
+        nlohmann::json goGridLabelArray;
+        for (const auto& row : UI::Get()->go_grid_labels) {
+            nlohmann::json jsonRow = nlohmann::json::array();
+            for (auto element : row) {
+                jsonRow.push_back(element);
+            }
+            goGridLabelArray.push_back(jsonRow);
+        }
+
+        nlohmann::json countdownStartTime = data->coundown_start_time;
+        nlohmann::json countdownTime = data->fuse_delay;
+
+        jsonMap["countdownTime"] = countdownTime.dump();
+        jsonMap["countdownStartTime"] = countdownStartTime.dump();
+        jsonMap["valuesUpdate"] = valuesUpdate.dump();
+        jsonMap["goGridValues"] = goGridValueArray.dump();
+        jsonMap["goGridLabels"] = goGridLabelArray.dump();
+
         valueLock->unlock();
 
+        nlohmann::json finalJson = jsonMap;
 
-        res.set_content(goGridText, "text/plain");
+        res.set_content(finalJson.dump(), "application/json");
     });
 
     svr.listen("0.0.0.0", 8080);

@@ -9,6 +9,27 @@ void DataValues::InsertDataSnapshot(float time, DataValueSnapshot data)
     value_snapshots[time] = data;
 }
 
+void DataValues::FakeData(std::mutex* valueLock)
+{
+	std::time_t start_time = time(NULL);
+	while (true)
+	{
+		valueLock->lock();
+		DataValues::DataValueSnapshot snapshot;
+		snapshot.a_value = 0;
+		snapshot.v_value = 0;
+		snapshot.x_value = 0;
+		snapshot.y_value = 0;
+		snapshot.z_value = 0;
+		snapshot.x_rot_value = 0;
+		snapshot.y_rot_value = 0;
+		snapshot.z_rot_value = 0;
+		this->InsertDataSnapshot(difftime(time(NULL), start_time), snapshot);
+		valueLock->unlock();
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+	}
+}
+
 DataValues::DataValueList DataValues::getDataValueList()
 {
     DataValueList value_list;

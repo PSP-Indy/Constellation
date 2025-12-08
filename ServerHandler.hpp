@@ -1,6 +1,7 @@
 #pragma once
 
 #include "httplib.h"
+#include "json.hpp"
 
 #include <mutex>
 #include <string>

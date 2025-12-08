@@ -1,8 +1,11 @@
 #pragma once
 
+#include "json.hpp"
+
 #include <windows.h>
 #include <vector> 
 #include <map>
+#include <mutex>
 
 #include <iostream>
 #include <chrono>
@@ -18,6 +21,8 @@ public:
 		float x_rot_value;
 		float y_rot_value;
 		float z_rot_value;
+
+		NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(DataValueSnapshot, a_value, v_value, x_value, y_value, z_value, x_rot_value, y_rot_value, z_rot_value);
 	};
 
 	float go_grid_values[5][5] = {0.01};
@@ -50,6 +55,12 @@ public:
 	DataValues(const DataValues& obj) = delete;
 
 	void InsertDataSnapshot(float time, DataValueSnapshot data);
+	void FakeData(std::mutex* valueLock);
+
+	std::map<float, DataValueSnapshot>* getValueSnapshotMap()
+	{
+		return &value_snapshots;
+	}
 
 	DataValues::DataValueList getDataValueList();
 	
