@@ -33,13 +33,6 @@ public:
 	~UI();
 	static UI* Get();
 
-private:
-	GLFWmonitor* monitor;
-	const GLFWvidmode* mode;
-	GLFWwindow* window;
-
-	void SetColorStyles();
-
 	char go_grid_labels[5][5][5] = {
 		{"C_TS", "BART", "c1", "d1", "e1"},
 		{"C_FI", "IMUT", "c2", "d2", "e2"},
@@ -47,6 +40,13 @@ private:
 		{"C_SC", "AT_V", "c4", "d4", "e4"},
 		{"a5", "b5", "c5", "d5", "e5"}
 	};
+
+private:
+	GLFWmonitor* monitor;
+	const GLFWvidmode* mode;
+	GLFWwindow* window;
+
+	void SetColorStyles();
 
 	int FindClosestIndex(const std::vector<float>* values, int target)
 	{

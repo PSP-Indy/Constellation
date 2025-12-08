@@ -1,0 +1,55 @@
+:root {
+  --psp-black: rgba(0, 0, 0, 1);
+
+  --psp-nightsky: rgba(37, 37, 38, 1);
+
+  --psp-rush: rgba(218, 170, 0, 1);
+
+  --psp-rush-dark: rgba(109, 85, 0, 1);
+
+  --psp-rush-medium: rgba(163.5, 127.5, 0, 1);
+
+  --psp-moondust: rgba(242, 239, 233, 1);
+
+  --psp-white: rgba(255, 255, 255, 1);
+}
+
+h2 {
+    text-align:center;
+}
+
+#countdown {
+    margin-top: 3em;
+}
+
+body { 
+    font-family: Arial, sans-serif; 
+    background: var(--psp-black); 
+    color:var(--psp-moondust); 
+}
+
+#grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    max-width: 500px;
+    margin: 20px auto;
+}
+
+.cell {
+    padding:10px;
+    border-radius:6px;
+    text-align:center;
+    border:3px solid var(--psp-rush);
+    transition: background 0.3s;
+    color: var(--psp-moondust);
+}
+
+.value {
+    font-size:1.4em;
+    font-weight:bold;
+}
+.label {
+    font-size:0.8em;
+    color: var(--psp-moondust);
+}

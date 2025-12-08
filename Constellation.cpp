@@ -8,11 +8,13 @@
 #include <random>
 #include <cmath>
 
+#include <Winsock2.h>
 #include <windows.h>
 
 #include "UI.hpp"
 #include "SerialHandling.hpp"
 #include "DataValues.hpp"
+#include "ServerHandler.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -85,6 +87,10 @@ int main()
 	SerialHandling* serialHandling = SerialHandling::Get();
 	DataValues* data = DataValues::Get();
 
+	ServerHandler serverHandler;
+	std::thread webServerThread(&ServerHandler::Server, &serverHandler, &valueLock);
+	webServerThread.detach();
+
 	serialHandling->SetValueLock(&valueLock);
 
 	//SERIAL INITIALIZATION
@@ -135,11 +141,11 @@ int main()
 
 				data->hSerialSRAD = hSerialSRAD;
 
-				std::thread serial_thread_SRAD(&SerialHandling::ProcessSerialDataSRAD, serialHandling, hSerialSRAD);
-				std::thread serial_thread_TeleBT(&SerialHandling::ProcessSerialDataTeleBT, serialHandling, hSerialTeleBT);
+				std::thread serialThreadSRAD(&SerialHandling::ProcessSerialDataSRAD, serialHandling, hSerialSRAD);
+				std::thread serialThreadTeleBT(&SerialHandling::ProcessSerialDataTeleBT, serialHandling, hSerialTeleBT);
 
-				serial_thread_SRAD.detach();
-				serial_thread_TeleBT.detach();
+				serialThreadSRAD.detach();
+				serialThreadTeleBT.detach();
 			}
 		}
 	}

@@ -20,7 +20,7 @@ public:
 		float z_rot_value;
 	};
 
-	float go_grid_values[5][5];
+	float go_grid_values[5][5] = {0.01};
 
 	std::time_t launch_time = NULL;
 	std::time_t last_ping = NULL;
