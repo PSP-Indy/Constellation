@@ -9,17 +9,15 @@
     <link rel="icon" href="/assets/icon.png" type="image/png">
   </head>
   <body>
-
-    <h2>GO Grid Live Data (0–1)</h2>
+    <h2>GO Grid Live Data</h2>
     <div id="grid"></div>
     <h2 id="countdown">Launch Countdown Not Initialized</h2>
 
     <script>
-      const url = "/go-grid.txt"; // <-- Change to your text file URL
+      const url = "/go-grid.txt";
       const gridEl = document.getElementById("grid");
       const countdownEl = document.getElementById("countdown");
 
-      // Create empty cells initially
       for (let i = 0; i < 25; i++) {
           const cell = document.createElement("div");
           cell.className = "cell";
@@ -27,9 +25,8 @@
           gridEl.appendChild(cell);
       }
 
-      // Map 0–1 values to red → orange → green
       function valueToColor(v) {
-          v = Math.min(Math.max(v, 0), 1); // clamp
+          v = Math.min(Math.max(v, 0), 1);
           let r, g, b = 0;
 
           if (v <= 0.5) {
@@ -61,7 +58,6 @@
                   cell.style.backgroundColor = valueToColor(value);
               });
 
-
               const lastCommaIndex = text.lastIndexOf(",");
               let countdownStr = text.slice(lastCommaIndex + 1).trim();
               if (!countdownStr || countdownStr === "N/A") {
@@ -75,7 +71,6 @@
           }
       }
 
-      // Initial load + update every second
       updateGrid();
       setInterval(updateGrid, 1000);
     </script>
