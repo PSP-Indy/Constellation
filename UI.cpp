@@ -483,7 +483,6 @@ void UI::Update()
 			
 			if (ImGui::Button("Prime Rocket", ImVec2(-1, 70)))
 			{
-				rocket_data->coundown_start_time = time(NULL);
 				if (rocket_data->prime_rocket != NULL)
 				{
 					rocket_data->prime_rocket(rocket_data->hSerialSRAD);
