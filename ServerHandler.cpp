@@ -35,7 +35,7 @@ void ServerHandler::Server(std::mutex* valueLock)
         {
             time_t current_time_t = time(NULL);
             int time_since_countdown = difftime(data->coundown_start_time, current_time_t);
-            int countdown = 5 - std::abs(time_since_countdown);
+            int countdown = data->fuse_delay - std::abs(time_since_countdown);
 
             goGridText += std::to_string(countdown);
         }

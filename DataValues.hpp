@@ -26,7 +26,7 @@ public:
 	std::time_t last_ping = NULL;
 	std::time_t coundown_start_time = NULL;
 
-	int fuse_delay = 2;
+	int fuse_delay = 5;
 	int launch_altitude = 0;
 
 	HANDLE hSerialSRAD;

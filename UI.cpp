@@ -459,7 +459,7 @@ void UI::Update()
 	{
 		time_t current_time_t = time(NULL);
 		int time_since_countdown = difftime(rocket_data->coundown_start_time, current_time_t);
-		int countdown = 5 - std::abs(time_since_countdown);
+		int countdown = rocket_data->fuse_delay - std::abs(time_since_countdown);
 
 		ImFont* largeFont = ImGui::GetIO().Fonts->AddFontFromFileTTF("Assets/DuruSans-Regular.ttf", 64);
 		ImGui::PushFont(largeFont);
