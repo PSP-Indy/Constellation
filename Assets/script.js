@@ -104,14 +104,12 @@ function updateCountdown() {
 // ------------------------------
 async function poll() {
     const queryTime = (lastTimestamp + 0.001).toFixed(3);
-    console.log(`Polling for timestamps > ${queryTime}`);
 
     try {
         const response = await fetch(`/data.json/${queryTime}`);
         if (!response.ok) return;
 
         const json = await response.json();
-        console.log('Received data:', json);
 
         // ---------- Parse GO grid ----------
         if (json.goGridLabels) {
@@ -134,8 +132,12 @@ async function poll() {
             const updates = typeof json.valuesUpdate === 'string' 
                 ? JSON.parse(json.valuesUpdate) 
                 : json.valuesUpdate;
-            
-            if (Array.isArray(updates)) {
+
+            if (Array.isArray(updates) && updates.length === 0) {
+                lastTimestamp = 0;
+            } 
+            else if (Array.isArray(updates)) 
+            {
                 // Get all timestamps and find the maximum
                 const timestamps = updates.map(entry => entry[0]);
                 
@@ -146,7 +148,6 @@ async function poll() {
                 // Update lastTimestamp to the highest timestamp received
                 if (timestamps.length > 0) {
                     const newMax = Math.max(...timestamps);
-                    console.log(`Updated lastTimestamp from ${lastTimestamp} to ${newMax}`);
                     lastTimestamp = Math.max(lastTimestamp, newMax);
                 }
             }
@@ -154,8 +155,8 @@ async function poll() {
 
         // ---------- Parse countdown ----------
         // Check for both typo variants
-        const countdownField = json.countdownTime || json.coundownTime;
-        const startTimeField = json.countdownStartTime || json.coundownStartTime;
+        const countdownField = json.countdownTime;
+        const startTimeField = json.countdownStartTime;
         
         if (countdownField !== undefined && countdownField !== null) {
             const parsedDuration = typeof countdownField === 'string' 
@@ -183,5 +184,11 @@ async function poll() {
 // ------------------------------
 // Start update loops
 // ------------------------------
-setInterval(poll, 1000);         // server polling
+async function startPolling() {
+    while (true) {
+        await poll();  // Wait for poll to complete
+        await new Promise(resolve => setTimeout(resolve, 1000));  // Wait 1 second
+    }
+}
+startPolling();
 setInterval(updateCountdown, 100); // smoother countdown display

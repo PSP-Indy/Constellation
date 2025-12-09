@@ -4,6 +4,18 @@ void ServerHandler::Server(std::mutex* valueLock)
 {
     DataValues* data = DataValues::Get();
 
+    std::map<float, std::string> valuesUpdateCache;
+    
+    nlohmann::json goGridLabelArray;
+
+    for (const auto& row : UI::Get()->go_grid_labels) {
+        nlohmann::json jsonRow = nlohmann::json::array();
+        for (auto element : row) {
+            jsonRow.push_back(element);
+        }
+        goGridLabelArray.push_back(jsonRow);
+    }
+
     httplib::Server svr;
 
     auto ret = svr.set_mount_point("/assets", "./assets");
@@ -16,7 +28,7 @@ void ServerHandler::Server(std::mutex* valueLock)
         res.set_file_content("./assets/icon.png", "image/png");
     });
 
-    svr.Get("/data.json/:id", [&valueLock, &data](const httplib::Request &req, httplib::Response &res) {
+    svr.Get("/data.json/:id", [&valueLock, &data, &valuesUpdateCache, goGridLabelArray](const httplib::Request &req, httplib::Response &res) {
         valueLock->lock();
 
         float lastTimeStamp = std::stof(req.path_params.at("id"));
@@ -26,14 +38,24 @@ void ServerHandler::Server(std::mutex* valueLock)
         
         std::map<std::string, std::string> jsonMap;
 
-        auto filterStart = dataMap->upper_bound(lastTimeStamp);
-        for (auto current = filterStart; current != dataMap->end(); current++) {
-            nlohmann::json j;
-            current->second.to_json(j, current->second);
-            filteredMap[current->first] = j;
-        }
+        std::string valuesUpdateString;
 
-        nlohmann::json valuesUpdate = filteredMap;
+        if(valuesUpdateCache.count(lastTimeStamp) == 0 || valuesUpdateCache[lastTimeStamp] == "[]") 
+        {
+            auto filterStart = dataMap->upper_bound(lastTimeStamp);
+            for (auto current = filterStart; current != dataMap->end(); current++) {
+                nlohmann::json j;
+                current->second.to_json(j, current->second);
+                filteredMap[current->first] = j;
+            }
+            nlohmann::json valuesUpdate = filteredMap;
+            valuesUpdateString = valuesUpdate.dump();
+            valuesUpdateCache[lastTimeStamp] = valuesUpdateString;
+        }
+        else
+        {
+            valuesUpdateString = valuesUpdateCache[lastTimeStamp];
+        }
 
         nlohmann::json goGridValueArray;
         for (const auto& row : data->go_grid_values) {
@@ -44,23 +66,18 @@ void ServerHandler::Server(std::mutex* valueLock)
             goGridValueArray.push_back(jsonRow);
         }
 
-        nlohmann::json goGridLabelArray;
-        for (const auto& row : UI::Get()->go_grid_labels) {
-            nlohmann::json jsonRow = nlohmann::json::array();
-            for (auto element : row) {
-                jsonRow.push_back(element);
-            }
-            goGridLabelArray.push_back(jsonRow);
-        }
-
         nlohmann::json countdownStartTime = data->coundown_start_time;
         nlohmann::json countdownTime = data->fuse_delay;
 
         jsonMap["countdownTime"] = countdownTime.dump();
         jsonMap["countdownStartTime"] = countdownStartTime.dump();
-        jsonMap["valuesUpdate"] = valuesUpdate.dump();
+        jsonMap["valuesUpdate"] = valuesUpdateString;
         jsonMap["goGridValues"] = goGridValueArray.dump();
-        jsonMap["goGridLabels"] = goGridLabelArray.dump();
+        
+        if(lastTimeStamp <= 1) 
+        {
+            jsonMap["goGridLabels"] = goGridLabelArray.dump();
+        }
 
         valueLock->unlock();
 
