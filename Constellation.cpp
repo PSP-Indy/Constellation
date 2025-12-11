@@ -88,6 +88,7 @@ int main()
 	DataValues* data = DataValues::Get();
 
 	ServerHandler serverHandler;
+
 	std::thread webServerThread(&ServerHandler::Server, &serverHandler, &valueLock);
 	webServerThread.detach();
 
