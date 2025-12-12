@@ -78,7 +78,10 @@ void SerialHandling::ProcessSerialDataSRAD(HANDLE hSerial)
 
 	while (true) 
 	{
-		char command_buffer[9];
+		char* command_buffer[9];
+		int message_size = 0;
+		char header[5];
+
 		DWORD bytesRead;
 
 		if (!ReadFile(hSerial, command_buffer, sizeof(command_buffer), &bytesRead, NULL)) 
@@ -91,11 +94,7 @@ void SerialHandling::ProcessSerialDataSRAD(HANDLE hSerial)
 			continue;
 		}
 
-		std::string header;
-		int message_size = 0;
-		for (int i = 0; i < 4; i++){
-			header += command_buffer[i];
-		}
+		memcpy(&header, command_buffer, 4);
 		memcpy(&message_size, command_buffer + 4, 4);
 
 		char* dataPacket = new char[message_size];
@@ -110,7 +109,7 @@ void SerialHandling::ProcessSerialDataSRAD(HANDLE hSerial)
 			continue;
 		}
 
-		if(header == std::string("C_SC")) 
+		if(std::strcmp(header, "C_SC") == 0) 
 		{
 			valueLock->lock();
 
@@ -124,7 +123,7 @@ void SerialHandling::ProcessSerialDataSRAD(HANDLE hSerial)
 			valueLock->unlock();
 		}
 		
-		if(header == std::string("C_TS")) 
+		if(std::strcmp(header, "C_TS") == 0) 
 		{
 			valueLock->lock();
 			
@@ -134,7 +133,7 @@ void SerialHandling::ProcessSerialDataSRAD(HANDLE hSerial)
 			valueLock->unlock();
 		}
 
-		if(header == std::string("C_FI")) 
+		if(std::strcmp(header, "C_FI") == 0) 
 		{
 			valueLock->lock();
 
@@ -145,7 +144,7 @@ void SerialHandling::ProcessSerialDataSRAD(HANDLE hSerial)
 			valueLock->unlock();
 		}
 
-		if(header == std::string("C_FO")) 
+		if(std::strcmp(header, "C_FO") == 0) 
 		{
 			valueLock->lock();
 
@@ -156,7 +155,7 @@ void SerialHandling::ProcessSerialDataSRAD(HANDLE hSerial)
 			valueLock->unlock();
 		}
 
-		if(header == std::string("C_UT") && message_size >= 44) 
+		if(std::strcmp(header, "C_UT") == 0 && message_size >= 44) 
 		{			
 			valueLock->lock();
 			data->last_ping = time(NULL);

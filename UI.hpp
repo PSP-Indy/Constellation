@@ -33,7 +33,7 @@ public:
 	~UI();
 	static UI* Get();
 
-	char go_grid_labels[5][5][5] = {
+	const char go_grid_labels[5][5][5] = {
 		{"C_TS", "BART", "c1", "d1", "e1"},
 		{"C_FI", "IMUT", "c2", "d2", "e2"},
 		{"C_FO", "AT_T", "c3", "d3", "e3"},
@@ -50,29 +50,29 @@ private:
 
 	int FindClosestIndex(const std::vector<float>* values, int target)
 	{
-		float closest_dist = FLT_MAX;
-		int closest_index = 0;
+		float closestDist = FLT_MAX;
+		int closestIndex = 0;
 		for (size_t idx = 0; idx < values->size(); idx++)
 		{
 			float dist = std::fabs(values->at(idx) - target);
-			if (dist < closest_dist)
+			if (dist < closestDist)
 			{
-				closest_dist = dist;
-				closest_index = idx;
+				closestDist = dist;
+				closestIndex = idx;
 			}
 		}
 
-		return closest_index;
+		return closestIndex;
 	}
 
 	std::vector<float> SubArray(const std::vector<float>* values, int start, int end)
 	{
-		std::vector<float> sub_array;
-		for(int i = 0; i < (end-start); i++) 
+		std::vector<float> subArray;
+		for(int i = 0; i < (end - start); i++) 
 		{
-			sub_array.push_back(values->at(start + i));
+			subArray.push_back(values->at(start + i));
 		}
-		return sub_array;
+		return subArray;
 	}
 
 	static UI* ui;
