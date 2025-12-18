@@ -163,6 +163,11 @@ void SerialHandling::ProcessSerialDataSRAD(HANDLE hSerial)
 			data->go_grid_values[1][0] = CharStringToFloat(dataPacket, 36);
 			data->go_grid_values[1][1] = CharStringToFloat(dataPacket, 40);
 
+			if (message_size >= 45 && message_size[45] != '\0')
+			{
+				data->go_grid_values[4][0] = static_cast<float>((bool)dataPacket[45]);
+			}
+
 			DataValues::DataValueSnapshot snapshot;
 
 			float time = CharStringToFloat(dataPacket, 0);
@@ -174,6 +179,7 @@ void SerialHandling::ProcessSerialDataSRAD(HANDLE hSerial)
 			snapshot.x_rot_value = CharStringToFloat(dataPacket, 24);
 			snapshot.y_rot_value = CharStringToFloat(dataPacket, 28);
 			snapshot.z_rot_value = CharStringToFloat(dataPacket, 32);
+			
 
 			data->InsertDataSnapshot(time, snapshot);
 

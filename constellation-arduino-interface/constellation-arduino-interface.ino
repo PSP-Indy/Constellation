@@ -10,15 +10,16 @@ bool rocket_primed = false;
 bool launched = false;
 bool launch_started = false;
 bool fuse_off = false;
+bool waiting_for_lora_packet = false;
 
 int fuse_time;
+int message_size;
 
 unsigned long last_successful_ping = 0;
 unsigned long previous = 0;
 unsigned long turn_off_fuse_time = 0;
 
 char message_packet[48];
-char lora_recieved_packet[44];
 
 void setup() {
   Serial.begin(9600);
@@ -31,63 +32,122 @@ void setup() {
 }
 
 void loop() {
-  if (Serial.available() == 5)
+  //Run when serial data is 
+  if (Serial.available() == 9)
   {
-    char command_buffer[9];
-    Serial.readBytes(command_buffer, 9);
-    String header;
-    int message_size;    
-    for (int i = 0; i < 4; i++)
-    {
-      header += command_buffer[i];
-    }
-    memcpy(&message_size, command_buffer + 4, 4);
-
-    if (header == "C_SS") 
-    {
-      last_successful_ping = millis();
-      successful_connection = true;
-    }
-
-    if (header == "C_LR")
-    {
-      if (rocket_primed && successful_connection)
-      {
-        LaunchRocket();
-      }
-    }
-
-    if (header == "C_ST") 
-    {
-      while (Serial.available() != message_size) {}
-
-      unsigned char* initialize_data_packet = new unsigned char[message_size];
-
-      Serial.readBytes(initialize_data_packet, message_size);
-
-      PrimeRocket(initialize_data_packet);
-      rocket_primed = true;
-    }
+    handleDownstreamData();
   }
 
+  //Send connection confirmation check
   if ((millis() - previous >= 1000) && !(Serial.available() > 0))
   {
     previous = millis();
     sendMesage("C_SC", {});
   }
 
-  if (launched)
-  {
-    int packetSize = LoRa.parsePacket();
-    if (packetSize == sizeof(lora_recieved_packet)) {
-      for(int i = 0; i < sizeof(lora_recieved_packet); i++) {
-        lora_recieved_packet[i] = (char)LoRa.read();
-      }
+  //Check for LoRa Packets and handle them if one is recieved
+  int packetSize = LoRa.parsePacket();
 
-      char* serial_send = new char[packetSize + 4];
-      sendMesage("C_UT", lora_recieved_packet);
+  if (waiting_for_lora_packet) 
+  {
+    handleLoRaPacket(packetSize);
+  }
+  else
+  {
+    checkForLoRaPacket(packetSize);
+  }
+  
+  //Self explanatory
+  turnOffFuseIfExpected();
+  
+  //Turn off connection successfulness after 5 seconds of silence
+  if ((millis() - last_successful_ping) >= 5000)
+  {
+    successful_connection = false;
+  }
+  else
+  {
+    successful_connection = true;
+  }
+
+  digitalWrite(CONN_PIN, !successful_connection);
+}
+
+void handleDownstreamData()
+{
+  char command_buffer[9];
+  Serial.readBytes(command_buffer, 9);
+  String header;
+  int message_size;    
+  for (int i = 0; i < 4; i++)
+  {
+    header += command_buffer[i];
+  }
+  memcpy(&message_size, command_buffer + 4, 4);
+
+  //Respond to connection check requests
+  if (header == "C_SS") 
+  {
+    last_successful_ping = millis();
+  }
+
+  //Launch the rocket
+  if (header == "C_LR")
+  {
+    if (rocket_primed && successful_connection)
+    {
+      LaunchRocket();
+    }
+  }
+
+  //This is ok to be, and should be, blocking because this is during initialization. Theoretically should only run once at a commanded time.
+  //Should this lead to issues, this should be turned into a flag based system, like the upstream telemetry handler.
+  if (header == "C_ST") 
+  {
+    while (Serial.available() != message_size) {}
+
+    unsigned char* initialize_data_packet = new unsigned char[message_size];
+
+    Serial.readBytes(initialize_data_packet, message_size);
+
+    PrimeRocket(initialize_data_packet);
+    rocket_primed = true;
+  }
+}
+
+void handleLoRaPacket(int packetSize)
+{
+  if (packetSize == message_size)
+  {
+    char* serial_send = new char[message_size + 1];
+    for(int i = 0; i < sizeof(serial_send); i++) {
+      serial_send[i] = (char)LoRa.read();
     }
 
+    sendMesage("C_UT", serial_send);
+    waiting_for_lora_packet = false;
+  }
+}
+
+void checkForLoRaPacket(int packetSize)
+{
+  if (packetSize == 4) 
+  {
+    char message_size_string[4];
+    for (int i = 0; i < 4; i++)
+    {
+      message_size_string[i] = (char)LoRa.read();
+    }
+    memcpy(&message_size, message_size_string, 4);
+
+    waiting_for_lora_packet = true;
+  }
+}
+
+void turnOffFuseIfExpected()
+{
+  if (launched)
+  {
     if (millis() >= turn_off_fuse_time && !fuse_off) {
       delay(100);
       digitalWrite(RELAY_PIN, LOW);
@@ -95,13 +155,6 @@ void loop() {
       sendMesage("C_FO", {});
     }
   }
-
-  if ((millis() - last_successful_ping) >= 5000)
-  {
-    successful_connection = false;
-  }
-
-  digitalWrite(CONN_PIN, !successful_connection);
 }
 
 void sendMesage(String header, String message)
