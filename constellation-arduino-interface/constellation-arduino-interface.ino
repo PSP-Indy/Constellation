@@ -21,6 +21,8 @@ unsigned long turn_off_fuse_time = 0;
 
 char message_packet[48];
 
+String activeTestingMode = "T_NA";
+
 void setup() {
   Serial.begin(9600);
   while (!Serial);  
@@ -35,7 +37,7 @@ void loop() {
   //Run when serial data is 
   if (Serial.available() == 9)
   {
-    handleDownstreamData();
+    handleComputerSerialData();
   }
 
   //Send connection confirmation check
@@ -50,7 +52,14 @@ void loop() {
 
   if (waiting_for_lora_packet) 
   {
-    handleLoRaPacket(packetSize);
+    if (activeTestingMode == "T_NA")
+    {
+      handleLoRaPacketNormal(packetSize);
+    }
+    else 
+    {
+      handleLoRaPacketTesting(packetSize);
+    }
   }
   else
   {
@@ -73,7 +82,7 @@ void loop() {
   digitalWrite(CONN_PIN, !successful_connection);
 }
 
-void handleDownstreamData()
+void handleComputerSerialData()
 {
   char command_buffer[9];
   Serial.readBytes(command_buffer, 9);
@@ -113,9 +122,15 @@ void handleDownstreamData()
     PrimeRocket(initialize_data_packet);
     rocket_primed = true;
   }
+
+  //Handle Testing Declaration Cases
+  if (header.charAt(0) == 'T')
+  {
+    activeTestingMode = header;
+  }
 }
 
-void handleLoRaPacket(int packetSize)
+void handleLoRaPacketNormal(int packetSize)
 {
   if (packetSize == message_size)
   {
@@ -126,6 +141,17 @@ void handleLoRaPacket(int packetSize)
 
     sendMesage("C_UT", serial_send);
     waiting_for_lora_packet = false;
+  }
+}
+
+void handleLoRaPacketTesting(int packetSize)
+{
+  if (packetSize == message_size)
+  {
+    char* lora_data = new char[message_size + 1];
+    for(int i = 0; i < sizeof(lora_data); i++) {
+      lora_data[i] = (char)LoRa.read();
+    }
   }
 }
 

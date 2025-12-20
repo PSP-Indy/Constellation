@@ -233,7 +233,7 @@ void UI::Update()
 		ImGui::SameLine();
 		if (ImGui::Button("End Testing"))
 		{
-			SerialHandling::Get()->SendSRADData("T_EN");
+			SerialHandling::Get()->SendSRADData("T_NA");
 			rocket_data->testingMode = DataValues::TestingMode::NONE;
 		}
 
