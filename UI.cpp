@@ -26,6 +26,7 @@ float fastest_speed = -FLT_MAX;
 float fastest_aceleration = -FLT_MAX;
 
 bool diagnostics_open = false;
+bool testing_open = false;
 
 static int window_x, window_y, window_w, window_h;
 
@@ -113,9 +114,14 @@ void UI::Update()
 	ImGui::BeginMainMenuBar();
 	if (ImGui::BeginMenu("Application Controls"))
 	{
+		
 		if (ImGui::MenuItem("Application Diagnostics"))
 		{
 			diagnostics_open = !diagnostics_open;
+		}
+		if (ImGui::MenuItem("Testing mode"))
+		{
+			testing_open = !testing_open;
 		}
 		if (ImGui::MenuItem("Fullscreen"))
 		{
@@ -188,6 +194,55 @@ void UI::Update()
 		ImGui::Text(private_bytes_str.c_str());
 		ImGui::End();
 	}
+	#pragma endregion
+
+	#pragma region Testing
+	if (testing_open)
+	{
+		ImGui::Begin("Testing");
+		
+		if (ImGui::Button("One Way Telemetry (B/S)"))
+		{
+			SerialHandling::Get()->SendSRADData("T_1B");
+			rocket_data->testingMode = DataValues::TestingMode::ONEWAYTELEM_BPS;
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("One Way Telemetry (P/S)"))
+		{
+			SerialHandling::Get()->SendSRADData("T_1P");
+			rocket_data->testingMode = DataValues::TestingMode::ONEWAYTELEM_PPS;
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Two Way Telemetry"))
+		{
+			SerialHandling::Get()->SendSRADData("T_2T");
+			rocket_data->testingMode = DataValues::TestingMode::TWOWAYTELEM;
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Altitude Accuracy Testing"))
+		{
+			SerialHandling::Get()->SendSRADData("T_AA");
+			rocket_data->testingMode = DataValues::TestingMode::ALTACCURACY;
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Positional Accuracy Testing"))
+		{
+			SerialHandling::Get()->SendSRADData("T_PA");
+			rocket_data->testingMode = DataValues::TestingMode::POSACCURACY;
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("End Testing"))
+		{
+			SerialHandling::Get()->SendSRADData("T_EN");
+			rocket_data->testingMode = DataValues::TestingMode::NONE;
+		}
+
+		ImGui::Text(DataValues::StringFromTestingMode(rocket_data->testingMode).c_str());
+		ImGui::Text(rocket_data->testingData.c_str());
+
+		ImGui::End();
+	}
+
 	#pragma endregion
 
 	#pragma region VelocityPlot

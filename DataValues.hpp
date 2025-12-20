@@ -24,6 +24,25 @@ public:
 
 		NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(DataValueSnapshot, a_value, v_value, x_value, y_value, z_value, x_rot_value, y_rot_value, z_rot_value);
 	};
+	
+	enum class TestingMode { NONE, ONEWAYTELEM_BPS, ONEWAYTELEM_PPS, TWOWAYTELEM, ALTACCURACY, POSACCURACY };
+
+	static std::string StringFromTestingMode(TestingMode mode)
+	{
+		switch (mode){
+			case (TestingMode::NONE): return "No Testing Mode Selected";
+			case (TestingMode::ONEWAYTELEM_BPS): return "One Way Telemetry Testing (B/S)";
+			case (TestingMode::ONEWAYTELEM_PPS): return "One Way Telemetry Testing (P/S)";
+			case (TestingMode::TWOWAYTELEM): return "Two Way Telemetry Testing";
+			case (TestingMode::ALTACCURACY): return "Altitude Accuracy Testing";
+			case (TestingMode::POSACCURACY): return "Position Accuracy Testing";
+			default: return "No Testing Mode Selected";
+		}
+	}
+
+	TestingMode testingMode = TestingMode::NONE;
+
+	std::string testingData;
 
 	float go_grid_values[5][5] = {0.01};
 

@@ -155,6 +155,11 @@ void SerialHandling::ProcessSerialDataSRAD(HANDLE hSerial)
 			valueLock->unlock();
 		}
 
+		if(std::strcmp(header, "T_DP") == 0)
+		{
+			data->testingData = dataPacket;
+		}
+
 		if(std::strcmp(header, "C_UT") == 0 && message_size >= 44) 
 		{			
 			valueLock->lock();
@@ -163,7 +168,7 @@ void SerialHandling::ProcessSerialDataSRAD(HANDLE hSerial)
 			data->go_grid_values[1][0] = CharStringToFloat(dataPacket, 36);
 			data->go_grid_values[1][1] = CharStringToFloat(dataPacket, 40);
 
-			if (message_size >= 45 && message_size[45] != '\0')
+			if (message_size >= 45 && dataPacket[45] != '\0')
 			{
 				data->go_grid_values[4][0] = static_cast<float>((bool)dataPacket[45]);
 			}
@@ -190,6 +195,13 @@ void SerialHandling::ProcessSerialDataSRAD(HANDLE hSerial)
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
 }
+
+void SerialHandling::SendSRADData(char* dataPacket[5])
+{
+	int bytesWritten;
+	WriteFile(SRADSerialHandle, dataPacket, sizeof(dataPacket), &bytesWritten, NULL);
+}
+
 
 SerialHandling::~SerialHandling()
 {
