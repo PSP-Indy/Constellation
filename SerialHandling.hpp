@@ -20,7 +20,7 @@ public:
 	SerialHandling(const SerialHandling& obj) = delete;
     
     void ProcessSerialDataTeleBT(HANDLE hSerial);
-    void ProcessSerialDataSRAD(HANDLE hSerial);
+    void ProcessSerialDataSRAD();
     bool SendSRADData(const char* data);
 
     ~SerialHandling();

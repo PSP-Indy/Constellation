@@ -49,35 +49,43 @@ void WriteDataToFile(std::vector<float> data, std::string label, std::ofstream* 
 	*outputFile << std::endl;
 }
 
-void PrimeRocket(HANDLE hSerial)
+bool PrimeRocket()
 {
 	DataValues* data = DataValues::Get();
-	char header[9];
-	char dataToSend[9];
-	size_t data_length = sizeof(dataToSend);
+	if(data->isSRADConnected)
+	{
+		char header[9];
+		char dataToSend[9];
+		size_t data_length = sizeof(dataToSend);
 
-	strcpy(header, "C_ST");
-	memcpy(header + 4, &data_length, 4);
+		strcpy(header, "C_ST");
+		memcpy(header + 4, &data_length, 4);
 
-	DWORD bytesWrittenHeader;
-	WriteFile(hSerial, header, sizeof(header), &bytesWrittenHeader, NULL);
-	
-	DWORD bytesWrittenData;
-	memcpy(dataToSend, &(data->fuse_delay), 4);
-	memcpy(dataToSend + 4, &(data->launch_altitude), 4);
+		DWORD bytesWrittenHeader;
+		WriteFile(data->hSerialSRAD, header, sizeof(header), &bytesWrittenHeader, NULL);
+		
+		DWORD bytesWrittenData;
+		memcpy(dataToSend, &(data->fuse_delay), 4);
+		memcpy(dataToSend + 4, &(data->launch_altitude), 4);
 
-	WriteFile(hSerial, dataToSend, data_length, &bytesWrittenData, NULL);
+		WriteFile(data->hSerialSRAD, dataToSend, data_length, &bytesWrittenData, NULL);
+		return true;
+	}	
+	return false;
 }
 
-void LaunchRocket(HANDLE hSerial)
+bool LaunchRocket()
 {
 	DataValues* data = DataValues::Get();
-	data->coundown_start_time = time(NULL);
-
-	char data_to_send[5];
-	strcpy(data_to_send, "C_LR");
-	DWORD bytesWritten;
-	WriteFile(hSerial, data_to_send, 5, &bytesWritten, NULL);
+	if(data->isSRADConnected)
+	{
+		char data_to_send[5];
+		strcpy(data_to_send, "C_LR");
+		DWORD bytesWritten;
+		WriteFile(data->hSerialSRAD, data_to_send, 5, &bytesWritten, NULL);
+		return true;
+	}
+	return false;
 }
 
 int main()
@@ -145,7 +153,7 @@ int main()
 
 				data->hSerialSRAD = hSerialSRAD;
 
-				std::thread serialThreadSRAD(&SerialHandling::ProcessSerialDataSRAD, serialHandling, hSerialSRAD);
+				std::thread serialThreadSRAD(&SerialHandling::ProcessSerialDataSRAD, serialHandling);
 				std::thread serialThreadTeleBT(&SerialHandling::ProcessSerialDataTeleBT, serialHandling, hSerialTeleBT);
 
 				serialThreadSRAD.detach();
@@ -205,8 +213,10 @@ int main()
 	while (!glfwWindowShouldClose(window)) {
 		if (std::abs(difftime(data->last_ping, time(NULL))) > 5)
 		{
-			data->go_grid_values[0][3] = 0;
+			data->isSRADConnected = false;
 		}
+		
+		data->go_grid_values[0][3] = data->isSRADConnected;
 
 		auto start = std::chrono::high_resolution_clock::now();
 		glfwPollEvents();

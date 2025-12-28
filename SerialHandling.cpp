@@ -72,12 +72,12 @@ void SerialHandling::ProcessSerialDataTeleBT(HANDLE hSerial)
 }
 
 
-void SerialHandling::ProcessSerialDataSRAD(HANDLE hSerial) 
+void SerialHandling::ProcessSerialDataSRAD() 
 {
 	DataValues* data = DataValues::Get();
-
+	
 	valueLock->lock();
-	SRADSerialHandle = hSerial;
+	HANDLE hSerial = data->hSerialSRAD;
 	valueLock->unlock();
 
 	while (true) 
@@ -117,7 +117,7 @@ void SerialHandling::ProcessSerialDataSRAD(HANDLE hSerial)
 		{
 			valueLock->lock();
 
-			data->go_grid_values[0][3] = 1;
+			data->isSRADConnected = true;
 			char data_to_send[5];
 			strcpy(data_to_send, "C_SS");
 			DWORD bytesWritten;

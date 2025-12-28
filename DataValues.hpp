@@ -44,6 +44,8 @@ public:
 
 	std::string testingData;
 
+	bool isSRADConnected = false;
+
 	float go_grid_values[5][5] = {0.01};
 
 	std::time_t launch_time = NULL;
@@ -55,8 +57,8 @@ public:
 
 	HANDLE hSerialSRAD;
 
-	void (*prime_rocket)(HANDLE hSerial) = NULL;
-	void (*launch_rocket)(HANDLE hSerial) = NULL;
+	bool (*prime_rocket)() = NULL;
+	bool (*launch_rocket)() = NULL;
 	
 	struct DataValueList {
 		std::vector<float> t_values = {0};
