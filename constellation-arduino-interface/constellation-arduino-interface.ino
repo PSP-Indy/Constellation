@@ -10,7 +10,7 @@ bool rocket_primed = false;
 bool launched = false;
 bool launch_started = false;
 bool fuse_off = false;
-bool waiting_for_lora_packet = false;
+bool waitingOnLoraHandling = false;
 
 int fuse_time;
 int message_size;
@@ -21,7 +21,31 @@ unsigned long turn_off_fuse_time = 0;
 
 char message_packet[48];
 
+unsigned long loraHandlingTestingLastTime = 0;
+int loraHandlingTestingAverageTime = 0;
+int loraHandlingTestingTotalN = 0;
+int loraHandlingTestingLongestTime = 0;
+int loraHandlingTestingShortestTime = 1000000000;
+
+float altitudeTestingStartZ;
+int altitudeTestingTotalN;
+float altitudeTestingAccAvg;
+float positionTestingStartX;
+float positionTestingStartY;
+
+float currentX;
+float currentY;
+float currentZ;
+
 String activeTestingMode = "T_NA";
+
+float CharStringToFloat(const char* charString, int idx) 
+{
+  float cpy_flt;
+  memcpy(&cpy_flt, charString, 4);
+  return cpy_flt;
+}
+
 
 void setup() {
   Serial.begin(9600);
@@ -44,22 +68,15 @@ void loop() {
   if ((millis() - previous >= 1000) && !(Serial.available() > 0))
   {
     previous = millis();
-    sendMesage("C_SC", {});
+    sendMessage("C_SC", {});
   }
 
   //Check for LoRa Packets and handle them if one is recieved
   int packetSize = LoRa.parsePacket();
 
-  if (waiting_for_lora_packet) 
+  if (waitingOnLoraHandling) 
   {
-    if (activeTestingMode == "T_NA")
-    {
-      handleLoRaPacketNormal(packetSize);
-    }
-    else 
-    {
-      handleLoRaPacketTesting(packetSize);
-    }
+    handleLoRaPacket(packetSize);
   }
   else
   {
@@ -127,10 +144,29 @@ void handleComputerSerialData()
   if (header.charAt(0) == 'T')
   {
     activeTestingMode = header;
+
+    char testingModeCharArray[5];
+    header.toCharArray(testingModeCharArray, 4);
+    unsigned char* testingModeCharArrayData = (unsigned char*)testingModeCharArray;
+    LoRa.beginPacket();
+    LoRa.write(testingModeCharArrayData, sizeof(testingModeCharArrayData));
+    LoRa.endPacket();
+
+    loraHandlingTestingLastTime = millis();
+    loraHandlingTestingTotalN = 0;
+    loraHandlingTestingLongestTime = 0;
+    loraHandlingTestingShortestTime = 1000000000;
+    loraHandlingTestingAverageTime = 0;
+
+    altitudeTestingStartZ = currentZ;
+    altitudeTestingTotalN = 0;
+    altitudeTestingAccAvg = 0;
+    positionTestingStartX = currentX;
+    positionTestingStartY = currentY;
   }
 }
 
-void handleLoRaPacketNormal(int packetSize)
+void handleLoRaPacket(int packetSize)
 {
   if (packetSize == message_size)
   {
@@ -139,19 +175,110 @@ void handleLoRaPacketNormal(int packetSize)
       serial_send[i] = (char)LoRa.read();
     }
 
-    sendMesage("C_UT", serial_send);
-    waiting_for_lora_packet = false;
+    String serialSendString = serial_send;
+    sendMessage("C_UT", serialSendString);
+    handleLoraTestingData(serialSendString);
+    
+    waitingOnLoraHandling = false;
   }
 }
 
-void handleLoRaPacketTesting(int packetSize)
-{
-  if (packetSize == message_size)
+void handleLoraTestingData(String serialData) {
+
+  currentX = CharStringToFloat(serialData.c_str(), 12);
+  currentY = CharStringToFloat(serialData.c_str(), 16);
+  currentZ = CharStringToFloat(serialData.c_str(), 20);
+  float currentA = CharStringToFloat(serialData.c_str(), 4);
+
+  if (activeTestingMode == "T_1B" || activeTestingMode == "T_1P" || activeTestingMode == "T_2P") 
   {
-    char* lora_data = new char[message_size + 1];
-    for(int i = 0; i < sizeof(lora_data); i++) {
-      lora_data[i] = (char)LoRa.read();
+    loraHandlingTestingTotalN += 1;
+    int timeSinceLast = loraHandlingTestingLastTime - millis();
+    loraHandlingTestingLastTime = millis();
+
+    loraHandlingTestingAverageTime = loraHandlingTestingAverageTime + ((timeSinceLast - loraHandlingTestingAverageTime) / loraHandlingTestingTotalN);
+    if (timeSinceLast < loraHandlingTestingShortestTime) loraHandlingTestingShortestTime = timeSinceLast;
+    if (timeSinceLast > loraHandlingTestingLongestTime) loraHandlingTestingLongestTime = timeSinceLast;
+
+    String serial_send = "";
+
+    if (activeTestingMode == "T_1B")
+    {
+      serial_send += "Time Since Last Byte = ";
+      serial_send += timeSinceLast;
+      serial_send += "\nAverage Time Between Bytes = ";
+      serial_send += loraHandlingTestingAverageTime;
+      serial_send += "\nLongest Time Between Bytes = ";
+      serial_send += loraHandlingTestingLongestTime;
+      serial_send += "\nShortest Time Between Bytes = ";
+      serial_send += loraHandlingTestingShortestTime;
+      serial_send += "\nAverage Bytes/s = ";
+      serial_send += 1000 / loraHandlingTestingAverageTime;
     }
+    else if (activeTestingMode == "T_1P")
+    {
+      serial_send += "Time Since Last Packet = ";
+      serial_send += timeSinceLast;
+      serial_send += "\nAverage Time Between Packets = ";
+      serial_send += loraHandlingTestingAverageTime;
+      serial_send += "\nLongest Time Between Packets = ";
+      serial_send += loraHandlingTestingLongestTime;
+      serial_send += "\nShortest Time Between Packets = ";
+      serial_send += loraHandlingTestingShortestTime;
+      serial_send += "\nAverage Packets/s = ";
+      serial_send += 1000 / loraHandlingTestingAverageTime;
+    }
+    else if (activeTestingMode == "T_2P")
+    {
+      serial_send += "Time Since Last Packet = ";
+      serial_send += timeSinceLast;
+      serial_send += "\nAverage Time Between Packets = ";
+      serial_send += loraHandlingTestingAverageTime;
+      serial_send += "\nLongest Time Between Packets = ";
+      serial_send += loraHandlingTestingLongestTime;
+      serial_send += "\nShortest Time Between Packets = ";
+      serial_send += loraHandlingTestingShortestTime;
+      serial_send += "\nAverage Packets/s = ";
+      serial_send += 1000 / loraHandlingTestingAverageTime;
+
+      String responseString = "T_2P_RES";
+      const unsigned char* response = reinterpret_cast<const unsigned char*>(responseString.c_str());
+      LoRa.beginPacket();
+      LoRa.write(response, sizeof(response));
+      LoRa.endPacket();
+    }
+
+    sendMessage("T_DP", serial_send); 
+  }
+  else if (activeTestingMode == "T_AA") 
+  {
+    altitudeTestingTotalN += 1;
+    float dz = currentZ - altitudeTestingStartZ;
+
+    altitudeTestingAccAvg = altitudeTestingAccAvg + ((dz - altitudeTestingAccAvg) / altitudeTestingTotalN);
+
+    String serial_send = "";
+
+    serial_send += "Dz = ";
+    serial_send += dz;
+    serial_send += "\nAverage a = ";
+    serial_send += altitudeTestingAccAvg;
+
+    sendMessage("T_DP", serial_send); 
+  }
+  else if (activeTestingMode == "T_PA") 
+  {
+    float dx = currentX - positionTestingStartX;
+    float dy = currentY - positionTestingStartY;
+
+    String serial_send = "";
+
+    serial_send += "Dx = ";
+    serial_send += dx;
+    serial_send += "\nDy = ";
+    serial_send += dy;
+
+    sendMessage("T_DP", serial_send); 
   }
 }
 
@@ -166,7 +293,7 @@ void checkForLoRaPacket(int packetSize)
     }
     memcpy(&message_size, message_size_string, 4);
 
-    waiting_for_lora_packet = true;
+    waitingOnLoraHandling = true;
   }
 }
 
@@ -178,12 +305,12 @@ void turnOffFuseIfExpected()
       delay(100);
       digitalWrite(RELAY_PIN, LOW);
       fuse_off = true;
-      sendMesage("C_FO", {});
+      sendMessage("C_FO", {});
     }
   }
 }
 
-void sendMesage(String header, String message)
+void sendMessage(String header, String message)
 {
   char header_packet[9];
   char message_size[4];
@@ -210,7 +337,7 @@ void LaunchRocket()
   turn_off_fuse_time = millis() + (fuse_time * 1000);
 
   digitalWrite(RELAY_PIN, HIGH);
-  sendMesage("C_FI", {});
+  sendMessage("C_FI", {});
   launched = true;
 }
 
@@ -222,5 +349,5 @@ void PrimeRocket(const unsigned char* initialize_data_packet) {
   LoRa.write(initialize_data_packet, sizeof(initialize_data_packet));
   LoRa.endPacket();
 
-  sendMesage("C_TS", {});
+  sendMessage("C_TS", {});
 }
