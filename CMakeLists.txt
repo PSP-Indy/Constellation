@@ -8,7 +8,7 @@ endif()
 
 project ("Constellation" VERSION 0.1.1 DESCRIPTION "")
 
-add_executable (Constellation "Constellation.cpp"  "UI.cpp"  "UI.hpp"  "rocket_model.hpp"  "SerialHandling.hpp"  "SerialHandling.cpp"  "stb_image.h"  "httplib.h"  "DataValues.hpp"  "DataValues.cpp"  "ServerHandler.cpp"  "ServerHandler.hpp"  "json.hpp")
+add_executable (Constellation "Constellation.cpp"  "UI.cpp"  "UI.hpp"  "rocket_model.hpp"  "SerialHandling.cpp"  "SerialHandling.hpp"  "stb_image.h"  "httplib.h"  "DataValues.hpp"  "DataValues.cpp"  "ServerHandler.cpp"  "ServerHandler.hpp"  "json.hpp")
 
 set_property(TARGET Constellation PROPERTY CXX_STANDARD 23)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")

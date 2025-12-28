@@ -21,9 +21,7 @@ public:
     
     void ProcessSerialDataTeleBT(HANDLE hSerial);
     void ProcessSerialDataSRAD(HANDLE hSerial);
-    void SendSRADData(char* data);
-
-    HANDLE SRADSerialHandle;
+    bool SendSRADData(const char* data);
 
     ~SerialHandling();
 	static SerialHandling* Get();

@@ -76,6 +76,10 @@ void SerialHandling::ProcessSerialDataSRAD(HANDLE hSerial)
 {
 	DataValues* data = DataValues::Get();
 
+	valueLock->lock();
+	SRADSerialHandle = hSerial;
+	valueLock->unlock();
+
 	while (true) 
 	{
 		char* command_buffer[9];
@@ -196,12 +200,19 @@ void SerialHandling::ProcessSerialDataSRAD(HANDLE hSerial)
 	}
 }
 
-void SerialHandling::SendSRADData(char* dataPacket[5])
+bool SerialHandling::SendSRADData(const char* dataPacket)
 {
-	int bytesWritten;
-	WriteFile(SRADSerialHandle, dataPacket, sizeof(dataPacket), &bytesWritten, NULL);
+	if (DataValues::Get()->hSerialSRAD != nullptr)
+	{	
+		DWORD bytesWritten;
+		WriteFile(DataValues::Get()->hSerialSRAD, dataPacket, sizeof(dataPacket), &bytesWritten, NULL);
+		return bytesWritten == sizeof(dataPacket);
+	}
+	else
+	{
+		return false;
+	}
 }
-
 
 SerialHandling::~SerialHandling()
 {

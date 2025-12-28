@@ -203,38 +203,32 @@ void UI::Update()
 		
 		if (ImGui::Button("One Way Telemetry (B/S)"))
 		{
-			SerialHandling::Get()->SendSRADData("T_1B");
-			rocket_data->testingMode = DataValues::TestingMode::ONEWAYTELEM_BPS;
+			if (SerialHandling::Get()->SendSRADData("T_1B")) rocket_data->testingMode = DataValues::TestingMode::ONEWAYTELEM_BPS;
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("One Way Telemetry (P/S)"))
 		{
-			SerialHandling::Get()->SendSRADData("T_1P");
-			rocket_data->testingMode = DataValues::TestingMode::ONEWAYTELEM_PPS;
+			if (SerialHandling::Get()->SendSRADData("T_1P")) rocket_data->testingMode = DataValues::TestingMode::ONEWAYTELEM_PPS;
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("Two Way Telemetry"))
 		{
-			SerialHandling::Get()->SendSRADData("T_2T");
-			rocket_data->testingMode = DataValues::TestingMode::TWOWAYTELEM;
+			if (SerialHandling::Get()->SendSRADData("T_2T")) rocket_data->testingMode = DataValues::TestingMode::TWOWAYTELEM;
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("Altitude Accuracy Testing"))
 		{
-			SerialHandling::Get()->SendSRADData("T_AA");
-			rocket_data->testingMode = DataValues::TestingMode::ALTACCURACY;
+			if (SerialHandling::Get()->SendSRADData("T_AA")) rocket_data->testingMode = DataValues::TestingMode::ALTACCURACY;
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("Positional Accuracy Testing"))
 		{
-			SerialHandling::Get()->SendSRADData("T_PA");
-			rocket_data->testingMode = DataValues::TestingMode::POSACCURACY;
+			if (SerialHandling::Get()->SendSRADData("T_PA")) rocket_data->testingMode = DataValues::TestingMode::POSACCURACY;
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("End Testing"))
 		{
-			SerialHandling::Get()->SendSRADData("T_NA");
-			rocket_data->testingMode = DataValues::TestingMode::NONE;
+			if (SerialHandling::Get()->SendSRADData("T_NA")) rocket_data->testingMode = DataValues::TestingMode::NONE;
 		}
 
 		ImGui::Text(DataValues::StringFromTestingMode(rocket_data->testingMode).c_str());
