@@ -200,18 +200,101 @@ void SerialHandling::ProcessSerialDataSRAD()
 	}
 }
 
+bool SerialHandling::SendSerialData(HANDLE* hSerial, const char* dataPacket)
+{
+	if (hSerial == nullptr) return false;
+
+	DWORD bytesWritten;
+	WriteFile(*hSerial, dataPacket, sizeof(dataPacket), &bytesWritten, NULL);
+	return bytesWritten == sizeof(dataPacket);
+}
+
 bool SerialHandling::SendSRADData(const char* dataPacket)
 {
-	if (DataValues::Get()->hSerialSRAD != nullptr)
-	{	
-		DWORD bytesWritten;
-		WriteFile(DataValues::Get()->hSerialSRAD, dataPacket, sizeof(dataPacket), &bytesWritten, NULL);
-		return bytesWritten == sizeof(dataPacket);
-	}
-	else
-	{
+	return this->SendSerialData(&(DataValues::Get()->hSerialSRAD), dataPacket);
+}
+
+void SerialHandling::FindSerialLocations(std::string* sradloc, std::string* telebtloc)
+{
+	HDEVINFO hDevInfo = SetupDiGetClassDevs(
+        &GUID_DEVCLASS_PORTS,
+        nullptr,
+        nullptr,
+        DIGCF_PRESENT
+    );
+
+    if (hDevInfo == INVALID_HANDLE_VALUE)
+        return;
+
+    SP_DEVINFO_DATA devInfo{};
+    devInfo.cbSize = sizeof(SP_DEVINFO_DATA);
+
+    for (DWORD i = 0; SetupDiEnumDeviceInfo(hDevInfo, i, &devInfo); ++i)
+    {
+    	std::string deviceDesc;
+        char buffer[512];
+        DWORD size = 0;
+
+		HKEY hKey = SetupDiOpenDevRegKey(hDevInfo, &devInfo, DICS_FLAG_GLOBAL, 0, DIREG_DEV, KEY_READ);
+
+		if (hKey != INVALID_HANDLE_VALUE)
+		{
+			char comName[256];
+			DWORD len = sizeof(comName);
+			DWORD type = 0;
+
+			if (RegQueryValueExA( hKey, "PortName", nullptr, &type, (LPBYTE)comName, &len) == ERROR_SUCCESS)
+			{
+				HANDLE hSerial = nullptr;
+				char regPacket[32];
+				DWORD bytesRead;
+				ReadFile(hSerial, &regPacket, 32, &bytesRead, NULL);
+				if (regPacket[4] == 0x01) *telebtloc = std::string(comName);
+				if (regPacket[4] == 0x06) *sradloc = std::string(comName);
+				CloseHandle(hSerial);
+			}
+
+			RegCloseKey(hKey);
+		}
+    }
+
+    SetupDiDestroyDeviceInfoList(hDevInfo);
+}
+
+bool SerialHandling::CreateSerialFile(HANDLE* hSerial, std::string serialLoc)
+{
+	*hSerial = CreateFile(serialLoc.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+
+	DCB dcbSerialParams = {0};
+	dcbSerialParams.DCBlength = sizeof(dcbSerialParams);
+
+	if (!GetCommState(*hSerial, &dcbSerialParams)) {
+		std::cout << "Failed to get comm state, aborting serial communication." << std::endl;
 		return false;
 	}
+
+	dcbSerialParams.BaudRate = CBR_9600;
+	dcbSerialParams.ByteSize = 8;
+	dcbSerialParams.StopBits = ONESTOPBIT;
+	dcbSerialParams.Parity = NOPARITY;
+
+	if (!SetCommState(*hSerial, &dcbSerialParams)) {
+		std::cout << "Failed to set comm state, aborting serial communication." << std::endl;
+		return false;
+	} 
+	COMMTIMEOUTS timeouts = {0};
+	timeouts.ReadIntervalTimeout = 50;
+	timeouts.ReadTotalTimeoutConstant = 50;
+	timeouts.ReadTotalTimeoutMultiplier = 10;
+	timeouts.WriteTotalTimeoutConstant = 50;
+	timeouts.WriteTotalTimeoutMultiplier = 10;
+
+	if (!SetCommTimeouts(*hSerial, &timeouts)) {
+		std::cout << "Failed to set timouts, aborting serial communication." << std::endl;
+		return false;
+	}
+	
+	return true;
 }
 
 SerialHandling::~SerialHandling()

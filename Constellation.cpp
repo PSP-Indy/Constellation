@@ -21,15 +21,11 @@
 
 #include "glad/glad.h"
 
-#ifdef _WIN32
-	#define GLFW_EXPOSE_NATIVE_WIN32
-	#include "GLFW/glfw3.h"
-	#include "GLFW/glfw3native.h"
-	#pragma comment(lib, "Dwmapi.lib")
-	#include <dwmapi.h>
-#else
-	#include "GLFW/glfw3.h"
-#endif
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include "GLFW/glfw3.h"
+#include "GLFW/glfw3native.h"
+#pragma comment(lib, "Dwmapi.lib")
+#include <dwmapi.h>
 
 std::mutex valueLock;
 
@@ -102,63 +98,34 @@ int main()
 
 	serialHandling->SetValueLock(&valueLock);
 
+	//FInd correct serial locations
+	std::string SRADSerialLoc = "";
+	std::string TeleBtSerialLoc = "";
+	HANDLE hSerialSRAD = nullptr;
+	HANDLE hSerialTeleBT = nullptr;
+
+	serialHandling->FindSerialLocations(&SRADSerialLoc, &TeleBtSerialLoc);
+
 	//SERIAL INITIALIZATION
-	HANDLE hSerialSRAD = CreateFile("\\\\.\\COM3", GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
-	HANDLE hSerialTeleBT = CreateFile("\\\\.\\COM4", GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
-
-	DCB dcbSerialParamsSRAD = {0};
-	dcbSerialParamsSRAD.DCBlength = sizeof(dcbSerialParamsSRAD);
-
-	DCB dcbSerialParamsTeleBT = {0};
-	dcbSerialParamsTeleBT.DCBlength = sizeof(dcbSerialParamsTeleBT);
-
-	std::thread fakeSerialThread(&DataValues::FakeData, data, &valueLock);
-	fakeSerialThread.detach();
-
-	if (!GetCommState(hSerialSRAD, &dcbSerialParamsSRAD) && !GetCommState(hSerialTeleBT, &dcbSerialParamsTeleBT)) {
-		std::cout << "Failed to get comm state, aborting serial communication." << std::endl;
+	if (SRADSerialLoc == "" || TeleBtSerialLoc == "") {
+		std::cout << "Failed to find serial ports, aborting serial communication." << std::endl;
 	} else {
-		dcbSerialParamsSRAD.BaudRate = CBR_9600;
-		dcbSerialParamsSRAD.ByteSize = 8;
-		dcbSerialParamsSRAD.StopBits = ONESTOPBIT;
-		dcbSerialParamsSRAD.Parity = NOPARITY;
+		if (serialHandling->CreateSerialFile(&hSerialSRAD, SRADSerialLoc))
+		{
+			data->prime_rocket = PrimeRocket;
+			data->launch_rocket = LaunchRocket;
 
-		dcbSerialParamsTeleBT.BaudRate = CBR_9600;
-		dcbSerialParamsTeleBT.ByteSize = 8;
-		dcbSerialParamsTeleBT.StopBits = ONESTOPBIT;
-		dcbSerialParamsTeleBT.Parity = NOPARITY;
+			data->hSerialSRAD = hSerialSRAD;
 
-		if (!SetCommState(hSerialSRAD, &dcbSerialParamsSRAD) && !SetCommState(hSerialTeleBT, &dcbSerialParamsTeleBT)) {
-			std::cout << "Failed to set comm state, aborting serial communication." << std::endl;
-		} else {
-			COMMTIMEOUTS timeoutsSRAD = {0};
-			timeoutsSRAD.ReadIntervalTimeout = 50;
-			timeoutsSRAD.ReadTotalTimeoutConstant = 50;
-			timeoutsSRAD.ReadTotalTimeoutMultiplier = 10;
-			timeoutsSRAD.WriteTotalTimeoutConstant = 50;
-			timeoutsSRAD.WriteTotalTimeoutMultiplier = 10;
+			std::thread serialThreadSRAD(&SerialHandling::ProcessSerialDataSRAD, serialHandling);
 
-			COMMTIMEOUTS timeoutsTeleBT = {0};
-			timeoutsTeleBT.ReadIntervalTimeout = 50;
-			timeoutsTeleBT.ReadTotalTimeoutConstant = 50;
-			timeoutsTeleBT.ReadTotalTimeoutMultiplier = 10;
-			timeoutsTeleBT.WriteTotalTimeoutConstant = 50;
-			timeoutsTeleBT.WriteTotalTimeoutMultiplier = 10;
+			serialThreadSRAD.detach();
+		}
+		if (serialHandling->CreateSerialFile(&hSerialTeleBT, TeleBtSerialLoc))
+		{
+			std::thread serialThreadTeleBT(&SerialHandling::ProcessSerialDataTeleBT, serialHandling, hSerialTeleBT);
 
-			if (!SetCommTimeouts(hSerialSRAD, &timeoutsSRAD) && !SetCommTimeouts(hSerialTeleBT, &timeoutsTeleBT)) {
-				std::cout << "Failed to set timouts, aborting serial communication." << std::endl;
-			} else {
-				data->prime_rocket = PrimeRocket;
-				data->launch_rocket = LaunchRocket;
-
-				data->hSerialSRAD = hSerialSRAD;
-
-				std::thread serialThreadSRAD(&SerialHandling::ProcessSerialDataSRAD, serialHandling);
-				std::thread serialThreadTeleBT(&SerialHandling::ProcessSerialDataTeleBT, serialHandling, hSerialTeleBT);
-
-				serialThreadSRAD.detach();
-				serialThreadTeleBT.detach();
-			}
+			serialThreadTeleBT.detach();
 		}
 	}
 	
@@ -226,8 +193,8 @@ int main()
 	}
 
 	gui->Shutdown();
-	CloseHandle(hSerialSRAD);
-	CloseHandle(hSerialTeleBT);
+	if (hSerialSRAD != nullptr) CloseHandle(hSerialSRAD);
+	if (hSerialTeleBT != nullptr) CloseHandle(hSerialTeleBT);
 
 	std::ofstream outputFile;
 	outputFile.open("DATA.csv", std::ios::out); 

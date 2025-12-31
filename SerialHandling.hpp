@@ -10,6 +10,9 @@
 #include <cstdlib>
 
 #include <windows.h>
+#include <SetupAPI.h>
+#include <devguid.h>
+#include <RegStr.h>
 
 #include "UI.hpp"
 #include "DataValues.hpp"
@@ -21,7 +24,10 @@ public:
     
     void ProcessSerialDataTeleBT(HANDLE hSerial);
     void ProcessSerialDataSRAD();
+    bool SendSerialData(HANDLE* hSerial, const char* dataPacket);
     bool SendSRADData(const char* data);
+    void FindSerialLocations(std::string* sradloc, std::string* telebtloc);
+    bool CreateSerialFile(HANDLE* hSerial, std::string serialLoc);
 
     ~SerialHandling();
 	static SerialHandling* Get();

@@ -52,7 +52,7 @@ target_link_libraries(ImGui PRIVATE glfw)
 
 target_include_directories(ImGui PRIVATE "${IMGUI_DIR}")
 target_include_directories(${PROJECT_NAME} PRIVATE "${IMGUI_DIR}")
-target_link_libraries(${PROJECT_NAME} ImGui "${CMAKE_DL_LIBS}")
+target_link_libraries(${PROJECT_NAME} ImGui "${CMAKE_DL_LIBS}" setupapi)
 
 # Glfw3
 set(GLFW_DIR "${LIB_DIR}/glfw3")

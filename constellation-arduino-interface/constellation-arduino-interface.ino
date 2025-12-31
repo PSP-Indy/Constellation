@@ -20,6 +20,7 @@ unsigned long previous = 0;
 unsigned long turn_off_fuse_time = 0;
 
 char message_packet[48];
+char identificationPacket[32];
 
 unsigned long loraHandlingTestingLastTime = 0;
 int loraHandlingTestingAverageTime = 0;
@@ -49,7 +50,9 @@ float CharStringToFloat(const char* charString, int idx)
 
 void setup() {
   Serial.begin(9600);
-  while (!Serial);  
+  while (!Serial);
+  identificationPacket[4] = (char)0x04;
+  Serial.print(identificationPacket);  
   LoRa.begin(915E6);
 
   pinMode(RELAY_PIN, OUTPUT);
@@ -58,7 +61,7 @@ void setup() {
 }
 
 void loop() {
-  //Run when serial data is 
+  //Run when serial data is available
   if (Serial.available() == 9)
   {
     handleComputerSerialData();
