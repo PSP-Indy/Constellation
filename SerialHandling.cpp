@@ -48,7 +48,7 @@ void SerialHandling::ProcessSerialDataTeleBT(HANDLE hSerial)
 
 			data->InsertDataSnapshot(time, snapshot);
 
-			data->go_grid_values[1][2] = (float)(CharStringToUInt16(flightData, 12)) / (100.0f); 
+			data->go_grid_values[1][2] = (float)(CharStringToUInt16(flightData, 12)) / 100.0f; 
 			data->go_grid_values[1][3] = (float)(CharStringToUInt16(flightData, 20)); 
 			
 
@@ -167,6 +167,7 @@ void SerialHandling::ProcessSerialDataSRAD()
 		if(std::strcmp(header, "C_UT") == 0 && message_size >= 44) 
 		{			
 			valueLock->lock();
+			
 			data->last_ping = time(NULL);
 
 			data->go_grid_values[1][0] = CharStringToFloat(dataPacket, 36);

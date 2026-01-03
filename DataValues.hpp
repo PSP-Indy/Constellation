@@ -6,6 +6,7 @@
 #include <vector> 
 #include <map>
 #include <mutex>
+#include <cstdint>
 
 #include <iostream>
 #include <chrono>
@@ -52,8 +53,8 @@ public:
 	std::time_t last_ping = NULL;
 	std::time_t coundown_start_time = NULL;
 
-	int fuse_delay = 5;
-	int launch_altitude = 0;
+	int32_t fuse_delay = 5;
+	int32_t launch_altitude = 0;
 
 	HANDLE hSerialSRAD;
 
@@ -61,15 +62,15 @@ public:
 	bool (*launch_rocket)() = NULL;
 	
 	struct DataValueList {
-		std::vector<float> t_values = {0};
-		std::vector<float> a_values = {0};
-		std::vector<float> v_values = {0};
-		std::vector<float> x_values = {0};
-		std::vector<float> y_values = {0};
-		std::vector<float> z_values = {0};
-		std::vector<float> x_rot_values = {0};
-		std::vector<float> y_rot_values = {0};
-		std::vector<float> z_rot_values = {0};
+		std::vector<float> t_values = {0.0f};
+		std::vector<float> a_values = {0.0f};
+		std::vector<float> v_values = {0.0f};
+		std::vector<float> x_values = {0.0f};
+		std::vector<float> y_values = {0.0f};
+		std::vector<float> z_values = {0.0f};
+		std::vector<float> x_rot_values = {0.0f};
+		std::vector<float> y_rot_values = {0.0f};
+		std::vector<float> z_rot_values = {0.0f};
 	};
 
 	DataValues();

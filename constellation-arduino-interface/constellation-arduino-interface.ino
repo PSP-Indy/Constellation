@@ -1,6 +1,7 @@
 #include <SPI.h>
 #include <LoRa.h>
 #include <time.h>
+#include <cstdint>
 
 #define RELAY_PIN 24
 #define CONN_PIN 23
@@ -12,8 +13,8 @@ bool launch_started = false;
 bool fuse_off = false;
 bool waitingOnLoraHandling = false;
 
-int fuse_time;
-int message_size;
+int32_t fuse_time;
+int32_t message_size;
 
 unsigned long last_successful_ping = 0;
 unsigned long previous = 0;
@@ -23,13 +24,13 @@ char message_packet[48];
 char identificationPacket[32];
 
 unsigned long loraHandlingTestingLastTime = 0;
-int loraHandlingTestingAverageTime = 0;
-int loraHandlingTestingTotalN = 0;
-int loraHandlingTestingLongestTime = 0;
-int loraHandlingTestingShortestTime = 1000000000;
+int32_t loraHandlingTestingAverageTime = 0;
+int32_t loraHandlingTestingTotalN = 0;
+int32_t loraHandlingTestingLongestTime = 0;
+int32_t loraHandlingTestingShortestTime = 1000000000;
 
 float altitudeTestingStartZ;
-int altitudeTestingTotalN;
+int32_t altitudeTestingTotalN;
 float altitudeTestingAccAvg;
 float positionTestingStartX;
 float positionTestingStartY;
@@ -107,8 +108,8 @@ void handleComputerSerialData()
   char command_buffer[9];
   Serial.readBytes(command_buffer, 9);
   String header;
-  int message_size;    
-  for (int i = 0; i < 4; i++)
+  int32_t message_size;    
+  for (int32_t i = 0; i < 4; i++)
   {
     header += command_buffer[i];
   }

@@ -8,6 +8,8 @@
 #include <random>
 #include <cmath>
 #include <cstdlib>
+#include <cstdint>
+#include <stdfloat>
 
 #include <windows.h>
 #include <SetupAPI.h>
@@ -44,14 +46,14 @@ private:
         return cpy_flt;
     }
 
-    int CharStringToInt(char* charString, int idx) {
-        int cpy_int;
+    int32_t CharStringToUInt32(char* charString, int idx) {
+        int32_t cpy_int;
         memcpy(&cpy_int, charString, 4);
         return cpy_int;
     }
 
-    int CharStringToUInt16(char* charString, int idx) {
-        int cpy_int;
+    int16_t CharStringToUInt16(char* charString, int idx) {
+        int16_t cpy_int;
         memcpy(&cpy_int, charString, 2);
         return cpy_int;
     }
