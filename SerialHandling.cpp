@@ -194,12 +194,26 @@ bool SerialHandling::SendSRADData(const char* dataPacket)
 
 void SerialHandling::FindSerialLocations(std::string* sradloc, std::string* telebtloc)
 {
-	// HANDLE hSerial = nullptr;
-	// char regPacket[32];
-	// DWORD bytesRead;
-	//ReadFile(hSerial, &regPacket, 32, &bytesRead, NULL);
-	//if (regPacket[4] == 0x01) *telebtloc = std::string(comName);
-	//if (regPacket[4] == 0x06) *sradloc = std::string(comName);
+	std::vector<serial::PortInfo> devices_found = serial::list_ports();
+
+	std::vector<serial::PortInfo>::iterator iter = devices_found.begin();
+
+	while( iter != devices_found.end() )
+	{
+		serial::PortInfo device = *iter++;
+
+		serial::Serial port(device.port, 115200, serial::Timeout::simpleTimeout(1000));
+
+		std::string regPacket;
+		size_t regPacketSize = 32;
+
+		size_t bytesWritten = port.read(regPacket, regPacketSize);
+
+		if (bytesWritten != regPacketSize) continue;
+
+		if (regPacket.at(4) == 0x01) *telebtloc = std::string(device.port.c_str());
+		if (regPacket.at(4) == 0x06) *sradloc = std::string(device.port.c_str());
+	}
 }
 
 bool SerialHandling::CreateSerialFile(serial::Serial* hSerial, std::string serialLoc)
