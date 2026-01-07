@@ -203,7 +203,7 @@ void UI::Update()
 		#endif
 
 		ImGui::Begin("Diagnostics");
-		ImGui::Text(working_set_size_str.c_str());`
+		ImGui::Text(working_set_size_str.c_str());
 		ImGui::Text(private_bytes_str.c_str());
 		ImGui::End();
 	}
