@@ -16,6 +16,10 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
 set(LIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib")
 message( ${LIB_DIR} )
 
+# Serial
+add_subdirectory(lib/serial)
+target_link_libraries(${PROJECT_NAME} PRIVATE serial)
+
 # Glad
 set(GLAD_DIR "${LIB_DIR}/glad")
 
@@ -23,7 +27,7 @@ add_library(glad STATIC "${GLAD_DIR}/src/glad.c")
 
 target_include_directories(glad PRIVATE "${GLAD_DIR}/include")
 target_include_directories(${PROJECT_NAME} PRIVATE "${GLAD_DIR}/include")
-target_link_libraries(${PROJECT_NAME} glad "${CMAKE_DL_LIBS}")
+target_link_libraries(${PROJECT_NAME} PRIVATE glad "${CMAKE_DL_LIBS}")
 
 # ImGui
 set(IMGUI_DIR "${LIB_DIR}/ImGui")
@@ -52,7 +56,7 @@ target_link_libraries(ImGui PRIVATE glfw)
 
 target_include_directories(ImGui PRIVATE "${IMGUI_DIR}")
 target_include_directories(${PROJECT_NAME} PRIVATE "${IMGUI_DIR}")
-target_link_libraries(${PROJECT_NAME} ImGui "${CMAKE_DL_LIBS}" setupapi)
+target_link_libraries(${PROJECT_NAME} PRIVATE ImGui "${CMAKE_DL_LIBS}" setupapi)
 
 # Glfw3
 set(GLFW_DIR "${LIB_DIR}/glfw3")
@@ -68,7 +72,7 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_definitions(-DDEBUG_MODE)
 endif()
 
-target_link_libraries(${PROJECT_NAME} glfw "${GLFW_LIBRARIES}")
+target_link_libraries(${PROJECT_NAME} PRIVATE glfw "${GLFW_LIBRARIES}")
 target_include_directories(${PROJECT_NAME} PRIVATE "${GLFW_DIR}/include")
 target_compile_definitions(${PROJECT_NAME} PRIVATE "GLFW_INCLUDE_NONE")
 

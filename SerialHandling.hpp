@@ -11,10 +11,7 @@
 #include <cstdint>
 #include <stdfloat>
 
-#include <windows.h>
-#include <SetupAPI.h>
-#include <devguid.h>
-#include <RegStr.h>
+#include <serial/serial.h>
 
 #include "UI.hpp"
 #include "DataValues.hpp"
@@ -24,12 +21,12 @@ public:
     SerialHandling();
 	SerialHandling(const SerialHandling& obj) = delete;
     
-    void ProcessSerialDataTeleBT(HANDLE hSerial);
+    void ProcessSerialDataTeleBT(serial::Serial* hSerial);
     void ProcessSerialDataSRAD();
-    bool SendSerialData(HANDLE* hSerial, const char* dataPacket);
+    bool SendSerialData(serial::Serial* hSerial, const char* dataPacket);
     bool SendSRADData(const char* data);
     void FindSerialLocations(std::string* sradloc, std::string* telebtloc);
-    bool CreateSerialFile(HANDLE* hSerial, std::string serialLoc);
+    bool CreateSerialFile(serial::Serial* hSerial, std::string serialLoc);
 
     ~SerialHandling();
 	static SerialHandling* Get();
@@ -40,19 +37,22 @@ public:
     }
 
 private:
-    float CharStringToFloat(char* charString, int idx) {
+    float StringToFloat(std::string string, int idx) {
+        const char* charString = string.substr(idx, 4).c_str(); 
         float cpy_flt;
         memcpy(&cpy_flt, charString, 4);
         return cpy_flt;
     }
 
-    int32_t CharStringToUInt32(char* charString, int idx) {
+    int32_t StringToUInt32(std::string string, int idx) {
+        const char* charString = string.substr(idx, 4).c_str(); 
         int32_t cpy_int;
         memcpy(&cpy_int, charString, 4);
         return cpy_int;
     }
 
-    int16_t CharStringToUInt16(char* charString, int idx) {
+    int16_t  StringToUInt16(std::string string, int idx) {
+        const char* charString = string.substr(idx, 2).c_str(); 
         int16_t cpy_int;
         memcpy(&cpy_int, charString, 2);
         return cpy_int;

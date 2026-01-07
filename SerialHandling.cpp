@@ -5,56 +5,57 @@ SerialHandling::SerialHandling()
 }
 
 
-void SerialHandling::ProcessSerialDataTeleBT(HANDLE hSerial)
+void SerialHandling::ProcessSerialDataTeleBT(serial::Serial* hSerial)
 {
 	DataValues* data = DataValues::Get();
 
 	while (true) 
 	{
-		char headerSubPacket[6];
-		DWORD bytesRead;
+		std::string headerSubPacket;
+		size_t headerSubPacketSize = 6;
+		size_t bytesRead;
 
-		if (!ReadFile(hSerial, headerSubPacket, 5, &bytesRead, NULL)) continue;
-		if (bytesRead <= 0 || strcmp(headerSubPacket, "TELEM") != 0) continue;
+		bytesRead = hSerial->read(headerSubPacket, headerSubPacketSize);
+		if (bytesRead <= 0 || headerSubPacket != "TELEM" || bytesRead != headerSubPacketSize) continue;
 
-		char sizeSubPacket[3];
+		std::string sizeSubPacket;
+		size_t sizeSubPacketSize = 3;
 
-		if (!ReadFile(hSerial, sizeSubPacket, 3, &bytesRead, NULL)) continue;
-		if (bytesRead <= 0) continue;
+		bytesRead = hSerial->read(sizeSubPacket, sizeSubPacketSize);
+		if (bytesRead <= 0 || bytesRead != sizeSubPacketSize) continue;
 
-		int dataPacketSize = atoi(sizeSubPacket);
+		int dataPacketSize = std::stoi(sizeSubPacket);
 		if (dataPacketSize <= 0) continue;
 
-		char* dataSubPacket = new char[dataPacketSize];
+		std::string dataSubPacket;
 
-		if (!ReadFile(hSerial, dataSubPacket, sizeof(dataPacketSize), &bytesRead, NULL)) continue;
-		if (bytesRead <= 0) continue;
+		bytesRead = hSerial->read(dataSubPacket, dataPacketSize);
+		if (bytesRead <= 0 || bytesRead != dataPacketSize) continue;
 
-		char* flightData = new char[dataPacketSize - 3];
-		memcpy(flightData, dataSubPacket, (dataPacketSize - 3));
+		std::string flightData = dataSubPacket.substr(0, dataPacketSize - 3);
 
 		//Operate on data here according to spec outlined in TeleMetrum section of the below file
 		//https://altusmetrum.org/AltOS/doc/telemetry.pdf
 
-		if (flightData[4] == 0x0A) //TRIGGERS IF PACKET IS TeleMetrum v2 Sensor Data
+		if (flightData.at(4) == 0x0A) //TRIGGERS IF PACKET IS TeleMetrum v2 Sensor Data
 		{
 			valueLock->lock();
 			
 			DataValues::DataValueSnapshot snapshot;
-			float time = (float)(CharStringToUInt16(flightData, 2)) / 100.0f;
-			snapshot.a_value = (float)(CharStringToUInt16(flightData, 14));
-			snapshot.v_value = (float)(CharStringToUInt16(flightData, 16));
-			snapshot.z_value = (float)(CharStringToUInt16(flightData, 18));
+			float time = (float)(StringToUInt16(flightData, 2)) / 100.0f;
+			snapshot.a_value = (float)(StringToUInt16(flightData, 14));
+			snapshot.v_value = (float)(StringToUInt16(flightData, 16));
+			snapshot.z_value = (float)(StringToUInt16(flightData, 18));
 
 			data->InsertDataSnapshot(time, snapshot);
 
-			data->go_grid_values[1][2] = (float)(CharStringToUInt16(flightData, 12)) / 100.0f; 
-			data->go_grid_values[1][3] = (float)(CharStringToUInt16(flightData, 20)); 
+			data->go_grid_values[1][2] = (float)(StringToUInt16(flightData, 12)) / 100.0f; 
+			data->go_grid_values[1][3] = (float)(StringToUInt16(flightData, 20)); 
 			
 
 			valueLock->unlock();
 		}
-		else if (flightData[4] == 0x0B) //TRIGGERS IF PACKET IS TeleMetrum v2 Calibration Data
+		else if (flightData.at(4) == 0x0B) //TRIGGERS IF PACKET IS TeleMetrum v2 Calibration Data
 		{
 
 		}
@@ -62,12 +63,6 @@ void SerialHandling::ProcessSerialDataTeleBT(HANDLE hSerial)
 		{
 			std::cout << "PACKET TYPE NOT FOUND" << std::endl;
 		}
-
-		delete[] flightData;
-    	flightData = nullptr;
-
-		delete[] dataSubPacket;
-    	dataSubPacket = nullptr;
 	}
 }
 
@@ -77,57 +72,41 @@ void SerialHandling::ProcessSerialDataSRAD()
 	DataValues* data = DataValues::Get();
 	
 	valueLock->lock();
-	HANDLE hSerial = data->hSerialSRAD;
+	serial::Serial* hSerial = data->hSerialSRAD;
 	valueLock->unlock();
 
 	while (true) 
 	{
-		char* command_buffer[9];
+		std::string commandBuffer;
+		size_t commandBufferSize = 9;
+		size_t bytesRead;
+
 		int message_size = 0;
-		char header[5];
+		
+		bytesRead = hSerial->read(commandBuffer, commandBufferSize);
+		if (bytesRead <= 0 || bytesRead != commandBufferSize) continue;
 
-		DWORD bytesRead;
+		int messageSize = StringToUInt32(commandBuffer, 4);
+		std::string header = commandBuffer.substr(0,4);
 
-		if (!ReadFile(hSerial, command_buffer, sizeof(command_buffer), &bytesRead, NULL)) 
-		{
-			continue;
-		}
+		std::string messageBuffer;
 
-		if (bytesRead <= 0) 
-		{
-			continue;
-		}
+		bytesRead = hSerial->read(messageBuffer, (size_t)messageSize);
+		if (bytesRead <= 0 || bytesRead != (size_t)messageSize) continue;
 
-		memcpy(&header, command_buffer, 4);
-		memcpy(&message_size, command_buffer + 4, 4);
-
-		char* dataPacket = new char[message_size];
-
-		if (!ReadFile(hSerial, dataPacket, sizeof(dataPacket), &bytesRead, NULL)) 
-		{
-			continue;
-		}
-
-		if (bytesRead <= 0) 
-		{
-			continue;
-		}
-
-		if(std::strcmp(header, "C_SC") == 0) 
+		if(header == "C_SC") 
 		{
 			valueLock->lock();
 
 			data->isSRADConnected = true;
-			char data_to_send[5];
-			strcpy(data_to_send, "C_SS");
-			DWORD bytesWritten;
-			WriteFile(hSerial, data_to_send, 5, &bytesWritten, NULL);
+			std::string data_to_send = "C_SS";
+			size_t bytesWritten = hSerial->write(data_to_send);
 			data->last_ping = time(NULL);
 
 			valueLock->unlock();
 		}
 		
-		if(std::strcmp(header, "C_TS") == 0) 
+		if(header == "C_TS") 
 		{
 			valueLock->lock();
 			
@@ -137,7 +116,7 @@ void SerialHandling::ProcessSerialDataSRAD()
 			valueLock->unlock();
 		}
 
-		if(std::strcmp(header, "C_FI") == 0) 
+		if(header == "C_FI") 
 		{
 			valueLock->lock();
 
@@ -148,7 +127,7 @@ void SerialHandling::ProcessSerialDataSRAD()
 			valueLock->unlock();
 		}
 
-		if(std::strcmp(header, "C_FO") == 0) 
+		if(header == "C_FO") 
 		{
 			valueLock->lock();
 
@@ -159,36 +138,36 @@ void SerialHandling::ProcessSerialDataSRAD()
 			valueLock->unlock();
 		}
 
-		if(std::strcmp(header, "T_DP") == 0)
+		if(header == "T_DP")
 		{
-			data->testingData = dataPacket;
+			data->testingData = messageBuffer;
 		}
 
-		if(std::strcmp(header, "C_UT") == 0 && message_size >= 44) 
+		if(header == "C_UT" && message_size >= 44) 
 		{			
 			valueLock->lock();
 			
 			data->last_ping = time(NULL);
 
-			data->go_grid_values[1][0] = CharStringToFloat(dataPacket, 36);
-			data->go_grid_values[1][1] = CharStringToFloat(dataPacket, 40);
+			data->go_grid_values[1][0] = StringToFloat(messageBuffer, 36);
+			data->go_grid_values[1][1] = StringToFloat(messageBuffer, 40);
 
-			if (message_size >= 45 && dataPacket[45] != '\0')
+			if (message_size >= 45 && messageBuffer[45] != '\0')
 			{
-				data->go_grid_values[4][0] = static_cast<float>((bool)dataPacket[45]);
+				data->go_grid_values[4][0] = static_cast<float>((bool)messageBuffer[45]);
 			}
 
 			DataValues::DataValueSnapshot snapshot;
 
-			float time = CharStringToFloat(dataPacket, 0);
-			snapshot.a_value = CharStringToFloat(dataPacket, 4);
-			snapshot.v_value = CharStringToFloat(dataPacket, 8);
-			snapshot.x_value = CharStringToFloat(dataPacket, 12);
-			snapshot.y_value = CharStringToFloat(dataPacket, 16);
-			snapshot.z_value = CharStringToFloat(dataPacket, 20);
-			snapshot.x_rot_value = CharStringToFloat(dataPacket, 24);
-			snapshot.y_rot_value = CharStringToFloat(dataPacket, 28);
-			snapshot.z_rot_value = CharStringToFloat(dataPacket, 32);
+			float time = StringToFloat(messageBuffer, 0);
+			snapshot.a_value = StringToFloat(messageBuffer, 4);
+			snapshot.v_value = StringToFloat(messageBuffer, 8);
+			snapshot.x_value = StringToFloat(messageBuffer, 12);
+			snapshot.y_value = StringToFloat(messageBuffer, 16);
+			snapshot.z_value = StringToFloat(messageBuffer, 20);
+			snapshot.x_rot_value = StringToFloat(messageBuffer, 24);
+			snapshot.y_rot_value = StringToFloat(messageBuffer, 28);
+			snapshot.z_rot_value = StringToFloat(messageBuffer, 32);
 			
 
 			data->InsertDataSnapshot(time, snapshot);
@@ -201,101 +180,33 @@ void SerialHandling::ProcessSerialDataSRAD()
 	}
 }
 
-bool SerialHandling::SendSerialData(HANDLE* hSerial, const char* dataPacket)
+bool SerialHandling::SendSerialData(serial::Serial* hSerial, const char* dataPacket)
 {
 	if (hSerial == nullptr) return false;
 
-	DWORD bytesWritten;
-	WriteFile(*hSerial, dataPacket, sizeof(dataPacket), &bytesWritten, NULL);
-	return bytesWritten == sizeof(dataPacket);
+	return hSerial->write(dataPacket) == sizeof(dataPacket);
 }
 
 bool SerialHandling::SendSRADData(const char* dataPacket)
 {
-	return this->SendSerialData(&(DataValues::Get()->hSerialSRAD), dataPacket);
+	return this->SendSerialData(DataValues::Get()->hSerialSRAD, dataPacket);
 }
 
 void SerialHandling::FindSerialLocations(std::string* sradloc, std::string* telebtloc)
 {
-	HDEVINFO hDevInfo = SetupDiGetClassDevs(
-        &GUID_DEVCLASS_PORTS,
-        nullptr,
-        nullptr,
-        DIGCF_PRESENT
-    );
-
-    if (hDevInfo == INVALID_HANDLE_VALUE)
-        return;
-
-    SP_DEVINFO_DATA devInfo{};
-    devInfo.cbSize = sizeof(SP_DEVINFO_DATA);
-
-    for (DWORD i = 0; SetupDiEnumDeviceInfo(hDevInfo, i, &devInfo); ++i)
-    {
-    	std::string deviceDesc;
-        char buffer[512];
-        DWORD size = 0;
-
-		HKEY hKey = SetupDiOpenDevRegKey(hDevInfo, &devInfo, DICS_FLAG_GLOBAL, 0, DIREG_DEV, KEY_READ);
-
-		if (hKey != INVALID_HANDLE_VALUE)
-		{
-			char comName[256];
-			DWORD len = sizeof(comName);
-			DWORD type = 0;
-
-			if (RegQueryValueExA( hKey, "PortName", nullptr, &type, (LPBYTE)comName, &len) == ERROR_SUCCESS)
-			{
-				HANDLE hSerial = nullptr;
-				char regPacket[32];
-				DWORD bytesRead;
-				ReadFile(hSerial, &regPacket, 32, &bytesRead, NULL);
-				if (regPacket[4] == 0x01) *telebtloc = std::string(comName);
-				if (regPacket[4] == 0x06) *sradloc = std::string(comName);
-				CloseHandle(hSerial);
-			}
-
-			RegCloseKey(hKey);
-		}
-    }
-
-    SetupDiDestroyDeviceInfoList(hDevInfo);
+	// HANDLE hSerial = nullptr;
+	// char regPacket[32];
+	// DWORD bytesRead;
+	//ReadFile(hSerial, &regPacket, 32, &bytesRead, NULL);
+	//if (regPacket[4] == 0x01) *telebtloc = std::string(comName);
+	//if (regPacket[4] == 0x06) *sradloc = std::string(comName);
 }
 
-bool SerialHandling::CreateSerialFile(HANDLE* hSerial, std::string serialLoc)
+bool SerialHandling::CreateSerialFile(serial::Serial* hSerial, std::string serialLoc)
 {
-	*hSerial = CreateFile(serialLoc.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
-
-	DCB dcbSerialParams = {0};
-	dcbSerialParams.DCBlength = sizeof(dcbSerialParams);
-
-	if (!GetCommState(*hSerial, &dcbSerialParams)) {
-		std::cout << "Failed to get comm state, aborting serial communication." << std::endl;
-		return false;
-	}
-
-	dcbSerialParams.BaudRate = CBR_9600;
-	dcbSerialParams.ByteSize = 8;
-	dcbSerialParams.StopBits = ONESTOPBIT;
-	dcbSerialParams.Parity = NOPARITY;
-
-	if (!SetCommState(*hSerial, &dcbSerialParams)) {
-		std::cout << "Failed to set comm state, aborting serial communication." << std::endl;
-		return false;
-	} 
-	COMMTIMEOUTS timeouts = {0};
-	timeouts.ReadIntervalTimeout = 50;
-	timeouts.ReadTotalTimeoutConstant = 50;
-	timeouts.ReadTotalTimeoutMultiplier = 10;
-	timeouts.WriteTotalTimeoutConstant = 50;
-	timeouts.WriteTotalTimeoutMultiplier = 10;
-
-	if (!SetCommTimeouts(*hSerial, &timeouts)) {
-		std::cout << "Failed to set timouts, aborting serial communication." << std::endl;
-		return false;
-	}
-	
-	return true;
+	serial::Serial port(serialLoc, 11520, serial::Timeout::simpleTimeout(1000));
+	hSerial = &port;
+	return port.isOpen();
 }
 
 SerialHandling::~SerialHandling()

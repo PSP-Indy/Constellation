@@ -2,11 +2,12 @@
 
 #include "json.hpp"
 
-#include <windows.h>
 #include <vector> 
 #include <map>
 #include <mutex>
 #include <cstdint>
+
+#include <serial/serial.h>
 
 #include <iostream>
 #include <chrono>
@@ -56,7 +57,7 @@ public:
 	int32_t fuse_delay = 5;
 	int32_t launch_altitude = 0;
 
-	HANDLE hSerialSRAD;
+	serial::Serial* hSerialSRAD;
 
 	bool (*prime_rocket)() = NULL;
 	bool (*launch_rocket)() = NULL;
