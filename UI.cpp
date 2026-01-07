@@ -182,15 +182,28 @@ void UI::Update()
 		std::string working_set_size_str = "ERROR";
 		std::string private_bytes_str = "ERROR";
 
+		#if defined(_WIN32) || defined(WIN32)
 		PROCESS_MEMORY_COUNTERS_EX pmc;
 		if (GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS *)&pmc, sizeof(pmc)))
 		{
 			working_set_size_str = std::string("Working Set Size: ").append(std::to_string(pmc.WorkingSetSize / (1024 * 1024))).append(std::string(" MB"));
 			private_bytes_str = std::string("Private Bytes: ").append(std::to_string(pmc.PrivateUsage / (1024 * 1024))).append(std::string(" MB"));
 		}
+		#elif defined(__unix__) || defined(__unix) || defined(__APPLE__)
+			struct rusage usage;
+			int actualUsage = 0;
+			if (getrusage(RUSAGE_SELF, &usage) != -1) {
+				#if defined(__APPLE__) && defined(__MACH__)
+					working_set_size_str = std::string("Max Resident Set Size: ").append(std::to_string(usage.ru_maxrss / 1024.0 / 1024.0)).append(std::string(" MB"));
+				#else
+					working_set_size_str = std::string("Max Resident Set Size: ").append(std::to_string(usage.ru_maxrss / 1024.0)).append(std::string(" MB"));
+				#endif
+			}
+			private_bytes_str = std::string("No extra data on unix based systems");
+		#endif
 
 		ImGui::Begin("Diagnostics");
-		ImGui::Text(working_set_size_str.c_str());
+		ImGui::Text(working_set_size_str.c_str());`
 		ImGui::Text(private_bytes_str.c_str());
 		ImGui::End();
 	}

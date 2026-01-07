@@ -13,6 +13,12 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 
+#if defined(_WIN32) || defined(WIN32)
+#define GLFW_EXPOSE_NATIVE_WIN32
+#pragma comment(lib, "Dwmapi.lib")
+#include <dwmapi.h>
+#endif
+
 #include "UI.hpp"
 #include "SerialHandling.hpp"
 #include "DataValues.hpp"
@@ -23,11 +29,9 @@
 
 #include "glad/glad.h"
 
-#define GLFW_EXPOSE_NATIVE_WIN32
 #include "GLFW/glfw3.h"
 #include "GLFW/glfw3native.h"
-#pragma comment(lib, "Dwmapi.lib")
-#include <dwmapi.h>
+
 
 std::mutex valueLock;
 

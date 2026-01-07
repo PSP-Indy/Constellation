@@ -6,8 +6,13 @@
 #include <atomic>
 #include <mutex>
 
+#if defined(_WIN32) || defined(WIN32)
 #include <windows.h>
 #include <psapi.h>
+#elif defined(__unix__) || defined(__unix) || defined(__APPLE__)
+#include <sys/resource.h>
+#include <unistd.h>
+#endif
 
 #include "imgui.h"
 #include "implot.h"
