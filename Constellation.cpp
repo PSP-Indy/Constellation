@@ -197,8 +197,8 @@ int main()
 	}
 
 	gui->Shutdown();
-	if (hSerialSRAD != nullptr) CloseHandle(hSerialSRAD);
-	if (hSerialTeleBT != nullptr) CloseHandle(hSerialTeleBT);
+	if (hSerialSRAD != nullptr) hSerialSRAD->close();
+	if (hSerialTeleBT != nullptr) hSerialTeleBT->close();
 
 	std::ofstream outputFile;
 	outputFile.open("DATA.csv", std::ios::out); 
