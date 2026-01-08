@@ -74,6 +74,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE "${IMGUI_DIR}")
 target_link_libraries(${PROJECT_NAME} PRIVATE ImGui "${CMAKE_DL_LIBS}")
 
 target_compile_definitions(ImGui PRIVATE GLFW_INCLUDE_NONE)
+target_compile_definitions(ImGui PRIVATE IMGUI_IMPL_GLFW_HAS_X11=0)
 target_compile_definitions(${PROJECT_NAME} PRIVATE "GLFW_INCLUDE_NONE")
 
 add_custom_command(
