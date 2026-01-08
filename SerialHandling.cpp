@@ -202,8 +202,15 @@ void SerialHandling::FindSerialLocations(std::string* sradloc, std::string* tele
 	{
 		serial::PortInfo device = *iter++;
 
-		serial::Serial port(device.port, 115200, serial::Timeout::simpleTimeout(1000));
-
+		try
+		{
+			serial::Serial port(device.port, 115200, serial::Timeout::simpleTimeout(1000));
+		}
+		catch(const serial::IOException)
+		{
+			continue;
+		}
+		
 		std::string regPacket;
 		size_t regPacketSize = 32;
 
@@ -218,9 +225,16 @@ void SerialHandling::FindSerialLocations(std::string* sradloc, std::string* tele
 
 bool SerialHandling::CreateSerialFile(serial::Serial* hSerial, std::string serialLoc)
 {
-	serial::Serial port(serialLoc, 11520, serial::Timeout::simpleTimeout(1000));
-	hSerial = &port;
-	return port.isOpen();
+	try
+	{
+		serial::Serial port(serialLoc, 11520, serial::Timeout::simpleTimeout(1000));
+		hSerial = &port;
+		return port.isOpen();
+	}
+	catch(const serial::IOException)
+	{
+		return false;
+	}
 }
 
 SerialHandling::~SerialHandling()

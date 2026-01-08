@@ -124,12 +124,21 @@ int main()
 			std::thread serialThreadSRAD(&SerialHandling::ProcessSerialDataSRAD, serialHandling);
 
 			serialThreadSRAD.detach();
+		} 
+		else
+		{
+			std::cout << "Failed to create SRAD serial communication, aborting." << std::endl;
 		}
+
 		if (serialHandling->CreateSerialFile(hSerialTeleBT, TeleBtSerialLoc))
 		{
 			std::thread serialThreadTeleBT(&SerialHandling::ProcessSerialDataTeleBT, serialHandling, hSerialTeleBT);
 
 			serialThreadTeleBT.detach();
+		} 
+		else
+		{
+			std::cout << "Failed to create TeleBT serial communication, aborting." << std::endl;
 		}
 	}
 	
