@@ -15,6 +15,11 @@ set_property(TARGET Constellation PROPERTY CXX_STANDARD 23)
 set(LIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib")
 message( ${LIB_DIR} )
 
+if(UNIX)
+    find_package(X11 REQUIRED)
+    target_link_libraries(${PROJECT_NAME} PRIVATE X11::X11)
+endif()
+
 # Serial
 add_subdirectory(lib/serial)
 target_link_libraries(${PROJECT_NAME} PRIVATE serial)
@@ -55,7 +60,7 @@ target_link_libraries(ImGui PRIVATE glfw)
 
 target_include_directories(ImGui PRIVATE "${IMGUI_DIR}")
 target_include_directories(${PROJECT_NAME} PRIVATE "${IMGUI_DIR}")
-target_link_libraries(${PROJECT_NAME} PRIVATE ImGui "${CMAKE_DL_LIBS}" setupapi)
+target_link_libraries(${PROJECT_NAME} PRIVATE ImGui "${CMAKE_DL_LIBS}")
 
 # Glfw3
 set(GLFW_DIR "${LIB_DIR}/glfw3")
