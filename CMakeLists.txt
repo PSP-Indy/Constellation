@@ -46,7 +46,12 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_definitions(-DDEBUG_MODE)
 endif()
 
-target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
+if (UNIX AND NOT APPLE)
+    target_link_libraries(${PROJECT_NAME} PRIVATE glfw ${X11_LIBRARIES})
+else()
+    target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
+endif()
+
 target_include_directories(${PROJECT_NAME} PRIVATE "${GLFW_DIR}/include")
 
 # ImGui
