@@ -142,8 +142,7 @@ int main()
 		}
 	}
 	
-	if (!glfwInit())
-		return 2;
+	if (!glfwInit()) throw("Failed to initialize GLFW");
 
 	const char* glsl_version = "#version 130";
 	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);	
@@ -155,21 +154,20 @@ int main()
 
 	GLFWwindow* window = glfwCreateWindow(1920, 1080, "Constellation 0.1.1", NULL, NULL);
 
-	if (window == NULL)
-		return 2;
+	if (window == NULL) throw("Failed to create the window");
 
 	int width, height, channels;
 	unsigned char* pixels = stbi_load("assets\\icon.png", &width, &height, &channels, STBI_rgb_alpha);
 	if (!pixels) {
-		return 3;
-	}
+		std::cout << "Cant Load Image due to: " << stbi_failure_reason() << std::endl;
 
-	GLFWimage icon_image;
-	icon_image.width = width;
-	icon_image.height = height;
-	icon_image.pixels = pixels;
-	glfwSetWindowIcon(window, 1, &icon_image);
-	stbi_image_free(pixels);
+		GLFWimage icon_image;
+		icon_image.width = width;
+		icon_image.height = height;
+		icon_image.pixels = pixels;
+		glfwSetWindowIcon(window, 1, &icon_image);
+		stbi_image_free(pixels);
+	}
 
 	#ifdef _WIN32
 		HWND hwnd = glfwGetWin32Window(window);
@@ -181,8 +179,7 @@ int main()
 	glfwMakeContextCurrent(window);
 	glfwSwapInterval(1);
 
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-		throw("Unable to context to OpenGL");
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) throw("Unable to context to OpenGL");
 
 	int screen_width, screen_height;
 	glfwGetFramebufferSize(window, &screen_width, &screen_height);
