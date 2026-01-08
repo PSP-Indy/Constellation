@@ -14,6 +14,11 @@ set_property(TARGET Constellation PROPERTY CXX_STANDARD 23)
 set(LIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib")
 message( ${LIB_DIR} )
 
+if (UNIX AND NOT APPLE)
+    find_package(X11 REQUIRED)
+    target_link_libraries(${PROJECT_NAME} ${X11_LIBRARIES})
+endif()
+
 # Serial
 add_subdirectory(lib/serial)
 target_link_libraries(${PROJECT_NAME} PRIVATE serial)
