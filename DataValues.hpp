@@ -6,6 +6,7 @@
 #include <map>
 #include <mutex>
 #include <cstdint>
+#include <thread>
 
 #include <serial/serial.h>
 
