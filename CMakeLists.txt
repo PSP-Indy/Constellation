@@ -16,7 +16,7 @@ message( ${LIB_DIR} )
 
 if (UNIX AND NOT APPLE)
     find_package(X11 REQUIRED)
-    target_link_libraries(${PROJECT_NAME} ${X11_LIBRARIES})
+    target_link_libraries(${PROJECT_NAME} PUBLIC ${X11_LIBRARIES})
 endif()
 
 # Serial
