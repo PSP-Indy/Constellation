@@ -131,7 +131,7 @@ void SerialHandling::ProcessSerialDataSRAD()
 		{
 			valueLock->lock();
 
-			data->coundown_start_time = NULL;
+			data->coundown_start_time = 0L;
 			data->go_grid_values[0][2] = 1;
 			data->last_ping = time(NULL);
 

@@ -459,7 +459,7 @@ void UI::Update()
 	ImGui::InputText("Date", date_string, 11, ImGuiInputTextFlags_ReadOnly);
 
 	char time_string_input[11];
-	if (rocket_data->launch_time != NULL)
+	if (rocket_data->launch_time != 0L)
 	{
 		std::tm *tm_time = std::localtime(&rocket_data->launch_time);
 		std::strftime(time_string_input, sizeof(time_string_input), "%H:%M:%S", tm_time);
@@ -471,7 +471,7 @@ void UI::Update()
 	ImGui::InputText("Launch Time", time_string_input, 11, ImGuiInputTextFlags_ReadOnly);
 
 	char time_since_launch_string_input[11];
-	if (rocket_data->launch_time != NULL)
+	if (rocket_data->launch_time != 0L)
 	{
 		std::time_t currentTime_t = time(NULL);
 		int difference_in_seconds = difftime(currentTime_t, rocket_data->launch_time);
@@ -517,7 +517,7 @@ void UI::Update()
 		ImPlot::PopColormap();
 	}
 
-	if(rocket_data->coundown_start_time != NULL) 
+	if(rocket_data->coundown_start_time != 0L) 
 	{
 		time_t current_time_t = time(NULL);
 		int time_since_countdown = difftime(rocket_data->coundown_start_time, current_time_t);
@@ -551,7 +551,7 @@ void UI::Update()
 				}
 			}
 		} 
-		else if (rocket_data->coundown_start_time == NULL && rocket_data->launch_time == NULL)
+		else if (rocket_data->coundown_start_time == 0L && rocket_data->launch_time == 0L)
 		{
 			if (ImGui::Button("Launch Rocket", ImVec2(-1, 70)))
 			{

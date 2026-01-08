@@ -204,7 +204,7 @@ int main()
 	outputFile.open("DATA.csv", std::ios::out); 
 	if (outputFile.is_open()) {
 		char time_string[11];
-		if (data->launch_time != NULL)
+		if (data->launch_time != 0L)
 		{
 			std::tm* tm_time = std::localtime(&(data->launch_time));
 			std::strftime(time_string, sizeof(time_string), "%H:%M:%S", tm_time);
