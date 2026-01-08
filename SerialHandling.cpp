@@ -205,21 +205,21 @@ void SerialHandling::FindSerialLocations(std::string* sradloc, std::string* tele
 		try
 		{
 			serial::Serial port(device.port, 115200, serial::Timeout::simpleTimeout(1000));
+			
+			std::string regPacket;
+			size_t regPacketSize = 32;
+
+			size_t bytesWritten = port.read(regPacket, regPacketSize);
+
+			if (bytesWritten != regPacketSize) continue;
+
+			if (regPacket.at(4) == 0x01) *telebtloc = std::string(device.port.c_str());
+			if (regPacket.at(4) == 0x06) *sradloc = std::string(device.port.c_str());
 		}
 		catch(const serial::IOException)
 		{
 			continue;
 		}
-		
-		std::string regPacket;
-		size_t regPacketSize = 32;
-
-		size_t bytesWritten = port.read(regPacket, regPacketSize);
-
-		if (bytesWritten != regPacketSize) continue;
-
-		if (regPacket.at(4) == 0x01) *telebtloc = std::string(device.port.c_str());
-		if (regPacket.at(4) == 0x06) *sradloc = std::string(device.port.c_str());
 	}
 }
 
