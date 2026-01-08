@@ -77,11 +77,16 @@ add_library(ImGui STATIC "${IMGUI_DIR}/imgui.cpp"
 "${IMGUI_DIR}/imgui_impl_glfw.cpp"
 "${IMGUI_DIR}/imgui_impl_opengl3.cpp")
 
-target_link_libraries(ImGui PUBLIC glfw)
+if (UNIX AND NOT APPLE)
+    target_link_libraries(ImGui PUBLIC glfw ${X11_LIBRARIES})
+else()
+    target_link_libraries(ImGui PUBLIC glfw)
+endif()
 
 target_include_directories(ImGui PRIVATE "${IMGUI_DIR}")
 target_include_directories(${PROJECT_NAME} PRIVATE "${IMGUI_DIR}")
 target_link_libraries(${PROJECT_NAME} PRIVATE ImGui "${CMAKE_DL_LIBS}")
+
 
 target_compile_definitions(ImGui PRIVATE GLFW_INCLUDE_NONE)
 target_compile_definitions(${PROJECT_NAME} PRIVATE "GLFW_INCLUDE_NONE")
