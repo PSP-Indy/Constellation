@@ -215,6 +215,8 @@ void SerialHandling::FindSerialLocations(std::string* sradloc, std::string* tele
 
 			if (regPacket.at(4) == 0x01) *telebtloc = std::string(device.port.c_str());
 			if (regPacket.at(4) == 0x06) *sradloc = std::string(device.port.c_str());
+
+			port.close();
 		}
 		catch(const serial::IOException)
 		{
