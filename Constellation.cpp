@@ -162,7 +162,7 @@ int main()
 	if (window == NULL) throw("Failed to create the window");
 
 	int width, height, channels;
-	std::filesystem::path iconFilePath = std::filesystem::current_path() / "assets" / "icon.png";
+	std::filesystem::path iconFilePath = std::filesystem::current_path() / "Assets" / "icon.png";
 	unsigned char* pixels = stbi_load(iconFilePath.string().c_str(), &width, &height, &channels, STBI_rgb_alpha);
 	if (!pixels) {
 		std::cout << "Cant load image at: " << iconFilePath << " due to: " << stbi_failure_reason() << std::endl;
