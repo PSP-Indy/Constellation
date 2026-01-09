@@ -7,13 +7,11 @@
 #include <fstream>
 #include <random>
 #include <cmath>
+#include <filesystem>
 #include <cstdint>
 
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-
 #if defined(_WIN32) || defined(WIN32)
+#define WIN32_LEAN_AND_MEAN
 #define GLFW_EXPOSE_NATIVE_WIN32
 #pragma comment(lib, "Dwmapi.lib")
 #include <dwmapi.h>
@@ -39,12 +37,13 @@ UI* UI::ui = new UI();
 SerialHandling* SerialHandling::serialhandling = new SerialHandling();
 DataValues* DataValues::dataValues = new DataValues();
 
-void WriteDataToFile(std::vector<float> data, std::string label, std::ofstream* outputFile) 
+template <typename T>
+void WriteVectorDataToFile(std::vector<T>* data, std::string label, std::ofstream* outputFile) 
 {
 	*outputFile << label.c_str() << ",";
-	for (size_t i = 0; i < data.size(); ++i) {
-		*outputFile << data[i];
-		if (i < data.size() - 1) {
+	for (size_t i = 0; i < data->size(); ++i) {
+		*outputFile << data->at(i);
+		if (i < data->size() - 1) {
 			*outputFile << ",";
 		}
 	}
@@ -157,10 +156,14 @@ int main()
 	if (window == NULL) throw("Failed to create the window");
 
 	int width, height, channels;
-	unsigned char* pixels = stbi_load("assets\\icon.png", &width, &height, &channels, STBI_rgb_alpha);
+	std::filesystem::path currentPath = std::filesystem::current_path();
+	std::string fullPath = currentPath.string() + std::string("\\assets\\icon.png");
+	unsigned char* pixels = stbi_load(fullPath.c_str(), &width, &height, &channels, STBI_rgb_alpha);
 	if (!pixels) {
-		std::cout << "Cant Load Image due to: " << stbi_failure_reason() << std::endl;
-
+		std::cout << "Cant load image at: " << fullPath << " due to: " << stbi_failure_reason() << std::endl;
+	}
+	else
+	{
 		GLFWimage icon_image;
 		icon_image.width = width;
 		icon_image.height = height;
@@ -227,15 +230,15 @@ int main()
 
 		DataValues::DataValueList dataValueList = data->getDataValueList();
 		
-		WriteDataToFile(dataValueList.a_values, std::string("acceleration"), &outputFile);
-		WriteDataToFile(dataValueList.v_values, std::string("velocity"), &outputFile);
-		WriteDataToFile(dataValueList.a_values, std::string("time"), &outputFile);
-		WriteDataToFile(dataValueList.x_values, std::string("positionX"), &outputFile);
-		WriteDataToFile(dataValueList.y_values, std::string("positionY"), &outputFile);
-		WriteDataToFile(dataValueList.z_values, std::string("positionZ"), &outputFile);
-		WriteDataToFile(dataValueList.x_rot_values, std::string("rotationX"), &outputFile);
-		WriteDataToFile(dataValueList.y_rot_values, std::string("rotationY"), &outputFile);
-		WriteDataToFile(dataValueList.z_rot_values, std::string("rotationZ"), &outputFile);
+		WriteVectorDataToFile(&dataValueList.a_values, std::string("acceleration"), &outputFile);
+		WriteVectorDataToFile(&dataValueList.v_values, std::string("velocity"), &outputFile);
+		WriteVectorDataToFile(&dataValueList.a_values, std::string("time"), &outputFile);
+		WriteVectorDataToFile(&dataValueList.x_values, std::string("positionX"), &outputFile);
+		WriteVectorDataToFile(&dataValueList.y_values, std::string("positionY"), &outputFile);
+		WriteVectorDataToFile(&dataValueList.z_values, std::string("positionZ"), &outputFile);
+		WriteVectorDataToFile(&dataValueList.x_rot_values, std::string("rotationX"), &outputFile);
+		WriteVectorDataToFile(&dataValueList.y_rot_values, std::string("rotationY"), &outputFile);
+		WriteVectorDataToFile(&dataValueList.z_rot_values, std::string("rotationZ"), &outputFile);
 
 		outputFile << "launchTime," << time_string << std::endl;
 		outputFile << "launchDate," << date_string << std::endl;
