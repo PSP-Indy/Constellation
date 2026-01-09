@@ -38,8 +38,14 @@ SerialHandling* SerialHandling::serialhandling = new SerialHandling();
 DataValues* DataValues::dataValues = new DataValues();
 
 template <typename T>
-void WriteVectorDataToFile(std::vector<T>* data, std::string label, std::ofstream* outputFile) 
+void WriteVectorDataToFile(const std::vector<T>* data, std::string label, std::ofstream* outputFile) 
 {
+	if (data == nullptr)
+	{
+		*outputFile << label << " did not have an instantiated array." << std::endl;
+		return;
+	}
+
 	*outputFile << label.c_str() << ",";
 	for (size_t i = 0; i < data->size(); ++i) {
 		*outputFile << data->at(i);
