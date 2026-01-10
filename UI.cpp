@@ -216,32 +216,32 @@ void UI::Update()
 		
 		if (ImGui::Button("One Way Telemetry (B/S)"))
 		{
-			if (SerialHandling::Get()->SendSRADData("T_1B")) rocket_data->testingMode = DataValues::TestingMode::ONEWAYTELEM_BPS;
+			if (SerialHandling::SendSRADData("T_1B")) rocket_data->testingMode = DataValues::TestingMode::ONEWAYTELEM_BPS;
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("One Way Telemetry (P/S)"))
 		{
-			if (SerialHandling::Get()->SendSRADData("T_1P")) rocket_data->testingMode = DataValues::TestingMode::ONEWAYTELEM_PPS;
+			if (SerialHandling::SendSRADData("T_1P")) rocket_data->testingMode = DataValues::TestingMode::ONEWAYTELEM_PPS;
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("Two Way Telemetry"))
 		{
-			if (SerialHandling::Get()->SendSRADData("T_2T")) rocket_data->testingMode = DataValues::TestingMode::TWOWAYTELEM;
+			if (SerialHandling::SendSRADData("T_2T")) rocket_data->testingMode = DataValues::TestingMode::TWOWAYTELEM;
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("Altitude Accuracy Testing"))
 		{
-			if (SerialHandling::Get()->SendSRADData("T_AA")) rocket_data->testingMode = DataValues::TestingMode::ALTACCURACY;
+			if (SerialHandling::SendSRADData("T_AA")) rocket_data->testingMode = DataValues::TestingMode::ALTACCURACY;
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("Positional Accuracy Testing"))
 		{
-			if (SerialHandling::Get()->SendSRADData("T_PA")) rocket_data->testingMode = DataValues::TestingMode::POSACCURACY;
+			if (SerialHandling::SendSRADData("T_PA")) rocket_data->testingMode = DataValues::TestingMode::POSACCURACY;
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("End Testing"))
 		{
-			if (SerialHandling::Get()->SendSRADData("T_NA")) rocket_data->testingMode = DataValues::TestingMode::NONE;
+			if (SerialHandling::SendSRADData("T_NA")) rocket_data->testingMode = DataValues::TestingMode::NONE;
 		}
 
 		ImGui::Text(DataValues::StringFromTestingMode(rocket_data->testingMode).c_str());
@@ -414,13 +414,13 @@ void UI::Update()
 	if (ImGui::BeginTable("Rotation Rotary Dial Table", 3, ImGuiTableFlags_None, ImVec2(-1, -1))) 
 	{
 		ImGui::TableNextColumn();
-		ImGuiKnobs::Knob("Rotation X", &(dataValueList.x_rot_values.back()), -3.14159, 3.14159, 0.1f, "%.1f rads", ImGuiKnobVariant_WiperOnly);
+		ImGuiKnobs::Knob("Rotation X", &(dataValueList.x_rot_values.back()), -(2 * 3.14159), (2 * 3.14159), 0.1f, "%.1f rad/rads", ImGuiKnobVariant_WiperOnly);
 
 		ImGui::TableNextColumn();
-		ImGuiKnobs::Knob("Rotation Y", &(dataValueList.y_rot_values.back()), -3.14159, 3.14159, 0.1f, "%.1f rads", ImGuiKnobVariant_WiperOnly);
+		ImGuiKnobs::Knob("Rotation Y", &(dataValueList.y_rot_values.back()), -(2 * 3.14159), (2 * 3.14159), 0.1f, "%.1f rad/rads", ImGuiKnobVariant_WiperOnly);
 
 		ImGui::TableNextColumn();
-		ImGuiKnobs::Knob("Rotation Z", &(dataValueList.z_rot_values.back()), -3.14159, 3.14159, 0.1f, "%.1f rads", ImGuiKnobVariant_WiperOnly);
+		ImGuiKnobs::Knob("Rotation Z", &(dataValueList.z_rot_values.back()), -(2 * 3.14159), (2 * 3.14159), 0.1f, "%.1f rad/rads", ImGuiKnobVariant_WiperOnly);
 
 		ImGui::EndTable();
 	}
@@ -505,7 +505,7 @@ void UI::Update()
 		
 		for (int i = 0; i < 5; i++) {
 			for (int j = 0; j < 5; j++) {
-				ImPlot::PlotText(go_grid_labels[i][4 - j], (i / 5.0f) + (0.5f / 5.0f), (j / 5.0f) + (0.5f / 5.0f));
+				ImPlot::PlotText(rocket_data->go_grid_labels[i][4 - j], (i / 5.0f) + (0.5f / 5.0f), (j / 5.0f) + (0.5f / 5.0f));
 			}
 		}
 
@@ -716,11 +716,4 @@ void UI::SetColorStyles()
 
 UI::~UI()
 {
-}
-
-UI *UI::Get()
-{
-	if (ui == nullptr)
-		ui = new UI();
-	return ui;
 }

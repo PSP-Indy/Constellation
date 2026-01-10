@@ -7,6 +7,7 @@
 #include <mutex>
 #include <cstdint>
 #include <thread>
+#include <mutex>
 
 #include <serial/serial.h>
 
@@ -28,6 +29,8 @@ public:
 		NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(DataValueSnapshot, a_value, v_value, x_value, y_value, z_value, x_rot_value, y_rot_value, z_rot_value);
 	};
 	
+    std::mutex* valueLock;
+
 	enum class TestingMode { NONE, ONEWAYTELEM_BPS, ONEWAYTELEM_PPS, TWOWAYTELEM, ALTACCURACY, POSACCURACY };
 
 	static std::string StringFromTestingMode(TestingMode mode)
@@ -74,12 +77,20 @@ public:
 		std::vector<float> y_rot_values = {0.0f};
 		std::vector<float> z_rot_values = {0.0f};
 	};
+	
+	const char go_grid_labels[5][5][5] = {
+		{"C_TS", "BART", "c1", "d1", "e1"},
+		{"C_FI", "IMUT", "c2", "d2", "e2"},
+		{"C_FO", "AT_T", "c3", "d3", "e3"},
+		{"C_SC", "AT_V", "c4", "d4", "e4"},
+		{"GPS ", "b5", "c5", "d5", "e5"}
+	};
 
 	DataValues();
 	DataValues(const DataValues& obj) = delete;
 
+	void setValueLock(std::mutex* valueLock);
 	void InsertDataSnapshot(float time, DataValueSnapshot data);
-	void FakeData(std::mutex* valueLock);
 
 	std::map<float, DataValueSnapshot>* getValueSnapshotMap()
 	{

@@ -30,11 +30,8 @@
 #include "GLFW/glfw3.h"
 #include "GLFW/glfw3native.h"
 
-
 std::mutex valueLock;
 
-UI* UI::ui = new UI();
-SerialHandling* SerialHandling::serialhandling = new SerialHandling();
 DataValues* DataValues::dataValues = new DataValues();
 
 template <typename T>
@@ -96,16 +93,19 @@ bool LaunchRocket()
 int main()
 {
 	//GUI INITIALIZATION
-	UI* gui = UI::Get();
-	SerialHandling* serialHandling = SerialHandling::Get();
+	UI* gui = new UI();
+	SerialHandling* serialhandler = new SerialHandling();
 	DataValues* data = DataValues::Get();
+
+	data->setValueLock(&valueLock);
 
 	ServerHandler serverHandler;
 
-	std::thread webServerThread(&ServerHandler::Server, &serverHandler, &valueLock);
+	std::thread webServerThread(&ServerHandler::Server, &serverHandler);
 	webServerThread.detach();
 
-	serialHandling->SetValueLock(&valueLock);
+	std::thread fakeDataThread(&SerialHandling::FakeData, serialhandler);
+	fakeDataThread.detach();
 
 	//FInd correct serial locations
 	std::string SRADSerialLoc = "";
@@ -113,20 +113,20 @@ int main()
 	serial::Serial* hSerialSRAD = nullptr;
 	serial::Serial* hSerialTeleBT = nullptr;
 
-	serialHandling->FindSerialLocations(&SRADSerialLoc, &TeleBtSerialLoc);
+	serialhandler->FindSerialLocations(&SRADSerialLoc, &TeleBtSerialLoc);
 
 	//SERIAL INITIALIZATION
 	if (SRADSerialLoc == "" || TeleBtSerialLoc == "") {
 		std::cout << "Failed to find serial ports, aborting serial communication." << std::endl;
 	} else {
-		if (serialHandling->CreateSerialFile(hSerialSRAD, SRADSerialLoc))
+		if (serialhandler->CreateSerialFile(hSerialSRAD, SRADSerialLoc))
 		{
 			data->prime_rocket = PrimeRocket;
 			data->launch_rocket = LaunchRocket;
 
 			data->hSerialSRAD = hSerialSRAD;
 
-			std::thread serialThreadSRAD(&SerialHandling::ProcessSerialDataSRAD, serialHandling);
+			std::thread serialThreadSRAD(&SerialHandling::ProcessSerialDataSRAD, serialhandler);
 
 			serialThreadSRAD.detach();
 		} 
@@ -135,9 +135,9 @@ int main()
 			std::cout << "Failed to create SRAD serial communication, aborting." << std::endl;
 		}
 
-		if (serialHandling->CreateSerialFile(hSerialTeleBT, TeleBtSerialLoc))
+		if (serialhandler->CreateSerialFile(hSerialTeleBT, TeleBtSerialLoc))
 		{
-			std::thread serialThreadTeleBT(&SerialHandling::ProcessSerialDataTeleBT, serialHandling, hSerialTeleBT);
+			std::thread serialThreadTeleBT(&SerialHandling::ProcessSerialDataTeleBT, serialhandler, hSerialTeleBT);
 
 			serialThreadTeleBT.detach();
 		} 

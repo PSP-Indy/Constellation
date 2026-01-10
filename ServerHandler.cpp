@@ -1,15 +1,16 @@
 #include "ServerHandler.hpp"
 
-void ServerHandler::Server(std::mutex* valueLock)
+void ServerHandler::Server()
 {
     DataValues* data = DataValues::Get();
+    std::mutex* valueLock = data->valueLock;
 
     std::map<float, std::string> valuesUpdateCache;
     
     nlohmann::json goGridLabelArray;
 
     valueLock->lock();
-    for (const auto& row : UI::Get()->go_grid_labels) {
+    for (const auto& row : data->go_grid_labels) {
         nlohmann::json jsonRow = nlohmann::json::array();
         for (auto element : row) {
             jsonRow.push_back(element);

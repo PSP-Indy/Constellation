@@ -19,23 +19,16 @@
 class SerialHandling {
 public:
     SerialHandling();
-	SerialHandling(const SerialHandling& obj) = delete;
     
+	void FakeData();
     void ProcessSerialDataTeleBT(serial::Serial* hSerial);
     void ProcessSerialDataSRAD();
-    bool SendSerialData(serial::Serial* hSerial, const char* dataPacket);
-    bool SendSRADData(const char* data);
+    static bool SendSerialData(serial::Serial* hSerial, const char* dataPacket);
+    static bool SendSRADData(const char* data);
     void FindSerialLocations(std::string* sradloc, std::string* telebtloc);
     bool CreateSerialFile(serial::Serial* hSerial, std::string serialLoc);
 
     ~SerialHandling();
-	static SerialHandling* Get();
-
-    void SetValueLock(std::mutex* valueLock)
-    {
-        this->valueLock = valueLock;
-    }
-
 private:
     float StringToFloat(std::string string, int idx) {
         const char* charString = string.substr(idx, 4).c_str(); 
@@ -57,8 +50,6 @@ private:
         memcpy(&cpy_int, charString, 2);
         return cpy_int;
     }
-
-    std::mutex* valueLock;
 
     static SerialHandling* serialhandling;
 };

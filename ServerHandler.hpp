@@ -11,5 +11,5 @@
 
 class ServerHandler {
 public:
-    void Server(std::mutex* valueLock);
+    void Server();
 };

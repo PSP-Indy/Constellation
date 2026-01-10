@@ -4,10 +4,39 @@ SerialHandling::SerialHandling()
 {
 }
 
+void SerialHandling::FakeData()
+{
+	DataValues* data = DataValues::Get();
+	std::mutex* valueLock = data->valueLock;
+	const auto start_time = std::chrono::system_clock::now();
+	auto lastTime = std::chrono::system_clock::now();
+	while (true)
+	{
+		DataValues::DataValueSnapshot snapshot;
+		DataValues::DataValueList currentValueList = data->getDataValueList();
+		double timeSinceStart = (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_time).count()) / 1000.0f;
+		double dt = (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - lastTime).count()) / 1000.0f;
+		snapshot.a_value = timeSinceStart < 10 ? 9.81f : -9.81f;
+		snapshot.v_value = currentValueList.v_values.back() + currentValueList.a_values.back() * dt;
+		snapshot.x_value = 0;
+		snapshot.y_value = 0;
+		snapshot.z_value = currentValueList.z_values.back() + currentValueList.v_values.back() * dt;
+		snapshot.x_rot_value = 0;
+		snapshot.y_rot_value = 0;
+		snapshot.z_rot_value = fmod(timeSinceStart, (2.0 * 3.1415926535));
+
+		valueLock->lock();
+		data->InsertDataSnapshot(timeSinceStart, snapshot);
+		valueLock->unlock();
+
+		lastTime = std::chrono::system_clock::now();
+	}
+}
 
 void SerialHandling::ProcessSerialDataTeleBT(serial::Serial* hSerial)
 {
 	DataValues* data = DataValues::Get();
+	std::mutex* valueLock = data->valueLock;
 
 	while (true) 
 	{
@@ -66,10 +95,10 @@ void SerialHandling::ProcessSerialDataTeleBT(serial::Serial* hSerial)
 	}
 }
 
-
 void SerialHandling::ProcessSerialDataSRAD() 
 {
 	DataValues* data = DataValues::Get();
+	std::mutex* valueLock = data->valueLock;
 	
 	valueLock->lock();
 	serial::Serial* hSerial = data->hSerialSRAD;
@@ -189,7 +218,7 @@ bool SerialHandling::SendSerialData(serial::Serial* hSerial, const char* dataPac
 
 bool SerialHandling::SendSRADData(const char* dataPacket)
 {
-	return this->SendSerialData(DataValues::Get()->hSerialSRAD, dataPacket);
+	return SendSerialData(DataValues::Get()->hSerialSRAD, dataPacket);
 }
 
 void SerialHandling::FindSerialLocations(std::string* sradloc, std::string* telebtloc)
@@ -241,11 +270,4 @@ bool SerialHandling::CreateSerialFile(serial::Serial* hSerial, std::string seria
 
 SerialHandling::~SerialHandling()
 {
-}
-
-SerialHandling *SerialHandling::Get()
-{
-	if (serialhandling == nullptr)
-		serialhandling = new SerialHandling();
-	return serialhandling;
 }

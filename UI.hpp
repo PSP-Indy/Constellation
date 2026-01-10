@@ -30,23 +30,15 @@
 class UI {
 public:
 	UI();
-	UI(const UI& obj) = delete;
+
 	void Init(GLFWwindow* window, const char* glsl_version);
 	void NewFrame();
 	void Update();
 	void Render();
 	void Shutdown();
 	void RotateModel(std::vector<ImPlot3DPoint> vertices, std::vector<ImPlot3DPoint>* rotated_vertices, float x_rotation, float y_rotation, float z_rotation);
+	
 	~UI();
-	static UI* Get();
-
-	const char go_grid_labels[5][5][5] = {
-		{"C_TS", "BART", "c1", "d1", "e1"},
-		{"C_FI", "IMUT", "c2", "d2", "e2"},
-		{"C_FO", "AT_T", "c3", "d3", "e3"},
-		{"C_SC", "AT_V", "c4", "d4", "e4"},
-		{"GPS ", "b5", "c5", "d5", "e5"}
-	};
 
 private:
 	GLFWmonitor* monitor;
