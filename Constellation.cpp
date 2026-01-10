@@ -104,9 +104,6 @@ int main()
 	std::thread webServerThread(&ServerHandler::Server, &serverHandler);
 	webServerThread.detach();
 
-	std::thread fakeDataThread(&SerialHandling::FakeData, serialhandler);
-	fakeDataThread.detach();
-
 	//FInd correct serial locations
 	std::string SRADSerialLoc = "";
 	std::string TeleBtSerialLoc = "";

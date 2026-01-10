@@ -17,6 +17,7 @@ bool auto_scale_slice_plot_X = true;
 bool auto_scale_slice_plot_Y = true;
 
 bool isFullscreen = false;
+bool fakeDataStarted = false;
 
 int time_start = 0;
 int time_end = 1;
@@ -118,6 +119,14 @@ void UI::Update()
 		if (ImGui::MenuItem("Application Diagnostics"))
 		{
 			diagnostics_open = !diagnostics_open;
+		}
+		if (ImGui::MenuItem("Fake Data Enable"))
+		{
+			if (!fakeDataStarted)
+			{
+				std::thread fakeDataThread(&SerialHandling::FakeData, new SerialHandling());
+				fakeDataThread.detach();
+			}
 		}
 		if (ImGui::MenuItem("Testing mode"))
 		{
