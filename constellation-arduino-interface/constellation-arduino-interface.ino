@@ -181,13 +181,13 @@ void handleLoRaPacket(int packetSize)
 
     String serialSendString = serial_send;
     sendMessage("C_UT", serialSendString);
-    handleLoraTestingData(serialSendString);
+    handleTestingData(serialSendString);
     
     waitingOnLoraHandling = false;
   }
 }
 
-void handleLoraTestingData(String serialData) {
+void handleTestingData(String serialData) {
 
   currentX = CharStringToFloat(serialData.c_str(), 12);
   currentY = CharStringToFloat(serialData.c_str(), 16);
