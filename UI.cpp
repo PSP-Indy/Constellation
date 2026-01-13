@@ -212,6 +212,11 @@ void UI::Update()
 		#endif
 
 		ImGui::Begin("Diagnostics");
+		std::map<float, DataValues::DataValueSnapshot>* snapshotMap = rocket_data->getValueSnapshotMap();
+		std::string snapshotMapSize = std::string("Number Of Snapshots In Map: ") + std::to_string(snapshotMap->size());
+		ImGui::Text(snapshotMapSize.c_str());
+		std::string snapshotMapByteSize = std::string("Bytesize Of Snapshot Map (Appx): ") + std::to_string(snapshotMap->size() * (sizeof(snapshotMap->begin()->first) + sizeof(snapshotMap->begin()->second)));
+		ImGui::Text(snapshotMapByteSize.c_str());
 		ImGui::Text(working_set_size_str.c_str());
 		ImGui::Text(private_bytes_str.c_str());
 		ImGui::End();

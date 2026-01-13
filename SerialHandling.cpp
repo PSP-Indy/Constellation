@@ -8,14 +8,19 @@ void SerialHandling::FakeData()
 {
 	DataValues* data = DataValues::Get();
 	std::mutex* valueLock = data->valueLock;
-	const auto start_time = std::chrono::system_clock::now();
-	auto lastTime = std::chrono::system_clock::now();
+	const auto start_time = std::chrono::steady_clock::now();
+	auto lastTime = std::chrono::steady_clock::now();
 	while (true)
 	{
 		DataValues::DataValueSnapshot snapshot;
 		DataValues::DataValueList currentValueList = data->getDataValueList();
-		double timeSinceStart = (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_time).count()) / 1000.0f;
-		double dt = (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - lastTime).count()) / 1000.0f;
+
+		std::chrono::duration<double, std::milli> timeSinceStartDuration = std::chrono::steady_clock::now() - start_time;
+		double timeSinceStart = timeSinceStartDuration.count() / 1000.0;
+
+		std::chrono::duration<double, std::milli> dtDuration = std::chrono::steady_clock::now() - lastTime;
+		double dt = dtDuration.count() / 1000.0;
+
 		snapshot.a_value = timeSinceStart < 10 ? 9.81f : -9.81f;
 		snapshot.v_value = currentValueList.v_values.back() + currentValueList.a_values.back() * dt;
 		snapshot.x_value = 0;
@@ -29,7 +34,9 @@ void SerialHandling::FakeData()
 		data->InsertDataSnapshot(timeSinceStart, snapshot);
 		valueLock->unlock();
 
-		lastTime = std::chrono::system_clock::now();
+		lastTime = std::chrono::steady_clock::now();
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
 }
 
@@ -92,6 +99,8 @@ void SerialHandling::ProcessSerialDataTeleBT(serial::Serial* hSerial)
 		{
 			std::cout << "PACKET TYPE NOT FOUND" << std::endl;
 		}
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
 }
 

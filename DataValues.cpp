@@ -11,7 +11,7 @@ void DataValues::setValueLock(std::mutex* valueLock)
 
 void DataValues::InsertDataSnapshot(float time, DataValueSnapshot data)
 {
-    value_snapshots[time] = data;
+    this->value_snapshots[time] = data;
 }
 
 DataValues::DataValueList DataValues::getDataValueList()
