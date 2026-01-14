@@ -2,6 +2,7 @@
 #include <LoRa.h>
 #include <time.h>
 #include <stdint.h>
+#include <avr/wdt.h>
 
 #define RELAY_PIN 12
 #define CONN_PIN 13
@@ -9,9 +10,9 @@
 bool successful_connection = false;
 bool rocket_primed = false;
 bool launched = false;
-bool launch_started = false;
 bool fuse_off = true;
 bool waitingOnLoraHandling = false;
+bool wdt_enabled = false;
 
 int32_t fuse_time;
 
@@ -20,6 +21,7 @@ int32_t expectedNextMessageSize;
 unsigned long last_successful_ping = 0;
 unsigned long previous = 0;
 unsigned long turn_off_fuse_time = 0;
+unsigned long launch_time = 0;
 
 char message_packet[48];
 char identificationPacket[32];
@@ -51,10 +53,10 @@ float CharStringToFloat(const char* charString, int idx)
 
 
 void setup() {
+  wdt_disable();
   Serial.begin(115200);
   while (!Serial);
-  identificationPacket[4] = (char)0x04;
-  Serial.print(identificationPacket);  
+
   LoRa.begin(915E6);
 
   pinMode(RELAY_PIN, OUTPUT);
@@ -88,16 +90,25 @@ void loop() {
   }
   
   //Self explanatory
-  turnOffFuseIfExpected();
+  TurnOffFuseIfExpected();
+
+  //Self explanatory
+  LaunchRocketIfExpected();
   
   //Turn off connection successfulness after 5 seconds of silence
   if ((millis() - last_successful_ping) >= 5000)
   {
     successful_connection = false;
+    wdt_enabled = false;
   }
   else
   {
     successful_connection = true;
+  }
+
+  if (successful_connection && !wdt_enabled) {
+    wdt_enable(WDTO_4S);
+    wdt_enabled = true;
   }
 
   digitalWrite(CONN_PIN, successful_connection);
@@ -118,6 +129,7 @@ void handleComputerSerialData()
   //Respond to connection check requests
   if (header == "C_SS") 
   {
+    wdt_reset();
     last_successful_ping = millis();
     return;
   }
@@ -127,7 +139,7 @@ void handleComputerSerialData()
   {
     if (rocket_primed && successful_connection)
     {
-      LaunchRocket();
+      StartRocketLaunch();
     }
     return;
   }
@@ -310,7 +322,7 @@ int32_t checkForLoRaPacket(int packetSize)
   }
 }
 
-void turnOffFuseIfExpected()
+void TurnOffFuseIfExpected()
 {
   if (launched)
   {
@@ -336,18 +348,23 @@ void sendMessage(String header, String message)
   Serial.write(message.c_str(), message_length);
 }
 
-void LaunchRocket()
+void StartRocketLaunch()
 {
-  launch_started = true;
   Serial.flush();
+  launch_time = millis() + 5000;
+}
 
-  delay(5000);
+void LaunchRocketIfExpected()
+{
+  if (launch_time != 0 && millis() >= launch_time) 
+  {
+    launch_time = 0;
+    fuse_off = false;
+    turn_off_fuse_time = millis() + (fuse_time * 1000);
 
-  fuse_off = false;
-  turn_off_fuse_time = millis() + (fuse_time * 1000);
-
-  sendMessage("C_FI", {});
-  launched = true;
+    sendMessage("C_FI", {});
+    launched = true;
+  }
 }
 
 void PrimeRocket(const unsigned char* initialize_data_packet) {

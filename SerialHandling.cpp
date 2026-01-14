@@ -47,26 +47,28 @@ void SerialHandling::ProcessSerialDataTeleBT(serial::Serial* hSerial)
 
 	while (true) 
 	{
-		std::string headerSubPacket;
 		size_t headerSubPacketSize = 6;
-		size_t bytesRead;
+		uint8_t headerSubPacketBuffer[7];
 
-		bytesRead = hSerial->read(headerSubPacket, headerSubPacketSize);
-		if (bytesRead <= 0 || headerSubPacket != "TELEM" || bytesRead != headerSubPacketSize) continue;
+		size_t bytesRead = hSerial->read(headerSubPacketBuffer, headerSubPacketSize);
+		if (bytesRead != headerSubPacketSize) continue;
+		std::string headerSubPacket(reinterpret_cast<const char*>(headerSubPacketBuffer), bytesRead);
+		if (headerSubPacket != "TELEM") continue;
 
-		std::string sizeSubPacket;
 		size_t sizeSubPacketSize = 3;
+		uint8_t sizeSubPacketBuffer[7];
 
-		bytesRead = hSerial->read(sizeSubPacket, sizeSubPacketSize);
-		if (bytesRead <= 0 || bytesRead != sizeSubPacketSize) continue;
+		bytesRead = hSerial->read(sizeSubPacketBuffer, sizeSubPacketSize);
+		if (bytesRead != sizeSubPacketSize) continue;
+		std::string sizeSubPacket(reinterpret_cast<const char*>(sizeSubPacketBuffer), bytesRead);
 
-		int dataPacketSize = std::stoi(sizeSubPacket);
+		size_t dataPacketSize = (size_t)std::stoi(sizeSubPacket);
 		if (dataPacketSize <= 0) continue;
 
 		std::string dataSubPacket;
 
 		bytesRead = hSerial->read(dataSubPacket, dataPacketSize);
-		if (bytesRead <= 0 || bytesRead != dataPacketSize) continue;
+		if (bytesRead != dataPacketSize) continue;
 
 		std::string flightData = dataSubPacket.substr(0, dataPacketSize - 3);
 
@@ -247,23 +249,20 @@ void SerialHandling::FindSerialLocations(std::string* sradloc, std::string* tele
 	{
 		serial::PortInfo device = *iter++;
 
-		try
+		serial::Serial port(device.port, 115200, serial::Timeout::simpleTimeout(1000));
+		
+		port.setDTR(false);
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+		std::string regPacket;
+		size_t bytesRead = port.read(regPacket, 8);
+		port.close();
+
+		if (bytesRead >= 5)
 		{
-			serial::Serial port(device.port, 115200, serial::Timeout::simpleTimeout(1000));
-
-			if (!port.isOpen()) port.open();
-			
-			std::string regPacket;
-			port.read(regPacket, 8);
-
-			if (regPacket.at(4) == 0x01) *telebtloc = std::string(device.port.c_str());
-			if (regPacket.at(0) == 'C') *sradloc = std::string(device.port.c_str());
-
-			port.close();
-		}
-		catch(const serial::IOException)
-		{
-			continue;
+			if (regPacket.at(4) == 0x01) *telebtloc = device.port;
+			if (regPacket.at(0) == 'C') *sradloc = device.port;
 		}
 	}
 }
@@ -277,17 +276,13 @@ bool SerialHandling::CreateSerialFile(serial::Serial* hSerial, std::string seria
 
 		hSerial->setPort(serialLoc);
 		hSerial->setBaudrate(115200);
-		hSerial->setTimeout(
-			1000,  // inter_byte_timeout (ms)
-			1000,  // read_timeout_constant
-			0,     // read_timeout_multiplier
-			1000,  // write_timeout_constant
-			0      // write_timeout_multiplier
-		);
-
-		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
+		serial::Timeout timeout = serial::Timeout::simpleTimeout(1000);
+		hSerial->setTimeout(timeout);
 		hSerial->open();
+		hSerial->setDTR(false);
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
+		
 		return hSerial->isOpen();
 	}
 	catch (const serial::IOException& e)
