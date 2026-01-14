@@ -115,30 +115,28 @@ void SerialHandling::ProcessSerialDataSRAD()
 
 	while (true) 
 	{
-		std::string commandBuffer;
-		size_t commandBufferSize = 9;
 		size_t bytesRead;
+		uint8_t commandBuffer[9];
 
 		int message_size = 0;
-		
-		bytesRead = hSerial->read(commandBuffer, commandBufferSize);
-		if (bytesRead <= 0 || bytesRead != commandBufferSize) continue;
+		bytesRead = hSerial->read(commandBuffer, 8);
 
-		int messageSize = StringToUInt32(commandBuffer, 4);
-		std::string header = commandBuffer.substr(0,4);
+		if (bytesRead != 8) continue;
+		std::string command(reinterpret_cast<const char*>(commandBuffer), bytesRead);
+
+		int messageSize = StringToUInt32(command, 4);
+		std::string header = command.substr(0,4);
 
 		std::string messageBuffer;
-
-		bytesRead = hSerial->read(messageBuffer, (size_t)messageSize);
-		if (bytesRead <= 0 || bytesRead != (size_t)messageSize) continue;
+		bytesRead = hSerial->read(messageBuffer, messageSize);
+		if (bytesRead != messageSize) continue;
 
 		if(header == "C_SC") 
 		{
 			valueLock->lock();
 
 			data->isSRADConnected = true;
-			std::string data_to_send = "C_SS";
-			size_t bytesWritten = hSerial->write(data_to_send);
+			SendSRADData("C_SS");
 			data->last_ping = time(NULL);
 
 			valueLock->unlock();
@@ -210,24 +208,28 @@ void SerialHandling::ProcessSerialDataSRAD()
 
 			data->InsertDataSnapshot(time, snapshot);
 
-
 			valueLock->unlock();
 		}
-		
+
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
 }
 
-bool SerialHandling::SendSerialData(serial::Serial* hSerial, const char* dataPacket)
+bool SerialHandling::SendRawSerialData(serial::Serial* hSerial, const uint8_t* dataPacket, size_t length)
 {
 	if (hSerial == nullptr) return false;
 
-	return hSerial->write(dataPacket) == sizeof(dataPacket);
+	return hSerial->write(dataPacket, length) == length;
+}
+
+bool SerialHandling::SendSRADData(const uint8_t* dataPacket, size_t length)
+{
+	return SendRawSerialData(DataValues::Get()->hSerialSRAD, dataPacket, length);
 }
 
 bool SerialHandling::SendSRADData(const char* dataPacket)
 {
-	return SendSerialData(DataValues::Get()->hSerialSRAD, dataPacket);
+	return SendRawSerialData(DataValues::Get()->hSerialSRAD, reinterpret_cast<const uint8_t*>(dataPacket), strlen(dataPacket));
 }
 
 void SerialHandling::FindSerialLocations(std::string* sradloc, std::string* telebtloc)
@@ -245,16 +247,10 @@ void SerialHandling::FindSerialLocations(std::string* sradloc, std::string* tele
 			serial::Serial port(device.port, 115200, serial::Timeout::simpleTimeout(1000));
 			
 			std::string regPacket;
-			size_t regPacketSize = 32;
-
-			size_t bytesWritten = port.read(regPacket, regPacketSize);
-
-			if (bytesWritten != regPacketSize) continue;
+			port.read(regPacket, 8);
 
 			if (regPacket.at(4) == 0x01) *telebtloc = std::string(device.port.c_str());
-			if (regPacket.at(4) == 0x06) *sradloc = std::string(device.port.c_str());
-
-			port.close();
+			if (regPacket.at(0) == 'C') *sradloc = std::string(device.port.c_str());
 		}
 		catch(const serial::IOException)
 		{
@@ -267,11 +263,22 @@ bool SerialHandling::CreateSerialFile(serial::Serial* hSerial, std::string seria
 {
 	try
 	{
-		serial::Serial port(serialLoc, 11520, serial::Timeout::simpleTimeout(1000));
-		hSerial = &port;
-		return port.isOpen();
+		if (hSerial->isOpen())
+    		hSerial->close();
+
+		hSerial->setPort(serialLoc);
+		hSerial->setBaudrate(115200);
+		hSerial->setTimeout(
+			1000,  // inter_byte_timeout (ms)
+			1000,  // read_timeout_constant
+			0,     // read_timeout_multiplier
+			1000,  // write_timeout_constant
+			0      // write_timeout_multiplier
+		);
+		hSerial->open();
+		return hSerial->isOpen();
 	}
-	catch(const serial::IOException)
+	catch (const serial::IOException& e)
 	{
 		return false;
 	}

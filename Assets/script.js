@@ -40,20 +40,23 @@ function buildGrid() {
 // ------------------------------
 function getColor(v) {
     v = Math.max(0, Math.min(1, v));
-
-    // 0→0.5 = red → orange
-    // 0.5→1 = orange → green
     let r, g, b = 0;
 
-    if (v < 0.5) {
-        r = 255;
-        g = Math.floor(510 * v); // 0→255
+    if (v < (1/3)) {
+        r = 218;
+        g = 66;
+        b = 66;
+    } else if (v < (2/3)) {
+        r = 218;
+        g = 139;
+        b = 66;
     } else {
-        r = Math.floor(255 - 510 * (v - 0.5)); // 255→0
-        g = 255;
+        r = 104;
+        g = 172;
+        b = 92;
     }
 
-    return `rgb(${r},${g},0)`;
+    return `rgb(${r},${g},${b})`;
 }
 
 // ------------------------------
@@ -67,7 +70,7 @@ function updateGridValues() {
             const cell = document.getElementById(`cell-${i}-${j}`);
             if (!cell) continue;
 
-            const label = gridLabels[i][j];
+            const label = gridLabels[j][i];
             const val = gridValues[i][j];
 
             cell.textContent = `${label}: ${val}`;

@@ -58,22 +58,16 @@ bool PrimeRocket()
 	DataValues* data = DataValues::Get();
 	if(data->isSRADConnected)
 	{
-		char dataToSend[9];
-		uint32_t dataLength = (uint32_t)sizeof(dataToSend);
-		char dataLengthArray[5];
-		memcpy(&dataLengthArray, &dataLength, 4);
-
-		std::string header = std::string("C_ST") + std::string(dataLengthArray);
-		size_t bytesWrittenHeader;
-
-		bytesWrittenHeader = data->hSerialSRAD->write(header);
+		uint8_t dataToSend[8];
+		int32_t dataLength = sizeof(dataToSend);
 		
-		size_t bytesWrittenData;
-		memcpy(dataToSend, &(data->fuse_delay), 4);
-		memcpy(dataToSend + 4, &(data->launch_altitude), 4);
+		memcpy(&dataToSend[0], &(data->fuse_delay), 4);
+		memcpy(&dataToSend[4], &(data->launch_altitude), 4);
+		
 
-		bytesWrittenData = data->hSerialSRAD->write(std::string(dataToSend));
-		return true;
+		return 	SerialHandling::SendSRADData("C_ST") && 
+				SerialHandling::SendSRADData(reinterpret_cast<uint8_t*>(&dataLength), sizeof(dataLength)) && 
+				SerialHandling::SendSRADData(dataToSend, dataLength);
 	}	
 	return false;
 }
@@ -83,9 +77,7 @@ bool LaunchRocket()
 	DataValues* data = DataValues::Get();
 	if(data->isSRADConnected)
 	{
-		std::string dataToSend = "C_LR";
-		size_t bytesWritten = data->hSerialSRAD->write(dataToSend);
-		return bytesWritten == sizeof(dataToSend);
+		return SerialHandling::SendSRADData("C_LR");
 	}
 	return false;
 }
@@ -105,23 +97,23 @@ int main()
 	webServerThread.detach();
 
 	//FInd correct serial locations
-	std::string SRADSerialLoc = "";
-	std::string TeleBtSerialLoc = "";
-	serial::Serial* hSerialSRAD = nullptr;
-	serial::Serial* hSerialTeleBT = nullptr;
+	std::string SRADSerialLoc;
+	std::string TeleBtSerialLoc;
+	serial::Serial hSerialSRAD;
+	serial::Serial hSerialTeleBT;
 
 	serialhandler->FindSerialLocations(&SRADSerialLoc, &TeleBtSerialLoc);
 
 	//SERIAL INITIALIZATION
-	if (SRADSerialLoc == "" || TeleBtSerialLoc == "") {
-		std::cout << "Failed to find serial ports, aborting serial communication." << std::endl;
+	if (SRADSerialLoc == "") {
+		std::cout << "Failed to find SRAD serial port, aborting serial communication." << std::endl;
 	} else {
-		if (serialhandler->CreateSerialFile(hSerialSRAD, SRADSerialLoc))
+		if (serialhandler->CreateSerialFile(&hSerialSRAD, SRADSerialLoc))
 		{
 			data->prime_rocket = PrimeRocket;
 			data->launch_rocket = LaunchRocket;
 
-			data->hSerialSRAD = hSerialSRAD;
+			data->hSerialSRAD = &hSerialSRAD;
 
 			std::thread serialThreadSRAD(&SerialHandling::ProcessSerialDataSRAD, serialhandler);
 
@@ -131,10 +123,14 @@ int main()
 		{
 			std::cout << "Failed to create SRAD serial communication, aborting." << std::endl;
 		}
+	}
 
-		if (serialhandler->CreateSerialFile(hSerialTeleBT, TeleBtSerialLoc))
+	if (TeleBtSerialLoc == "") {
+		std::cout << "Failed to find TeleBT serial port, aborting serial communication." << std::endl;
+	} else {
+		if (serialhandler->CreateSerialFile(&hSerialTeleBT, TeleBtSerialLoc))
 		{
-			std::thread serialThreadTeleBT(&SerialHandling::ProcessSerialDataTeleBT, serialhandler, hSerialTeleBT);
+			std::thread serialThreadTeleBT(&SerialHandling::ProcessSerialDataTeleBT, serialhandler, &hSerialTeleBT);
 
 			serialThreadTeleBT.detach();
 		} 
@@ -210,8 +206,8 @@ int main()
 	}
 
 	gui->Shutdown();
-	if (hSerialSRAD != nullptr) hSerialSRAD->close();
-	if (hSerialTeleBT != nullptr) hSerialTeleBT->close();
+	if (hSerialSRAD.isOpen()) hSerialSRAD.close();
+	if (hSerialTeleBT.isOpen()) hSerialTeleBT.close();
 
 	std::ofstream outputFile;
 	outputFile.open("DATA.csv", std::ios::out); 

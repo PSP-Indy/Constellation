@@ -531,7 +531,7 @@ void UI::Update()
 		ImPlot::PopColormap();
 	}
 
-	if(rocket_data->coundown_start_time != 0L) 
+	if(rocket_data->coundown_start_time != 0L && rocket_data->launch_time == 0L) 
 	{
 		time_t current_time_t = time(NULL);
 		int time_since_countdown = difftime(rocket_data->coundown_start_time, current_time_t);

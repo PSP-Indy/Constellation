@@ -1,20 +1,21 @@
 #include <SPI.h>
 #include <LoRa.h>
 #include <time.h>
-#include <cstdint>
+#include <stdint.h>
 
-#define RELAY_PIN 24
-#define CONN_PIN 23
+#define RELAY_PIN 12
+#define CONN_PIN 13
 
 bool successful_connection = false;
 bool rocket_primed = false;
 bool launched = false;
 bool launch_started = false;
-bool fuse_off = false;
+bool fuse_off = true;
 bool waitingOnLoraHandling = false;
 
 int32_t fuse_time;
-int32_t message_size;
+
+int32_t expectedNextMessageSize;
 
 unsigned long last_successful_ping = 0;
 unsigned long previous = 0;
@@ -50,7 +51,7 @@ float CharStringToFloat(const char* charString, int idx)
 
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   while (!Serial);
   identificationPacket[4] = (char)0x04;
   Serial.print(identificationPacket);  
@@ -58,12 +59,11 @@ void setup() {
 
   pinMode(RELAY_PIN, OUTPUT);
   pinMode(CONN_PIN, OUTPUT);
-  pinMode(8, OUTPUT);
 }
 
 void loop() {
   //Run when serial data is available
-  if (Serial.available() == 9)
+  if (Serial.available())
   {
     handleComputerSerialData();
   }
@@ -72,7 +72,7 @@ void loop() {
   if ((millis() - previous >= 1000) && !(Serial.available() > 0))
   {
     previous = millis();
-    sendMessage("C_SC", {});
+    sendMessage("C_SC", { });
   }
 
   //Check for LoRa Packets and handle them if one is recieved
@@ -80,11 +80,11 @@ void loop() {
 
   if (waitingOnLoraHandling) 
   {
-    handleLoRaPacket(packetSize);
+    handleLoRaPacket(packetSize, expectedNextMessageSize);
   }
   else
   {
-    checkForLoRaPacket(packetSize);
+    expectedNextMessageSize = checkForLoRaPacket(packetSize);
   }
   
   //Self explanatory
@@ -100,25 +100,26 @@ void loop() {
     successful_connection = true;
   }
 
-  digitalWrite(CONN_PIN, !successful_connection);
+  digitalWrite(CONN_PIN, successful_connection);
+  digitalWrite(RELAY_PIN, !fuse_off);
 }
 
 void handleComputerSerialData()
 {
-  char command_buffer[9];
-  Serial.readBytes(command_buffer, 9);
+  char command_buffer[5];
+  while (Serial.available() != 4) {}
+  Serial.readBytes(command_buffer, 4);
   String header;
-  int32_t message_size;    
   for (int32_t i = 0; i < 4; i++)
   {
     header += command_buffer[i];
   }
-  memcpy(&message_size, command_buffer + 4, 4);
 
   //Respond to connection check requests
   if (header == "C_SS") 
   {
     last_successful_ping = millis();
+    return;
   }
 
   //Launch the rocket
@@ -128,13 +129,17 @@ void handleComputerSerialData()
     {
       LaunchRocket();
     }
+    return;
   }
 
   //This is ok to be, and should be, blocking because this is during initialization. Theoretically should only run once at a commanded time.
   //Should this lead to issues, this should be turned into a flag based system, like the upstream telemetry handler.
   if (header == "C_ST") 
   {
-    while (Serial.available() != message_size) {}
+    while (Serial.available() != 4) {}
+
+    int32_t message_size;
+    Serial.readBytes(reinterpret_cast<char*>(&message_size), 4);
 
     unsigned char* initialize_data_packet = new unsigned char[message_size];
 
@@ -142,6 +147,7 @@ void handleComputerSerialData()
 
     PrimeRocket(initialize_data_packet);
     rocket_primed = true;
+    return;
   }
 
   //Handle Testing Declaration Cases
@@ -167,10 +173,11 @@ void handleComputerSerialData()
     altitudeTestingAccAvg = 0;
     positionTestingStartX = currentX;
     positionTestingStartY = currentY;
+    return;
   }
 }
 
-void handleLoRaPacket(int packetSize)
+void handleLoRaPacket(int packetSize, uint32_t message_size)
 {
   if (packetSize == message_size)
   {
@@ -286,10 +293,11 @@ void handleTestingData(String serialData) {
   }
 }
 
-void checkForLoRaPacket(int packetSize)
+int32_t checkForLoRaPacket(int packetSize)
 {
   if (packetSize == 4) 
   {
+    int32_t message_size;
     char message_size_string[4];
     for (int i = 0; i < 4; i++)
     {
@@ -298,6 +306,7 @@ void checkForLoRaPacket(int packetSize)
     memcpy(&message_size, message_size_string, 4);
 
     waitingOnLoraHandling = true;
+    return message_size;
   }
 }
 
@@ -309,26 +318,22 @@ void turnOffFuseIfExpected()
       delay(100);
       digitalWrite(RELAY_PIN, LOW);
       fuse_off = true;
-      sendMessage("C_FO", {});
+      sendMessage("C_FO", { });
     }
   }
 }
 
 void sendMessage(String header, String message)
 {
-  char header_packet[9];
-  char message_size[4];
+  uint8_t packet[8];
 
-  char header_value[5];
-  strcpy(header_value, header.c_str());
+  memcpy(packet, header.c_str(), 4);
 
-  memcpy(header_packet, header_value, 4);
+  uint32_t message_length = message.length();
+  memcpy(packet + 4, &message_length, sizeof(uint32_t));
 
-  int message_length = message.length();
-  memcpy(header_packet + 4, &message_length, 4);
-
-  Serial.print(header);
-  Serial.print(message);
+  Serial.write(packet, 8);
+  Serial.write(message.c_str(), message_length);
 }
 
 void LaunchRocket()
@@ -337,10 +342,10 @@ void LaunchRocket()
   Serial.flush();
 
   delay(5000);
-  
+
+  fuse_off = false;
   turn_off_fuse_time = millis() + (fuse_time * 1000);
 
-  digitalWrite(RELAY_PIN, HIGH);
   sendMessage("C_FI", {});
   launched = true;
 }
@@ -349,9 +354,9 @@ void PrimeRocket(const unsigned char* initialize_data_packet) {
   delay(100);
   memcpy(&fuse_time, initialize_data_packet, 4);
 
-  LoRa.beginPacket();
-  LoRa.write(initialize_data_packet, sizeof(initialize_data_packet));
-  LoRa.endPacket();
+  // LoRa.beginPacket();
+  // LoRa.write(initialize_data_packet, sizeof(initialize_data_packet));
+  // LoRa.endPacket();
 
   sendMessage("C_TS", {});
 }

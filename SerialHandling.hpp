@@ -23,7 +23,8 @@ public:
 	void FakeData();
     void ProcessSerialDataTeleBT(serial::Serial* hSerial);
     void ProcessSerialDataSRAD();
-    static bool SendSerialData(serial::Serial* hSerial, const char* dataPacket);
+    static bool SendRawSerialData(serial::Serial* hSerial, const uint8_t* dataPacket, size_t length);
+    static bool SendSRADData(const uint8_t* dataPacket, size_t length);
     static bool SendSRADData(const char* data);
     void FindSerialLocations(std::string* sradloc, std::string* telebtloc);
     bool CreateSerialFile(serial::Serial* hSerial, std::string serialLoc);
