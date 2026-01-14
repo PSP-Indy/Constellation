@@ -2,7 +2,14 @@
 #include <LoRa.h>
 #include <time.h>
 #include <stdint.h>
+
+#define ARDUINO_BUILD 1
+
+#if ARDUINO_BUILD == 0
 #include <avr/wdt.h>
+#else
+#include <hardware/watchdog.h>
+#endif
 
 #define RELAY_PIN 12
 #define CONN_PIN 13
@@ -53,7 +60,7 @@ float CharStringToFloat(const char* charString, int idx)
 
 
 void setup() {
-  wdt_disable();
+  watchdogDisable();
   Serial.begin(115200);
   while (!Serial);
 
@@ -107,7 +114,7 @@ void loop() {
   }
 
   if (successful_connection && !wdt_enabled) {
-    wdt_enable(WDTO_4S);
+    watchdogEnable();
     wdt_enabled = true;
   }
 
@@ -129,7 +136,7 @@ void handleComputerSerialData()
   //Respond to connection check requests
   if (header == "C_SS") 
   {
-    wdt_reset();
+    watchdogReset();
     last_successful_ping = millis();
     return;
   }
@@ -320,6 +327,7 @@ int32_t checkForLoRaPacket(int packetSize)
     waitingOnLoraHandling = true;
     return message_size;
   }
+  return 0;
 }
 
 void TurnOffFuseIfExpected()
@@ -376,4 +384,31 @@ void PrimeRocket(const unsigned char* initialize_data_packet) {
   // LoRa.endPacket();
 
   sendMessage("C_TS", {});
+}
+
+void watchdogEnable() 
+{
+  #if ARDUINO_BUILD == 0
+  wdt_enable(WDTO_4S);
+  #else
+  watchdog_enable(4000, 1);
+  #endif
+}
+
+void watchdogDisable() 
+{
+  #if ARDUINO_BUILD == 0
+  wdt_disable();
+  #else
+  watchdog_disable();
+  #endif
+}
+
+void watchdogReset() 
+{
+  #if ARDUINO_BUILD == 0
+  wdt_reset();
+  #else
+  watchdog_update();
+  #endif
 }
