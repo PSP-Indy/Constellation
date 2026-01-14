@@ -119,7 +119,9 @@ void SerialHandling::ProcessSerialDataSRAD()
 		uint8_t commandBuffer[9];
 
 		int message_size = 0;
-		bytesRead = hSerial->read(commandBuffer, 8);
+		try {
+			bytesRead = hSerial->read(commandBuffer, 8);
+		} catch (const serial::IOException& e) { return; }
 
 		if (bytesRead != 8) continue;
 		std::string command(reinterpret_cast<const char*>(commandBuffer), bytesRead);
@@ -128,7 +130,10 @@ void SerialHandling::ProcessSerialDataSRAD()
 		std::string header = command.substr(0,4);
 
 		std::string messageBuffer;
-		bytesRead = hSerial->read(messageBuffer, messageSize);
+		try {
+			bytesRead = hSerial->read(messageBuffer, messageSize);
+		} catch (const serial::IOException& e) { return; }
+
 		if (bytesRead != messageSize) continue;
 
 		if(header == "C_SC") 
@@ -245,12 +250,16 @@ void SerialHandling::FindSerialLocations(std::string* sradloc, std::string* tele
 		try
 		{
 			serial::Serial port(device.port, 115200, serial::Timeout::simpleTimeout(1000));
+
+			if (!port.isOpen()) port.open();
 			
 			std::string regPacket;
 			port.read(regPacket, 8);
 
 			if (regPacket.at(4) == 0x01) *telebtloc = std::string(device.port.c_str());
 			if (regPacket.at(0) == 'C') *sradloc = std::string(device.port.c_str());
+
+			port.close();
 		}
 		catch(const serial::IOException)
 		{
@@ -275,6 +284,9 @@ bool SerialHandling::CreateSerialFile(serial::Serial* hSerial, std::string seria
 			1000,  // write_timeout_constant
 			0      // write_timeout_multiplier
 		);
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
 		hSerial->open();
 		return hSerial->isOpen();
 	}
