@@ -120,6 +120,13 @@ void SerialHandling::ProcessSerialDataSRAD()
 		size_t bytesRead;
 		uint8_t commandBuffer[9];
 
+		while (!hSerial->available());
+		
+		if (hSerial->available() != 8) {
+			std::cout << "SERIAL MESSAGE" << hSerial->read(hSerial->available()) << std::endl;
+			continue;
+		}
+
 		try {
 			bytesRead = hSerial->read(commandBuffer, 8);
 		} catch (const serial::IOException& e) { return; }

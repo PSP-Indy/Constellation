@@ -2,6 +2,7 @@
 #include <LoRa.h>
 #include <time.h>
 #include <stdint.h>
+#include <LiquidCrystal.h>
 
 #define ARDUINO_BUILD 1
 
@@ -51,6 +52,8 @@ float currentZ;
 
 String activeTestingMode = "T_NA";
 
+LiquidCrystal textDisplay(12, 11, 5, 4, 3, 2);
+
 float CharStringToFloat(const char* charString, int idx) 
 {
   float cpy_flt;
@@ -64,7 +67,14 @@ void setup() {
   Serial.begin(115200);
   while (!Serial);
 
-  LoRa.begin(915E6);
+  if (!LoRa.begin(915E6)) {
+    Serial.write("FAILED LORA");
+    while (true);
+  }
+
+  textDisplay.begin(16,2);
+  textDisplay.setCursor(0, 0);
+  textDisplay.print("RSSI (dBm)")
 
   pinMode(RELAY_PIN, OUTPUT);
   pinMode(CONN_PIN, OUTPUT);
@@ -113,16 +123,23 @@ void loop() {
     successful_connection = true;
   }
 
+  //Set up watchdog when connection is scuccessful
   if (successful_connection && !wdt_enabled) {
     watchdogEnable();
     wdt_enabled = true;
   }
 
+  //Signal strength for direction tuning
+  int loraStrength = LoRa.rssi();
+  textDisplay.setCursor(0, 1);
+  textDisplay.print(loraStrength);
+
+  //DEBUGGING PINS
   digitalWrite(CONN_PIN, successful_connection);
   digitalWrite(RELAY_PIN, !fuse_off);
 }
 
-void handleComputerSerialData()
+void handleComputerSerialData()s
 {
   char command_buffer[5];
   while (Serial.available() != 4) {}
@@ -379,9 +396,9 @@ void PrimeRocket(const unsigned char* initialize_data_packet) {
   delay(100);
   memcpy(&fuse_time, initialize_data_packet, 4);
 
-  // LoRa.beginPacket();
-  // LoRa.write(initialize_data_packet, sizeof(initialize_data_packet));
-  // LoRa.endPacket();
+  LoRa.beginPacket();
+  LoRa.write(initialize_data_packet, sizeof(initialize_data_packet));
+  LoRa.endPacket();
 
   sendMessage("C_TS", {});
 }
