@@ -193,7 +193,7 @@ void SerialHandling::ProcessSerialDataSRAD()
 			data->testingData = messageBuffer;
 		}
 
-		if(header == "C_UT" && message_size >= 44) 
+		if(header == "C_UT" && messageSize >= 44) 
 		{			
 			valueLock->lock();
 			
@@ -202,7 +202,7 @@ void SerialHandling::ProcessSerialDataSRAD()
 			data->go_grid_values[1][0] = StringToFloat(messageBuffer, 36);
 			data->go_grid_values[1][1] = StringToFloat(messageBuffer, 40);
 
-			if (message_size >= 45 && messageBuffer[45] != '\0')
+			if (messageSize >= 45 && messageBuffer[45] != '\0')
 			{
 				data->go_grid_values[4][0] = static_cast<float>((bool)messageBuffer[45]);
 			}
