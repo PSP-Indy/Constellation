@@ -55,7 +55,7 @@ void SerialHandling::ProcessSerialDataTeleBT(serial::Serial* hSerial)
 		std::string headerSubPacket(reinterpret_cast<const char*>(headerSubPacketBuffer), bytesRead);
 		if (headerSubPacket != "TELEM") continue;
 
-		size_t sizeSubPacketSize = 3;
+		size_t sizeSubPacketSize = 6;
 		uint8_t sizeSubPacketBuffer[7];
 
 		bytesRead = hSerial->read(sizeSubPacketBuffer, sizeSubPacketSize);
@@ -120,7 +120,6 @@ void SerialHandling::ProcessSerialDataSRAD()
 		size_t bytesRead;
 		uint8_t commandBuffer[9];
 
-		int message_size = 0;
 		try {
 			bytesRead = hSerial->read(commandBuffer, 8);
 		} catch (const serial::IOException& e) { return; }
@@ -132,6 +131,7 @@ void SerialHandling::ProcessSerialDataSRAD()
 		std::string header = command.substr(0,4);
 
 		std::string messageBuffer;
+		
 		try {
 			bytesRead = hSerial->read(messageBuffer, messageSize);
 		} catch (const serial::IOException& e) { return; }
