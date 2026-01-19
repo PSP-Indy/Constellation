@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <LiquidCrystal.h>
 
-#define ARDUINO_BUILD 1
+#define ARDUINO_BUILD 0
 
 #if ARDUINO_BUILD == 0
 #include <avr/wdt.h>
@@ -12,8 +12,7 @@
 #include <hardware/watchdog.h>
 #endif
 
-#define RELAY_PIN 12
-#define CONN_PIN 13
+#define RELAY_PIN 30
 
 bool successful_connection = false;
 bool rocket_primed = false;
@@ -21,6 +20,7 @@ bool launched = false;
 bool fuse_off = true;
 bool waitingOnLoraHandling = false;
 bool wdt_enabled = false;
+bool lora_connected = false;
 
 int32_t fuse_time;
 
@@ -67,17 +67,20 @@ void setup() {
   Serial.begin(115200);
   while (!Serial);
 
+  textDisplay.begin(16,2);
+
   if (!LoRa.begin(915E6)) {
-    Serial.write("FAILED LORA");
-    while (true);
+    textDisplay.print("FAILED LORA");
+    lora_connected = false;
+  }
+  else
+  {
+    lora_connected = true;
+    textDisplay.setCursor(0, 0);
+    textDisplay.print("RSSI (dBm)");
   }
 
-  textDisplay.begin(16,2);
-  textDisplay.setCursor(0, 0);
-  textDisplay.print("RSSI (dBm)")
-
   pinMode(RELAY_PIN, OUTPUT);
-  pinMode(CONN_PIN, OUTPUT);
 }
 
 void loop() {
@@ -90,20 +93,29 @@ void loop() {
   //Send connection confirmation check
   if ((millis() - previous >= 1000) && !(Serial.available() > 0))
   {
+    if (LoRa.begin(915E6) && !lora_connected) {
+      lora_connected = true;
+      textDisplay.setCursor(0, 0);
+      textDisplay.print("RSSI (dBm)");
+    }
+
     previous = millis();
     sendMessage("C_SC", { });
   }
 
   //Check for LoRa Packets and handle them if one is recieved
-  int packetSize = LoRa.parsePacket();
+  if (lora_connected)
+  {
+    int packetSize = LoRa.parsePacket();
 
-  if (waitingOnLoraHandling) 
-  {
-    handleLoRaPacket(packetSize, expectedNextMessageSize);
-  }
-  else
-  {
-    expectedNextMessageSize = checkForLoRaPacket(packetSize);
+    if (waitingOnLoraHandling) 
+    {
+      handleLoRaPacket(packetSize, expectedNextMessageSize);
+    }
+    else
+    {
+      expectedNextMessageSize = checkForLoRaPacket(packetSize);
+    }
   }
   
   //Self explanatory
@@ -130,16 +142,17 @@ void loop() {
   }
 
   //Signal strength for direction tuning
-  int loraStrength = LoRa.rssi();
-  textDisplay.setCursor(0, 1);
-  textDisplay.print(loraStrength);
+  if (lora_connected)
+  {
+    int loraStrength = LoRa.rssi();
+    textDisplay.setCursor(0, 1);
+    textDisplay.print(loraStrength);
+  }
 
-  //DEBUGGING PINS
-  digitalWrite(CONN_PIN, successful_connection);
   digitalWrite(RELAY_PIN, !fuse_off);
 }
 
-void handleComputerSerialData()s
+void handleComputerSerialData()
 {
   char command_buffer[5];
   while (Serial.available() != 4) {}
@@ -187,13 +200,14 @@ void handleComputerSerialData()s
   }
 
   //Handle Testing Declaration Cases
-  if (header.charAt(0) == 'T')
+  if (header.charAt(0) == 'T' && lora_connected)
   {
     activeTestingMode = header;
 
     char testingModeCharArray[5];
     header.toCharArray(testingModeCharArray, 4);
     unsigned char* testingModeCharArrayData = (unsigned char*)testingModeCharArray;
+    
     LoRa.beginPacket();
     LoRa.write(testingModeCharArrayData, sizeof(testingModeCharArrayData));
     LoRa.endPacket();
@@ -231,7 +245,6 @@ void handleLoRaPacket(int packetSize, uint32_t message_size)
 }
 
 void handleTestingData(String serialData) {
-
   currentX = CharStringToFloat(serialData.c_str(), 12);
   currentY = CharStringToFloat(serialData.c_str(), 16);
   currentZ = CharStringToFloat(serialData.c_str(), 20);
@@ -412,6 +425,7 @@ bool readyForLaunch()
   ready &= successful_connection;
   ready &= fuse_off;
   ready &= (fuse_time > 0);
+  ready &= lora_connected;
 
   return ready;
 }

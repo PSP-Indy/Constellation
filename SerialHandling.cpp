@@ -120,12 +120,7 @@ void SerialHandling::ProcessSerialDataSRAD()
 		size_t bytesRead;
 		uint8_t commandBuffer[9];
 
-		while (!hSerial->available());
-		
-		if (hSerial->available() != 8) {
-			std::cout << "SERIAL MESSAGE" << hSerial->read(hSerial->available()) << std::endl;
-			continue;
-		}
+		while (hSerial->available() < 8);
 
 		try {
 			bytesRead = hSerial->read(commandBuffer, 8);
@@ -255,21 +250,30 @@ void SerialHandling::FindSerialLocations(std::string* sradloc, std::string* tele
 	while( iter != devices_found.end() )
 	{
 		serial::PortInfo device = *iter++;
-
-		serial::Serial port(device.port, 115200, serial::Timeout::simpleTimeout(1000));
-		
-		port.setDTR(false);
-
-		std::this_thread::sleep_for(std::chrono::milliseconds(500));
-
 		std::string regPacket;
-		size_t bytesRead = port.read(regPacket, 8);
-		port.close();
-
-		if (bytesRead >= 5)
+		
+		try 
 		{
-			if (regPacket.at(4) == 0x01) *telebtloc = device.port;
-			if (regPacket.at(0) == 'C') *sradloc = device.port;
+
+			serial::Serial port(device.port, 115200, serial::Timeout::simpleTimeout(1000));
+			
+			port.setDTR(false);
+
+			std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+			size_t bytesRead = port.read(regPacket, 8);
+			port.close();
+
+			if (bytesRead >= 5)
+			{
+				if (regPacket.at(4) == 0x01) *telebtloc = device.port;
+				if (regPacket.at(0) == 'C') *sradloc = device.port;
+			}
+		}
+		catch (const std::exception& e)
+		{
+			std::cout << "Exception during port scan: " << e.what() << " at port " << device.port << std::endl;
+			continue;
 		}
 	}
 }
