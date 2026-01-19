@@ -74,8 +74,7 @@ bool PrimeRocket()
 
 bool LaunchRocket()
 {
-	DataValues* data = DataValues::Get();
-	if(data->isSRADConnected)
+	if(DataValues::Get()->isSRADConnected)
 	{
 		return SerialHandling::SendSRADData("C_LR");
 	}

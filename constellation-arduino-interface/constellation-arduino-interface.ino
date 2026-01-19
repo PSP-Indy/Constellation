@@ -381,7 +381,7 @@ void StartRocketLaunch()
 
 void LaunchRocketIfExpected()
 {
-  if (launch_time != 0 && millis() >= launch_time) 
+  if (launch_time != 0 && millis() >= launch_time && readyForLaunch()) 
   {
     launch_time = 0;
     fuse_off = false;
@@ -401,6 +401,19 @@ void PrimeRocket(const unsigned char* initialize_data_packet) {
   LoRa.endPacket();
 
   sendMessage("C_TS", {});
+}
+
+bool readyForLaunch()
+{
+  bool ready = true;
+
+  ready &= rocket_primed;
+  ready &= wdt_enabled;
+  ready &= successful_connection;
+  ready &= fuse_off;
+  ready &= (fuse_time > 0);
+
+  return ready;
 }
 
 void watchdogEnable() 
