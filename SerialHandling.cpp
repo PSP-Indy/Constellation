@@ -247,19 +247,19 @@ void SerialHandling::FindSerialLocations(std::string* sradloc, std::string* tele
 
 	std::vector<serial::PortInfo>::iterator iter = devices_found.begin();
 
-	while( iter != devices_found.end() )
+	while ( iter != devices_found.end() )
 	{
 		serial::PortInfo device = *iter++;
 		std::string regPacket;
 		
 		try 
 		{
+			serial::Serial port(device.port, 115200, serial::Timeout::simpleTimeout(10000));
 
-			serial::Serial port(device.port, 115200, serial::Timeout::simpleTimeout(1000));
-			
-			port.setDTR(false);
+			port.setDTR(false);		
+			port.setRTS(false);	
 
-			std::this_thread::sleep_for(std::chrono::milliseconds(500));
+			while (!port.available());
 
 			size_t bytesRead = port.read(regPacket, 8);
 			port.close();
@@ -290,7 +290,6 @@ bool SerialHandling::CreateSerialFile(serial::Serial* hSerial, std::string seria
 		serial::Timeout timeout = serial::Timeout::simpleTimeout(1000);
 		hSerial->setTimeout(timeout);
 		hSerial->open();
-		hSerial->setDTR(false);
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(500));
 		

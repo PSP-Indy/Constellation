@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <LiquidCrystal.h>
 
-#define ARDUINO_BUILD 0
+#define ARDUINO_BUILD 1
 
 #if ARDUINO_BUILD == 0
 #include <avr/wdt.h>
@@ -65,7 +65,6 @@ float CharStringToFloat(const char* charString, int idx)
 void setup() {
   watchdogDisable();
   Serial.begin(115200);
-  while (!Serial);
 
   textDisplay.begin(16,2);
 
@@ -81,6 +80,7 @@ void setup() {
   }
 
   pinMode(RELAY_PIN, OUTPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
 }
 
 void loop() {
@@ -91,7 +91,7 @@ void loop() {
   }
 
   //Send connection confirmation check
-  if ((millis() - previous >= 1000) && !(Serial.available() > 0))
+  if ((millis() - previous >= 1000))
   {
     if (LoRa.begin(915E6) && !lora_connected) {
       lora_connected = true;
@@ -136,7 +136,7 @@ void loop() {
   }
 
   //Set up watchdog when connection is scuccessful
-  if (successful_connection && !wdt_enabled) {
+  if (successful_connection && !wdt_enabled && millis() > 6000) {
     watchdogEnable();
     wdt_enabled = true;
   }
@@ -150,6 +150,7 @@ void loop() {
   }
 
   digitalWrite(RELAY_PIN, !fuse_off);
+  digitalWrite(LED_BUILTIN, successful_connection);  
 }
 
 void handleComputerSerialData()
