@@ -254,12 +254,22 @@ void SerialHandling::FindSerialLocations(std::string* sradloc, std::string* tele
 		
 		try 
 		{
-			serial::Serial port(device.port, 115200, serial::Timeout::simpleTimeout(10000));
+			serial::Serial port(device.port, 115200, serial::Timeout::simpleTimeout(1000));
 
-			port.setDTR(false);		
-			port.setRTS(false);	
+			port.setDTR(true);
+			port.setRTS(true);
 
-			while (!port.available());
+			std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+			port.flush();
+			if (port.available()) {
+                std::string garbage;
+                port.read(garbage, port.available());
+            }
+
+            for (int i = 0; i < 15 && !port.available(); i++) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(200));
+            }
 
 			size_t bytesRead = port.read(regPacket, 8);
 			port.close();
@@ -291,7 +301,20 @@ bool SerialHandling::CreateSerialFile(serial::Serial* hSerial, std::string seria
 		hSerial->setTimeout(timeout);
 		hSerial->open();
 
-		std::this_thread::sleep_for(std::chrono::milliseconds(500));
+		hSerial->setDTR(true);
+		hSerial->setRTS(true);
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+		hSerial->flush();
+		if (hSerial->available()) {
+			std::string garbage;
+			hSerial->read(garbage, hSerial->available());
+		}
+		
+		for (int i = 0; i < 15 && !hSerial->available(); i++) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(200));
+		}
 		
 		return hSerial->isOpen();
 	}
