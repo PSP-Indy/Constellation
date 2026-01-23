@@ -2,7 +2,7 @@
 #include <LoRa.h>
 #include <time.h>
 #include <stdint.h>
-#include <LiquidCrystal.h>
+//#include <LiquidCrystal.h>
 
 #define ARDUINO_BUILD 1
 
@@ -12,7 +12,7 @@
 #include <hardware/watchdog.h>
 #endif
 
-#define RELAY_PIN 30
+#define RELAY_PIN 28
 
 bool successful_connection = false;
 bool rocket_primed = false;
@@ -21,6 +21,7 @@ bool fuse_off = true;
 bool waitingOnLoraHandling = false;
 bool wdt_enabled = false;
 bool lora_connected = false;
+bool first_connection_ping = true;
 
 int32_t fuse_time;
 
@@ -52,7 +53,7 @@ float currentZ;
 
 String activeTestingMode = "T_NA";
 
-LiquidCrystal textDisplay(12, 11, 5, 4, 3, 2);
+//LiquidCrystal textDisplay(12, 11, 5, 4, 3, 2);
 
 float CharStringToFloat(const char* charString, int idx) 
 {
@@ -61,22 +62,22 @@ float CharStringToFloat(const char* charString, int idx)
   return cpy_flt;
 }
 
-
 void setup() {
   watchdogDisable();
   Serial.begin(115200);
 
-  textDisplay.begin(16,2);
-
-  if (!LoRa.begin(915E6)) {
-    textDisplay.print("FAILED LORA");
-    lora_connected = false;
+  //textDisplay.begin(16,2);
+  LoRa.setPins(7, 13, 12);
+  LoRa.setSPIFrequency(4000000);
+  if (LoRa.begin(915E6)) {
+    //textDisplay.setCursor(0, 0);
+    //textDisplay.print("RSSI (dBm)");
+    lora_connected = true;
   }
   else
   {
-    lora_connected = true;
-    textDisplay.setCursor(0, 0);
-    textDisplay.print("RSSI (dBm)");
+    //textDisplay.print("FAILED LORA");
+    lora_connected = false;
   }
 
   pinMode(RELAY_PIN, OUTPUT);
@@ -93,14 +94,22 @@ void loop() {
   //Send connection confirmation check
   if ((millis() - previous >= 1000))
   {
-    if (LoRa.begin(915E6) && !lora_connected) {
+    if (!lora_connected && !first_connection_ping && LoRa.begin(915E6)) {
       lora_connected = true;
-      textDisplay.setCursor(0, 0);
-      textDisplay.print("RSSI (dBm)");
+      sendMessage("C_SC", "S_LC");
     }
-
+    else
+    {
+      if (lora_connected && first_connection_ping) 
+      {
+        sendMessage("C_SC", "S_LC");
+      }
+      
+      sendMessage("C_SC", {});
+    }
+    
     previous = millis();
-    sendMessage("C_SC", { });
+    
   }
 
   //Check for LoRa Packets and handle them if one is recieved
@@ -141,16 +150,8 @@ void loop() {
     wdt_enabled = true;
   }
 
-  //Signal strength for direction tuning
-  if (lora_connected)
-  {
-    int loraStrength = LoRa.rssi();
-    textDisplay.setCursor(0, 1);
-    textDisplay.print(loraStrength);
-  }
-
   digitalWrite(RELAY_PIN, !fuse_off);
-  digitalWrite(LED_BUILTIN, successful_connection);  
+  digitalWrite(LED_BUILTIN, lora_connected);  
 }
 
 void handleComputerSerialData()
@@ -169,6 +170,12 @@ void handleComputerSerialData()
   {
     watchdogReset();
     last_successful_ping = millis();
+
+    if (first_connection_ping)
+    {
+      first_connection_ping = false;
+    }
+
     return;
   }
 

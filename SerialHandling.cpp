@@ -165,6 +165,11 @@ void SerialHandling::ProcessSerialDataSRAD()
 		{
 			valueLock->lock();
 
+			if(messageBuffer == "C_LC")
+			{
+				data->go_grid_values[4][1] = true;
+			}
+
 			data->launch_time = time(NULL);
 			data->go_grid_values[0][1] = 1;
 			data->last_ping = time(NULL);
@@ -187,6 +192,7 @@ void SerialHandling::ProcessSerialDataSRAD()
 		{
 			data->testingData = messageBuffer;
 		}
+
 
 		if(header == "C_UT" && messageSize >= 44) 
 		{			

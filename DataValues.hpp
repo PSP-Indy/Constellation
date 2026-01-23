@@ -83,7 +83,7 @@ public:
 		{"C_FI", "IMUT", "c2", "d2", "e2"},
 		{"C_FO", "AT_T", "c3", "d3", "e3"},
 		{"C_SC", "AT_V", "c4", "d4", "e4"},
-		{"GPS ", "b5", "c5", "d5", "e5"}
+		{"GPS ", "LoRa", "c5", "d5", "e5"}
 	};
 
 	DataValues();
