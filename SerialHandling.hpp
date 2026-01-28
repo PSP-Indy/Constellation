@@ -39,16 +39,16 @@ private:
     }
 
     int32_t StringToUInt32(std::string string, int idx) {
-        const char* charString = string.substr(idx, 4).c_str(); 
-        int32_t cpy_int;
-        memcpy(&cpy_int, charString, 4);
+        const char* charString = string.c_str(); 
+        uint32_t cpy_int;
+        memcpy(&cpy_int, &charString[4], 4);
         return cpy_int;
     }
 
     int16_t  StringToUInt16(std::string string, int idx) {
         const char* charString = string.substr(idx, 2).c_str(); 
-        int16_t cpy_int;
-        memcpy(&cpy_int, charString, 2);
+        uint16_t cpy_int;
+        memcpy(&cpy_int, &charString[2], 2);
         return cpy_int;
     }
 

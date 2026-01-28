@@ -66,9 +66,7 @@ void setup() {
   watchdogDisable();
   Serial.begin(115200);
 
-  //textDisplay.begin(16,2);
-  LoRa.setPins(7, 13, 12);
-  LoRa.setSPIFrequency(4000000);
+  LoRa.setPins(7, 6, 1);
   if (LoRa.begin(915E6)) {
     //textDisplay.setCursor(0, 0);
     //textDisplay.print("RSSI (dBm)");
@@ -96,13 +94,13 @@ void loop() {
   {
     if (!lora_connected && !first_connection_ping && LoRa.begin(915E6)) {
       lora_connected = true;
-      sendMessage("C_SC", "S_LC");
+      sendMessage("C_SC", "C_LC");
     }
     else
     {
       if (lora_connected && first_connection_ping) 
       {
-        sendMessage("C_SC", "S_LC");
+        sendMessage("C_SC", "C_LC");
       }
       
       sendMessage("C_SC", {});

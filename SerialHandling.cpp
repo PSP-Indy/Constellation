@@ -110,6 +110,8 @@ void SerialHandling::ProcessSerialDataSRAD()
 {
 	DataValues* data = DataValues::Get();
 	std::mutex* valueLock = data->valueLock;
+
+	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 	
 	valueLock->lock();
 	serial::Serial* hSerial = data->hSerialSRAD;
@@ -144,6 +146,12 @@ void SerialHandling::ProcessSerialDataSRAD()
 		{
 			valueLock->lock();
 
+			if(messageBuffer == "C_LC")
+			{
+				std::cout << messageBuffer << std::endl;
+				data->go_grid_values[1][4] = 1;
+			}
+
 			data->isSRADConnected = true;
 			SendSRADData("C_SS");
 			data->last_ping = time(NULL);
@@ -164,11 +172,6 @@ void SerialHandling::ProcessSerialDataSRAD()
 		if(header == "C_FI") 
 		{
 			valueLock->lock();
-
-			if(messageBuffer == "C_LC")
-			{
-				data->go_grid_values[4][1] = true;
-			}
 
 			data->launch_time = time(NULL);
 			data->go_grid_values[0][1] = 1;
