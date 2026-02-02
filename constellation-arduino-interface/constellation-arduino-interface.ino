@@ -381,14 +381,14 @@ void TurnOffFuseIfExpected()
 
 void sendMessage(String header, String message)
 {
-  uint8_t packet[8];
+  uint8_t packet[6];
 
   memcpy(packet, header.c_str(), 4);
 
-  uint32_t message_length = message.length();
-  memcpy(packet + 4, &message_length, sizeof(uint32_t));
+  uint16_t message_length = message.length();
+  memcpy(packet + 4, &message_length, sizeof(uint16_t));
 
-  Serial.write(packet, 8);
+  Serial.write(packet, 6);
   Serial.write(message.c_str(), message_length);
 }
 

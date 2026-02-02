@@ -120,18 +120,18 @@ void SerialHandling::ProcessSerialDataSRAD()
 	while (true) 
 	{
 		size_t bytesRead;
-		uint8_t commandBuffer[9];
+		uint8_t commandBuffer[7];
 
-		while (hSerial->available() < 8);
+		while (hSerial->available() < 6);
 
 		try {
-			bytesRead = hSerial->read(commandBuffer, 8);
+			bytesRead = hSerial->read(commandBuffer, 6);
 		} catch (const serial::IOException& e) { return; }
 
-		if (bytesRead != 8) continue;
+		if (bytesRead != 6) continue;
 		std::string command(reinterpret_cast<const char*>(commandBuffer), bytesRead);
 
-		int messageSize = StringToUInt32(command, 4);
+		int messageSize = StringToUInt16(command, 4);
 		std::string header = command.substr(0,4);
 
 		std::string messageBuffer;

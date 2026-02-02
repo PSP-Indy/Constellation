@@ -38,17 +38,17 @@ private:
         return cpy_flt;
     }
 
-    int32_t StringToUInt32(std::string string, int idx) {
+    uint32_t StringToUInt32(std::string string, int idx) {
         const char* charString = string.c_str(); 
         uint32_t cpy_int;
-        memcpy(&cpy_int, &charString[4], 4);
+        memcpy(&cpy_int, &charString[idx], 4);
         return cpy_int;
     }
 
-    int16_t  StringToUInt16(std::string string, int idx) {
-        const char* charString = string.substr(idx, 2).c_str(); 
+    uint16_t  StringToUInt16(std::string string, int idx) {
+        const char* charString = string.c_str(); 
         uint16_t cpy_int;
-        memcpy(&cpy_int, &charString[2], 2);
+        memcpy(&cpy_int, &charString[idx], 2);
         return cpy_int;
     }
 
