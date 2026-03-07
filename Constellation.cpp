@@ -58,16 +58,13 @@ bool PrimeRocket()
 	DataValues* data = DataValues::Get();
 	if(data->isSRADConnected)
 	{
-		uint8_t dataToSend[8];
-		int32_t dataLength = sizeof(dataToSend);
+		uint8_t dataToSend[32];
 		
 		memcpy(&dataToSend[0], &(data->fuse_delay), 4);
 		memcpy(&dataToSend[4], &(data->launch_altitude), 4);
 		
-
 		return 	SerialHandling::SendSRADData("C_ST") && 
-				SerialHandling::SendSRADData(reinterpret_cast<uint8_t*>(&dataLength), sizeof(dataLength)) && 
-				SerialHandling::SendSRADData(dataToSend, dataLength);
+				SerialHandling::SendSRADData(dataToSend, 32);
 	}	
 	return false;
 }

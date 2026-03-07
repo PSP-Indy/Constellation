@@ -2,7 +2,6 @@
 #include <LoRa.h>
 #include <time.h>
 #include <stdint.h>
-//#include <LiquidCrystal.h>
 
 #define ARDUINO_BUILD 1
 
@@ -25,7 +24,7 @@ bool first_connection_ping = true;
 
 int32_t fuse_time;
 
-int32_t expectedNextMessageSize;
+int16_t expectedNextMessageSize;
 
 unsigned long last_successful_ping = 0;
 unsigned long previous = 0;
@@ -58,7 +57,7 @@ String activeTestingMode = "T_NA";
 float CharStringToFloat(const char* charString, int idx) 
 {
   float cpy_flt;
-  memcpy(&cpy_flt, charString, 4);
+  memcpy(&cpy_flt, charString + idx, 4);
   return cpy_flt;
 }
 
@@ -68,15 +67,9 @@ void setup() {
 
   LoRa.setPins(7, 6, 1);
   if (LoRa.begin(915E6)) {
-    //textDisplay.setCursor(0, 0);
-    //textDisplay.print("RSSI (dBm)");
     lora_connected = true;
   }
-  else
-  {
-    //textDisplay.print("FAILED LORA");
-    lora_connected = false;
-  }
+  else lora_connected = false;
 
   pinMode(RELAY_PIN, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
@@ -102,8 +95,10 @@ void loop() {
       {
         sendMessage("C_SC", "C_LC");
       }
-      
-      sendMessage("C_SC", {});
+      else
+      {
+        sendMessage("C_SC", {});
+      }
     }
     
     previous = millis();
@@ -111,7 +106,7 @@ void loop() {
   }
 
   //Check for LoRa Packets and handle them if one is recieved
-  if (lora_connected)
+  if (lora_connected && !first_connection_ping)
   {
     int packetSize = LoRa.parsePacket();
 
@@ -155,7 +150,7 @@ void loop() {
 void handleComputerSerialData()
 {
   char command_buffer[5];
-  while (Serial.available() != 4) {}
+  while (Serial.available() < 4) {}
   Serial.readBytes(command_buffer, 4);
   String header;
   for (int32_t i = 0; i < 4; i++)
@@ -191,14 +186,11 @@ void handleComputerSerialData()
   //Should this lead to issues, this should be turned into a flag based system, like the upstream telemetry handler.
   if (header == "C_ST") 
   {
-    while (Serial.available() != 4) {}
+    while (Serial.available() < 32);
 
-    int32_t message_size;
-    Serial.readBytes(reinterpret_cast<char*>(&message_size), 4);
+    unsigned char initialize_data_packet[32];
 
-    unsigned char* initialize_data_packet = new unsigned char[message_size];
-
-    Serial.readBytes(initialize_data_packet, message_size);
+    Serial.readBytes(initialize_data_packet, 32);
 
     PrimeRocket(initialize_data_packet);
     rocket_primed = true;
@@ -215,7 +207,7 @@ void handleComputerSerialData()
     unsigned char* testingModeCharArrayData = (unsigned char*)testingModeCharArray;
     
     LoRa.beginPacket();
-    LoRa.write(testingModeCharArrayData, sizeof(testingModeCharArrayData));
+    LoRa.write(testingModeCharArrayData, 5);
     LoRa.endPacket();
 
     loraHandlingTestingLastTime = millis();
@@ -233,16 +225,17 @@ void handleComputerSerialData()
   }
 }
 
-void handleLoRaPacket(int packetSize, uint32_t message_size)
+void handleLoRaPacket(int packetSize, uint16_t message_size)
 {
   if (packetSize == message_size)
   {
     char* serial_send = new char[message_size + 1];
-    for(int i = 0; i < sizeof(serial_send); i++) {
+    for(int i = 0; i < message_size; i++) {
       serial_send[i] = (char)LoRa.read();
     }
 
-    String serialSendString = serial_send;
+    String serialSendString(serial_send, message_size);
+    delete[] serial_send;
     sendMessage("C_UT", serialSendString);
     handleTestingData(serialSendString);
     
@@ -310,7 +303,7 @@ void handleTestingData(String serialData) {
       String responseString = "T_2P_RES";
       const unsigned char* response = reinterpret_cast<const unsigned char*>(responseString.c_str());
       LoRa.beginPacket();
-      LoRa.write(response, sizeof(response));
+      LoRa.write(response, 9);
       LoRa.endPacket();
     }
 
@@ -348,17 +341,17 @@ void handleTestingData(String serialData) {
   }
 }
 
-int32_t checkForLoRaPacket(int packetSize)
+int16_t checkForLoRaPacket(int packetSize)
 {
-  if (packetSize == 4) 
+  if (packetSize == 2) 
   {
-    int32_t message_size;
-    char message_size_string[4];
-    for (int i = 0; i < 4; i++)
+    int16_t message_size;
+    uint8_t message_size_string[2];
+    for (int i = 0; i < 2; i++)
     {
-      message_size_string[i] = (char)LoRa.read();
+      message_size_string[i] = LoRa.read();
     }
-    memcpy(&message_size, message_size_string, 4);
+    memcpy(&message_size, message_size_string, 2);
 
     waitingOnLoraHandling = true;
     return message_size;
@@ -411,12 +404,12 @@ void LaunchRocketIfExpected()
   }
 }
 
-void PrimeRocket(const unsigned char* initialize_data_packet) {
+void PrimeRocket(unsigned char* initialize_data_packet) {
   delay(100);
   memcpy(&fuse_time, initialize_data_packet, 4);
 
   LoRa.beginPacket();
-  LoRa.write(initialize_data_packet, sizeof(initialize_data_packet));
+  LoRa.write(initialize_data_packet, 32);
   LoRa.endPacket();
 
   sendMessage("C_TS", {});

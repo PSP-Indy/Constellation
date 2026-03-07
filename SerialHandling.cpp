@@ -131,7 +131,7 @@ void SerialHandling::ProcessSerialDataSRAD()
 		if (bytesRead != 6) continue;
 		std::string command(reinterpret_cast<const char*>(commandBuffer), bytesRead);
 
-		int messageSize = StringToUInt16(command, 4);
+		uint16_t messageSize = StringToUInt16(command, 4);
 		std::string header = command.substr(0,4);
 
 		std::string messageBuffer;
@@ -142,13 +142,12 @@ void SerialHandling::ProcessSerialDataSRAD()
 
 		if (bytesRead != messageSize) continue;
 
-		if(header == "C_SC") 
+		if(header == "C_SC")
 		{
 			valueLock->lock();
 
 			if(messageBuffer == "C_LC")
 			{
-				std::cout << messageBuffer << std::endl;
 				data->go_grid_values[1][4] = 1;
 			}
 
@@ -196,37 +195,39 @@ void SerialHandling::ProcessSerialDataSRAD()
 			data->testingData = messageBuffer;
 		}
 
-
-		if(header == "C_UT" && messageSize >= 44) 
-		{			
-			valueLock->lock();
-			
-			data->last_ping = time(NULL);
-
-			data->go_grid_values[1][0] = StringToFloat(messageBuffer, 36);
-			data->go_grid_values[1][1] = StringToFloat(messageBuffer, 40);
-
-			if (messageSize >= 45 && messageBuffer[45] != '\0')
+		if(header == "C_UT") 
+		{
+			if (messageSize >= 44)
 			{
-				data->go_grid_values[4][0] = static_cast<float>((bool)messageBuffer[45]);
-			}
-
-			DataValues::DataValueSnapshot snapshot;
-
-			float time = StringToFloat(messageBuffer, 0);
-			snapshot.a_value = StringToFloat(messageBuffer, 4);
-			snapshot.v_value = StringToFloat(messageBuffer, 8);
-			snapshot.x_value = StringToFloat(messageBuffer, 12);
-			snapshot.y_value = StringToFloat(messageBuffer, 16);
-			snapshot.z_value = StringToFloat(messageBuffer, 20);
-			snapshot.x_rot_value = StringToFloat(messageBuffer, 24);
-			snapshot.y_rot_value = StringToFloat(messageBuffer, 28);
-			snapshot.z_rot_value = StringToFloat(messageBuffer, 32);
+				valueLock->lock();
 			
+				data->last_ping = time(NULL);
 
-			data->InsertDataSnapshot(time, snapshot);
+				data->go_grid_values[1][0] = StringToFloat(messageBuffer, 36);
+				data->go_grid_values[1][1] = StringToFloat(messageBuffer, 40);
 
-			valueLock->unlock();
+				if (messageSize >= 45 && messageBuffer[45] != '\0')
+				{
+					data->go_grid_values[4][0] = static_cast<float>((bool)messageBuffer[45]);
+				}
+
+				DataValues::DataValueSnapshot snapshot;
+
+				float time = StringToFloat(messageBuffer, 0);
+				snapshot.a_value = StringToFloat(messageBuffer, 4);
+				snapshot.v_value = StringToFloat(messageBuffer, 8);
+				snapshot.x_value = StringToFloat(messageBuffer, 12);
+				snapshot.y_value = StringToFloat(messageBuffer, 16);
+				snapshot.z_value = StringToFloat(messageBuffer, 20);
+				snapshot.x_rot_value = StringToFloat(messageBuffer, 24);
+				snapshot.y_rot_value = StringToFloat(messageBuffer, 28);
+				snapshot.z_rot_value = StringToFloat(messageBuffer, 32);
+				
+
+				data->InsertDataSnapshot(time, snapshot);
+
+				valueLock->unlock();
+			}
 		}
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
