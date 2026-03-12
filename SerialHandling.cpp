@@ -121,12 +121,14 @@ void SerialHandling::ProcessSerialDataSRAD()
 	{
 		size_t bytesRead;
 		uint8_t commandBuffer[7];
+		
+		if (!hSerial->isOpen()) { continue; }
 
-		while (hSerial->available() < 6);
+		while (hSerial->available() < 6) std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
 		try {
 			bytesRead = hSerial->read(commandBuffer, 6);
-		} catch (const serial::IOException& e) { return; }
+		} catch (const serial::IOException& e) { continue; }
 
 		if (bytesRead != 6) continue;
 		std::string command(reinterpret_cast<const char*>(commandBuffer), bytesRead);
@@ -229,8 +231,6 @@ void SerialHandling::ProcessSerialDataSRAD()
 				valueLock->unlock();
 			}
 		}
-
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
 }
 
@@ -286,8 +286,16 @@ void SerialHandling::FindSerialLocations(std::string* sradloc, std::string* tele
 
 			if (bytesRead >= 5)
 			{
-				if (regPacket.at(4) == 0x01) *telebtloc = device.port;
-				if (regPacket.at(0) == 'C') *sradloc = device.port;
+				if (regPacket.at(4) == 0x01)
+				{
+					*telebtloc = device.port;
+				} 
+				if (regPacket.at(0) == 'C') 
+				{
+					*sradloc = device.port;
+					std::cout << "Found SRAD on port " << device.port << std::endl;
+				}
+				
 			}
 		}
 		catch (const std::exception& e)

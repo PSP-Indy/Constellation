@@ -3,6 +3,7 @@
 #include <time.h>
 #include <stdint.h>
 
+#define LORA_WAIT_TIMEOUT_MS 500
 #define ARDUINO_BUILD 1
 
 #if ARDUINO_BUILD == 0
@@ -30,6 +31,7 @@ unsigned long last_successful_ping = 0;
 unsigned long previous = 0;
 unsigned long turn_off_fuse_time = 0;
 unsigned long launch_time = 0;
+unsigned long loraWaitStartTime = 0;
 
 char message_packet[48];
 char identificationPacket[32];
@@ -139,7 +141,7 @@ void loop() {
 
   //Set up watchdog when connection is scuccessful
   if (successful_connection && !wdt_enabled && millis() > 6000) {
-    watchdogEnable();
+    //watchdogEnable();
     wdt_enabled = true;
   }
 
@@ -227,6 +229,14 @@ void handleComputerSerialData()
 
 void handleLoRaPacket(int packetSize, uint16_t message_size)
 {
+  if (millis() - loraWaitStartTime > LORA_WAIT_TIMEOUT_MS) {
+    while (LoRa.available()) {
+      LoRa.read();
+    }
+    waitingOnLoraHandling = false;
+    return;
+  }
+  
   if (packetSize == message_size)
   {
     char* serial_send = new char[message_size + 1];
@@ -252,7 +262,7 @@ void handleTestingData(String serialData) {
   if (activeTestingMode == "T_1B" || activeTestingMode == "T_1P" || activeTestingMode == "T_2P") 
   {
     loraHandlingTestingTotalN += 1;
-    int timeSinceLast = loraHandlingTestingLastTime - millis();
+    int timeSinceLast = millis() - loraHandlingTestingLastTime;
     loraHandlingTestingLastTime = millis();
 
     loraHandlingTestingAverageTime = loraHandlingTestingAverageTime + ((timeSinceLast - loraHandlingTestingAverageTime) / loraHandlingTestingTotalN);
@@ -343,6 +353,9 @@ void handleTestingData(String serialData) {
 
 int16_t checkForLoRaPacket(int packetSize)
 {
+  waitingOnLoraHandling = true;
+  loraWaitStartTime = millis();
+
   if (packetSize == 2) 
   {
     int16_t message_size;
