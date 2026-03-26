@@ -406,9 +406,13 @@ void UI::Update()
 	#pragma endregion
 
 	#pragma region 3DRotationVisualizer
+	float x_rot = std::isfinite(dataValueList.x_rot_values.back()) ? dataValueList.x_rot_values.back() : 0.0f;
+	float y_rot = std::isfinite(dataValueList.y_rot_values.back()) ? dataValueList.y_rot_values.back() : 0.0f;
+	float z_rot = std::isfinite(dataValueList.z_rot_values.back()) ? dataValueList.z_rot_values.back() : 0.0f;
+
 	ImGui::Begin("3D Rotation");
 	std::vector<ImPlot3DPoint> rocket_vertices_rotated;
-	RotateModel(rocket_vertices, &rocket_vertices_rotated, PI / 2.0f + dataValueList.x_rot_values.back(), dataValueList.y_rot_values.back(), dataValueList.z_rot_values.back());
+	RotateModel(rocket_vertices, &rocket_vertices_rotated, PI / 2.0f + x_rot, y_rot, z_rot);
 	
 	int x_region_avail = (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x);
 	int y_region_avail = (ImGui::GetContentRegionAvail().y - 230 - ImGui::GetStyle().ItemSpacing.y);
@@ -427,10 +431,6 @@ void UI::Update()
 
 	if (ImGui::BeginTable("Rotation Rotary Dial Table", 3, ImGuiTableFlags_None, ImVec2(-1, -1))) 
 	{
-		float x_rot = std::isfinite(dataValueList.x_rot_values.back()) ? dataValueList.x_rot_values.back() : 0.0f;
-		float y_rot = std::isfinite(dataValueList.y_rot_values.back()) ? dataValueList.y_rot_values.back() : 0.0f;
-		float z_rot = std::isfinite(dataValueList.z_rot_values.back()) ? dataValueList.z_rot_values.back() : 0.0f;
-
 		ImGui::TableNextColumn();
 		ImGuiKnobs::Knob("Rotation X", &x_rot, -(2 * PI), (2 * PI), 0.1f, "%.1f rad", ImGuiKnobVariant_WiperOnly);
 
