@@ -1,7 +1,5 @@
 #include "UI.hpp"
 
-#include "rocket_model.hpp"
-
 UI::UI()
 {
 }
@@ -32,6 +30,8 @@ bool testing_open = false;
 static int window_x, window_y, window_w, window_h;
 
 static const char* rebuild_ui_config = NULL;
+
+constexpr float PI = std::numbers::pi_v<float>;
 
 char date_string[11];
 
@@ -408,7 +408,7 @@ void UI::Update()
 	#pragma region 3DRotationVisualizer
 	ImGui::Begin("3D Rotation");
 	std::vector<ImPlot3DPoint> rocket_vertices_rotated;
-	RotateModel(rocket_vertices, &rocket_vertices_rotated, 3.14f / 2.0f + dataValueList.x_rot_values.back(), dataValueList.y_rot_values.back(), dataValueList.z_rot_values.back());
+	RotateModel(rocket_vertices, &rocket_vertices_rotated, PI / 2.0f + dataValueList.x_rot_values.back(), dataValueList.y_rot_values.back(), dataValueList.z_rot_values.back());
 	
 	int x_region_avail = (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x);
 	int y_region_avail = (ImGui::GetContentRegionAvail().y - 230 - ImGui::GetStyle().ItemSpacing.y);
@@ -427,14 +427,19 @@ void UI::Update()
 
 	if (ImGui::BeginTable("Rotation Rotary Dial Table", 3, ImGuiTableFlags_None, ImVec2(-1, -1))) 
 	{
-		ImGui::TableNextColumn();
-		ImGuiKnobs::Knob("Rotation X", &(dataValueList.x_rot_values.back()), -(2 * 3.14159), (2 * 3.14159), 0.1f, "%.1f rad/rads", ImGuiKnobVariant_WiperOnly);
+		float x_rot = std::isfinite(dataValueList.x_rot_values.back()) ? dataValueList.x_rot_values.back() : 0.0f;
+		float y_rot = std::isfinite(dataValueList.y_rot_values.back()) ? dataValueList.y_rot_values.back() : 0.0f;
+		float z_rot = std::isfinite(dataValueList.z_rot_values.back()) ? dataValueList.z_rot_values.back() : 0.0f;
 
 		ImGui::TableNextColumn();
-		ImGuiKnobs::Knob("Rotation Y", &(dataValueList.y_rot_values.back()), -(2 * 3.14159), (2 * 3.14159), 0.1f, "%.1f rad/rads", ImGuiKnobVariant_WiperOnly);
+		ImGuiKnobs::Knob("Rotation X", &x_rot, -(2 * PI), (2 * PI), 0.1f, "%.1f rad", ImGuiKnobVariant_WiperOnly);
+
 
 		ImGui::TableNextColumn();
-		ImGuiKnobs::Knob("Rotation Z", &(dataValueList.z_rot_values.back()), -(2 * 3.14159), (2 * 3.14159), 0.1f, "%.1f rad/rads", ImGuiKnobVariant_WiperOnly);
+		ImGuiKnobs::Knob("Rotation Y", &y_rot, -(2 * PI), (2 * PI), 0.1f, "%.1f rad", ImGuiKnobVariant_WiperOnly);
+
+		ImGui::TableNextColumn();
+		ImGuiKnobs::Knob("Rotation Z", &z_rot, -(2 * PI), (2 * PI), 0.1f, "%.1f rad", ImGuiKnobVariant_WiperOnly);
 
 		ImGui::EndTable();
 	}

@@ -2,7 +2,7 @@
 #include <vector>
 #include <imgui.h>
 
-std::vector<ImPlot3DPoint> rocket_vertices = {
+inline std::vector<ImPlot3DPoint> rocket_vertices = {
     { 0.489317f, 0.020362f, 0.613560f },
     { 0.489317f, 0.020362f, 0.386440f },
     { 0.510683f, 0.020362f, 0.613560f },
@@ -454,7 +454,7 @@ std::vector<ImPlot3DPoint> rocket_vertices = {
     { 0.471207f, 0.206777f, 0.501963f },
 };
 
-std::vector<unsigned int> rocket_indices = {
+inline std::vector<unsigned int> rocket_indices = {
     5, 3, 1,
     7, 435, 440,
     7, 0, 2,

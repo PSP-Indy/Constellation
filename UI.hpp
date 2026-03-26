@@ -5,6 +5,7 @@
 #include <thread>
 #include <atomic>
 #include <mutex>
+#include <numbers>
 
 #if defined(_WIN32) || defined(WIN32)
 #include <windows.h>
@@ -20,6 +21,8 @@
 #include "imgui-knobs.h"
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+
+#include "rocket_model.hpp"
 
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
