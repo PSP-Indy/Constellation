@@ -237,7 +237,7 @@ void handleLoRaPacket(int packetSize, uint16_t message_size)
     return;
   }
   
-  if (packetSize == message_size)
+  if (packetSize == message_size && packetSize > 0)
   {
     char* serial_send = new char[message_size + 1];
     for(int i = 0; i < message_size; i++) {
@@ -248,9 +248,9 @@ void handleLoRaPacket(int packetSize, uint16_t message_size)
     delete[] serial_send;
     sendMessage("C_UT", serialSendString);
     handleTestingData(serialSendString);
-    
-    waitingOnLoraHandling = false;
   }
+  
+  waitingOnLoraHandling = false;
 }
 
 void handleTestingData(String serialData) {
