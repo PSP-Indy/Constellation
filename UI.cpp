@@ -481,49 +481,22 @@ void UI::Update()
 		ImPlot::PopColormap();
 	}
 
-	if(rocket_data->coundown_start_time != 0L && rocket_data->launch_time == 0L) 
-	{
-		time_t current_time_t = time(NULL);
-		int time_since_countdown = difftime(rocket_data->coundown_start_time, current_time_t);
-		int countdown = rocket_data->fuse_delay - std::abs(time_since_countdown);
+	ImGui::SetNextItemWidth(300);
+	ImGui::InputInt("Fuse Delay (s)", &(rocket_data->fuse_delay));
 
-		ImFont* largeFont = ImGui::GetIO().Fonts->AddFontFromFileTTF("Assets/DuruSans-Regular.ttf", 64);
-		ImGui::PushFont(largeFont);
-		ImGui::Text((std::string("LAUNCH: T-") + std::to_string(countdown)).c_str());
-		ImGui::PopFont();
+	if (rocket_data->fuse_delay < 0)
+	{
+		rocket_data->fuse_delay = 0;
 	}
-	else
+
+	ImGui::SetNextItemWidth(300);
+	ImGui::InputInt("Launch Alitude (m above sea level)", &(rocket_data->launch_altitude));
+	
+	if (!rocket_data->rocket_primed && ImGui::Button("Prime Rocket", ImVec2(-1, 70)))
 	{
-		if (rocket_data->go_grid_values[0][0] != 1)
+		if (rocket_data->prime_rocket != NULL)
 		{
-			ImGui::SetNextItemWidth(300);
-			ImGui::InputInt("Fuse Delay (s)", &(rocket_data->fuse_delay));
-
-			if (rocket_data->fuse_delay < 0)
-			{
-				rocket_data->fuse_delay = 0;
-			}
-
-			ImGui::SetNextItemWidth(300);
-			ImGui::InputInt("Launch Alitude (m above sea level)", &(rocket_data->launch_altitude));
-			
-			if (ImGui::Button("Prime Rocket", ImVec2(-1, 70)))
-			{
-				if (rocket_data->prime_rocket != NULL)
-				{
-					rocket_data->prime_rocket();
-				}
-			}
-		} 
-		else if (rocket_data->coundown_start_time == 0L && rocket_data->launch_time == 0L)
-		{
-			if (ImGui::Button("Launch Rocket", ImVec2(-1, 70)))
-			{
-				if (rocket_data->launch_rocket != NULL)
-				{
-					if (rocket_data->launch_rocket()) rocket_data->coundown_start_time = time(NULL);
-				}
-			}
+			rocket_data->prime_rocket();
 		}
 	}
 

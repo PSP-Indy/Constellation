@@ -68,15 +68,6 @@ bool PrimeRocket()
 	return false;
 }
 
-bool LaunchRocket()
-{
-	if(DataValues::Get()->isSRADConnected)
-	{
-		return SerialHandling::SendSRADData("C_LR");
-	}
-	return false;
-}
-
 int main()
 {
 	//GUI INITIALIZATION
@@ -101,7 +92,6 @@ int main()
 		if (serialhandler->CreateSerialFile(&hSerialSRAD, SRADSerialLoc))
 		{
 			data->prime_rocket = PrimeRocket;
-			data->launch_rocket = LaunchRocket;
 
 			data->hSerialSRAD = &hSerialSRAD;
 

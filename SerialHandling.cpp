@@ -63,6 +63,7 @@ void SerialHandling::ProcessSerialData()
 			valueLock->lock();
 			
 			data->go_grid_values[0][0] = 1;
+			rocket_data->rocket_primed = true;
 			data->last_ping = time(NULL);
 
 			valueLock->unlock();

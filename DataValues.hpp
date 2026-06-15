@@ -29,6 +29,8 @@ public:
 
 	bool isSRADConnected = false;
 
+	bool rocket_primed = false;
+
 	float go_grid_values[5][5] = {0.01};
 
 	std::time_t launch_time = 0L;
@@ -41,7 +43,6 @@ public:
 	serial::Serial* hSerialSRAD;
 
 	bool (*prime_rocket)() = NULL;
-	bool (*launch_rocket)() = NULL;
 	
 	struct DataValueList {
 		std::vector<float> t_values = {0.0f};
