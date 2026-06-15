@@ -20,9 +20,7 @@ class SerialHandling {
 public:
     SerialHandling();
     
-	void FakeData();
-    void ProcessSerialDataTeleBT(serial::Serial* hSerial);
-    void ProcessSerialDataSRAD();
+    void ProcessSerialData();
     static bool SendRawSerialData(serial::Serial* hSerial, const uint8_t* dataPacket, size_t length);
     static bool SendSRADData(const uint8_t* dataPacket, size_t length);
     static bool SendSRADData(const char* data);

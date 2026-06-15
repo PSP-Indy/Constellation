@@ -20,7 +20,6 @@
 #include "UI.hpp"
 #include "SerialHandling.hpp"
 #include "DataValues.hpp"
-#include "ServerHandler.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -87,11 +86,6 @@ int main()
 
 	data->setValueLock(&valueLock);
 
-	ServerHandler serverHandler;
-
-	std::thread webServerThread(&ServerHandler::Server, &serverHandler);
-	webServerThread.detach();
-
 	//FInd correct serial locations
 	std::string SRADSerialLoc;
 	std::string TeleBtSerialLoc;
@@ -111,28 +105,13 @@ int main()
 
 			data->hSerialSRAD = &hSerialSRAD;
 
-			std::thread serialThreadSRAD(&SerialHandling::ProcessSerialDataSRAD, serialhandler);
+			std::thread serialThreadSRAD(&SerialHandling::ProcessSerialData, serialhandler);
 
 			serialThreadSRAD.detach();
 		} 
 		else
 		{
 			std::cout << "Failed to create SRAD serial communication, aborting." << std::endl;
-		}
-	}
-
-	if (TeleBtSerialLoc == "") {
-		std::cout << "Failed to find TeleBT serial port, aborting serial communication." << std::endl;
-	} else {
-		if (serialhandler->CreateSerialFile(&hSerialTeleBT, TeleBtSerialLoc))
-		{
-			std::thread serialThreadTeleBT(&SerialHandling::ProcessSerialDataTeleBT, serialhandler, &hSerialTeleBT);
-
-			serialThreadTeleBT.detach();
-		} 
-		else
-		{
-			std::cout << "Failed to create TeleBT serial communication, aborting." << std::endl;
 		}
 	}
 	

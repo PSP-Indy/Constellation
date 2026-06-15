@@ -31,25 +31,6 @@ public:
 	
     std::mutex* valueLock;
 
-	enum class TestingMode { NONE, ONEWAYTELEM_BPS, ONEWAYTELEM_PPS, TWOWAYTELEM, ALTACCURACY, POSACCURACY };
-
-	static std::string StringFromTestingMode(TestingMode mode)
-	{
-		switch (mode){
-			case (TestingMode::NONE): return "No Testing Mode Selected";
-			case (TestingMode::ONEWAYTELEM_BPS): return "One Way Telemetry Testing (B/S)";
-			case (TestingMode::ONEWAYTELEM_PPS): return "One Way Telemetry Testing (P/S)";
-			case (TestingMode::TWOWAYTELEM): return "Two Way Telemetry Testing";
-			case (TestingMode::ALTACCURACY): return "Altitude Accuracy Testing";
-			case (TestingMode::POSACCURACY): return "Position Accuracy Testing";
-			default: return "No Testing Mode Selected";
-		}
-	}
-
-	TestingMode testingMode = TestingMode::NONE;
-
-	std::string testingData;
-
 	bool isSRADConnected = false;
 
 	float go_grid_values[5][5] = {0.01};

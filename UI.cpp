@@ -120,18 +120,6 @@ void UI::Update()
 		{
 			diagnostics_open = !diagnostics_open;
 		}
-		if (ImGui::MenuItem("Fake Data Enable"))
-		{
-			if (!fakeDataStarted)
-			{
-				std::thread fakeDataThread(&SerialHandling::FakeData, new SerialHandling());
-				fakeDataThread.detach();
-			}
-		}
-		if (ImGui::MenuItem("Testing mode"))
-		{
-			testing_open = !testing_open;
-		}
 		if (ImGui::MenuItem("Fullscreen"))
 		{
 			isFullscreen = !isFullscreen;
@@ -221,49 +209,6 @@ void UI::Update()
 		ImGui::Text(private_bytes_str.c_str());
 		ImGui::End();
 	}
-	#pragma endregion
-
-	#pragma region Testing
-	if (testing_open)
-	{
-		ImGui::Begin("Testing");
-		
-		if (ImGui::Button("One Way Telemetry (B/S)"))
-		{
-			if (SerialHandling::SendSRADData("T_1B")) rocket_data->testingMode = DataValues::TestingMode::ONEWAYTELEM_BPS;
-		}
-		ImGui::SameLine();
-		if (ImGui::Button("One Way Telemetry (P/S)"))
-		{
-			if (SerialHandling::SendSRADData("T_1P")) rocket_data->testingMode = DataValues::TestingMode::ONEWAYTELEM_PPS;
-		}
-		ImGui::SameLine();
-		if (ImGui::Button("Two Way Telemetry"))
-		{
-			if (SerialHandling::SendSRADData("T_2T")) rocket_data->testingMode = DataValues::TestingMode::TWOWAYTELEM;
-		}
-		ImGui::SameLine();
-		if (ImGui::Button("Altitude Accuracy Testing"))
-		{
-			if (SerialHandling::SendSRADData("T_AA")) rocket_data->testingMode = DataValues::TestingMode::ALTACCURACY;
-		}
-		ImGui::SameLine();
-		if (ImGui::Button("Positional Accuracy Testing"))
-		{
-			if (SerialHandling::SendSRADData("T_PA")) rocket_data->testingMode = DataValues::TestingMode::POSACCURACY;
-		}
-		ImGui::SameLine();
-		if (ImGui::Button("End Testing"))
-		{
-			if (SerialHandling::SendSRADData("T_NA")) rocket_data->testingMode = DataValues::TestingMode::NONE;
-		}
-
-		ImGui::Text(DataValues::StringFromTestingMode(rocket_data->testingMode).c_str());
-		ImGui::Text(rocket_data->testingData.c_str());
-
-		ImGui::End();
-	}
-
 	#pragma endregion
 
 	#pragma region VelocityPlot

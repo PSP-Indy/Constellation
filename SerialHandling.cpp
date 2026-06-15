@@ -4,109 +4,7 @@ SerialHandling::SerialHandling()
 {
 }
 
-void SerialHandling::FakeData()
-{
-	DataValues* data = DataValues::Get();
-	std::mutex* valueLock = data->valueLock;
-	const auto start_time = std::chrono::steady_clock::now();
-	auto lastTime = std::chrono::steady_clock::now();
-	while (true)
-	{
-		DataValues::DataValueSnapshot snapshot;
-		DataValues::DataValueList currentValueList = data->getDataValueList();
-
-		std::chrono::duration<double, std::milli> timeSinceStartDuration = std::chrono::steady_clock::now() - start_time;
-		double timeSinceStart = timeSinceStartDuration.count() / 1000.0;
-
-		std::chrono::duration<double, std::milli> dtDuration = std::chrono::steady_clock::now() - lastTime;
-		double dt = dtDuration.count() / 1000.0;
-
-		snapshot.a_value = timeSinceStart < 10 ? 9.81f : -9.81f;
-		snapshot.v_value = currentValueList.v_values.back() + currentValueList.a_values.back() * dt;
-		snapshot.x_value = 0;
-		snapshot.y_value = 0;
-		snapshot.z_value = currentValueList.z_values.back() + currentValueList.v_values.back() * dt;
-		snapshot.x_rot_value = 0;
-		snapshot.y_rot_value = 0;
-		snapshot.z_rot_value = fmod(timeSinceStart, (2.0 * 3.1415926535));
-
-		valueLock->lock();
-		data->InsertDataSnapshot(timeSinceStart, snapshot);
-		valueLock->unlock();
-
-		lastTime = std::chrono::steady_clock::now();
-
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
-	}
-}
-
-void SerialHandling::ProcessSerialDataTeleBT(serial::Serial* hSerial)
-{
-	DataValues* data = DataValues::Get();
-	std::mutex* valueLock = data->valueLock;
-
-	while (true) 
-	{
-		size_t headerSubPacketSize = 6;
-		uint8_t headerSubPacketBuffer[7];
-
-		size_t bytesRead = hSerial->read(headerSubPacketBuffer, headerSubPacketSize);
-		if (bytesRead != headerSubPacketSize) continue;
-		std::string headerSubPacket(reinterpret_cast<const char*>(headerSubPacketBuffer), bytesRead);
-		if (headerSubPacket != "TELEM") continue;
-
-		size_t sizeSubPacketSize = 6;
-		uint8_t sizeSubPacketBuffer[7];
-
-		bytesRead = hSerial->read(sizeSubPacketBuffer, sizeSubPacketSize);
-		if (bytesRead != sizeSubPacketSize) continue;
-		std::string sizeSubPacket(reinterpret_cast<const char*>(sizeSubPacketBuffer), bytesRead);
-
-		size_t dataPacketSize = (size_t)std::stoi(sizeSubPacket);
-		if (dataPacketSize <= 0) continue;
-
-		std::string dataSubPacket;
-
-		bytesRead = hSerial->read(dataSubPacket, dataPacketSize);
-		if (bytesRead != dataPacketSize) continue;
-
-		std::string flightData = dataSubPacket.substr(0, dataPacketSize - 3);
-
-		//Operate on data here according to spec outlined in TeleMetrum section of the below file
-		//https://altusmetrum.org/AltOS/doc/telemetry.pdf
-
-		if (flightData.at(4) == 0x0A) //TRIGGERS IF PACKET IS TeleMetrum v2 Sensor Data
-		{
-			valueLock->lock();
-			
-			DataValues::DataValueSnapshot snapshot;
-			float time = (float)(StringToUInt16(flightData, 2)) / 100.0f;
-			snapshot.a_value = (float)(StringToUInt16(flightData, 14));
-			snapshot.v_value = (float)(StringToUInt16(flightData, 16));
-			snapshot.z_value = (float)(StringToUInt16(flightData, 18));
-
-			data->InsertDataSnapshot(time, snapshot);
-
-			data->go_grid_values[1][2] = (float)(StringToUInt16(flightData, 12)) / 100.0f; 
-			data->go_grid_values[1][3] = (float)(StringToUInt16(flightData, 20)); 
-			
-
-			valueLock->unlock();
-		}
-		else if (flightData.at(4) == 0x0B) //TRIGGERS IF PACKET IS TeleMetrum v2 Calibration Data
-		{
-
-		}
-		else 
-		{
-			std::cout << "PACKET TYPE NOT FOUND" << std::endl;
-		}
-
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
-	}
-}
-
-void SerialHandling::ProcessSerialDataSRAD() 
+void SerialHandling::ProcessSerialData() 
 {
 	DataValues* data = DataValues::Get();
 	std::mutex* valueLock = data->valueLock;
@@ -190,11 +88,6 @@ void SerialHandling::ProcessSerialDataSRAD()
 			data->last_ping = time(NULL);
 
 			valueLock->unlock();
-		}
-
-		if(header == "T_DP")
-		{
-			data->testingData = messageBuffer;
 		}
 
 		if(header == "C_UT") 
