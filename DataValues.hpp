@@ -1,7 +1,5 @@
 #pragma once
 
-#include "json.hpp"
-
 #include <vector> 
 #include <map>
 #include <mutex>
@@ -25,8 +23,6 @@ public:
 		float x_rot_value;
 		float y_rot_value;
 		float z_rot_value;
-
-		NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(DataValueSnapshot, a_value, v_value, x_value, y_value, z_value, x_rot_value, y_rot_value, z_rot_value);
 	};
 	
     std::mutex* valueLock;

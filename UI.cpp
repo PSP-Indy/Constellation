@@ -529,6 +529,14 @@ void UI::Update()
 
 	ImGui::End();
 	#pragma endregion
+
+	#pragma region ControlArea
+	ImGui::Begin("Go/Nogo Controls");
+
+	
+
+	ImGui::End();
+	#pragma endregion
 }
 
 void UI::Render()
