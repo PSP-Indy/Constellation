@@ -482,14 +482,6 @@ void UI::Update()
 	}
 
 	ImGui::SetNextItemWidth(300);
-	ImGui::InputInt("Fuse Delay (s)", &(rocket_data->fuse_delay));
-
-	if (rocket_data->fuse_delay < 0)
-	{
-		rocket_data->fuse_delay = 0;
-	}
-
-	ImGui::SetNextItemWidth(300);
 	ImGui::InputInt("Launch Alitude (m above sea level)", &(rocket_data->launch_altitude));
 	
 	if (!rocket_data->rocket_primed && ImGui::Button("Prime Rocket", ImVec2(-1, 70)))

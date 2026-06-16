@@ -37,7 +37,6 @@ public:
 	std::time_t last_ping = 0L;
 	std::time_t coundown_start_time = 0L;
 
-	int32_t fuse_delay = 5;
 	int32_t launch_altitude = 0;
 
 	serial::Serial* hSerialSRAD;

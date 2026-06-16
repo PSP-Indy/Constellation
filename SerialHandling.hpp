@@ -22,8 +22,8 @@ public:
     
     void ProcessSerialData();
     static bool SendRawSerialData(serial::Serial* hSerial, const uint8_t* dataPacket, size_t length);
-    static bool SendSRADData(const uint8_t* dataPacket, size_t length);
-    static bool SendSRADData(const char* data);
+    static bool SendSRADData(int launch_altitude, bool pop_booster, bool pop_drogue, bool pop_main);
+    static bool SendSRADSync();
     void FindSerialLocations(std::string* sradloc, std::string* telebtloc);
     bool CreateSerialFile(serial::Serial* hSerial, std::string serialLoc);
 

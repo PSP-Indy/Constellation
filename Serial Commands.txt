@@ -5,5 +5,9 @@ C_FI = Fuse ignited
 C_FO = Fuse off
 C_UT = Upstream telemetry
 C_LR = Launch rocket
-C_ST = Send telemetry
 C_LC = LoRa Connected
+C_SD = Send Data To Rocket
+
+C_SD Format:
+12 Bits -->
+[4; LAUNCH ALT][4; COMM NUM]

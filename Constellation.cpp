@@ -56,14 +56,8 @@ bool PrimeRocket()
 {
 	DataValues* data = DataValues::Get();
 	if(data->isSRADConnected)
-	{
-		uint8_t dataToSend[32];
-		
-		memcpy(&dataToSend[0], &(data->fuse_delay), 4);
-		memcpy(&dataToSend[4], &(data->launch_altitude), 4);
-		
-		return 	SerialHandling::SendSRADData("C_ST") && 
-				SerialHandling::SendSRADData(dataToSend, 32);
+	{		
+		return SerialHandling::SendSRADData(data->launch_altitude, false, false, false);
 	}	
 	return false;
 }
@@ -207,7 +201,6 @@ int main()
 
 		outputFile << "launchTime," << time_string << std::endl;
 		outputFile << "launchDate," << date_string << std::endl;
-		outputFile << "fuseDelay," << data->fuse_delay << std::endl;
 		outputFile << "launchAltitude," << data->launch_altitude << std::endl;
 
         outputFile.close();

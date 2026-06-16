@@ -52,7 +52,7 @@ void SerialHandling::ProcessSerialData()
 			}
 
 			data->isSRADConnected = true;
-			SendSRADData("C_SS");
+			SendSRADSync();
 			data->last_ping = time(NULL);
 
 			valueLock->unlock();
@@ -63,7 +63,7 @@ void SerialHandling::ProcessSerialData()
 			valueLock->lock();
 			
 			data->go_grid_values[0][0] = 1;
-			rocket_data->rocket_primed = true;
+			data->rocket_primed = true;
 			data->last_ping = time(NULL);
 
 			valueLock->unlock();
@@ -135,14 +135,24 @@ bool SerialHandling::SendRawSerialData(serial::Serial* hSerial, const uint8_t* d
 	return hSerial->write(dataPacket, length) == length;
 }
 
-bool SerialHandling::SendSRADData(const uint8_t* dataPacket, size_t length)
+bool SerialHandling::SendSRADData(int launch_altitude, bool pop_booster, bool pop_drogue, bool pop_main)
 {
-	return SendRawSerialData(DataValues::Get()->hSerialSRAD, dataPacket, length);
+	const char header[] = "C_SD";
+	if (!SendRawSerialData(DataValues::Get()->hSerialSRAD, reinterpret_cast<const uint8_t*>(header), 4))
+	{
+		return false;
+	}
+
+	uint8_t data_packet[12];
+	memcpy(&data_packet[0], &launch_altitude, 4);
+
+	return SendRawSerialData(DataValues::Get()->hSerialSRAD, data_packet, 12);
 }
 
-bool SerialHandling::SendSRADData(const char* dataPacket)
+bool SerialHandling::SendSRADSync()
 {
-	return SendRawSerialData(DataValues::Get()->hSerialSRAD, reinterpret_cast<const uint8_t*>(dataPacket), strlen(dataPacket));
+	const char header[] = "C_SS";
+	return SendRawSerialData(DataValues::Get()->hSerialSRAD, reinterpret_cast<const uint8_t*>(header), 4);
 }
 
 void SerialHandling::FindSerialLocations(std::string* sradloc, std::string* telebtloc)
