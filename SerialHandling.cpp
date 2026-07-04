@@ -17,36 +17,32 @@ void SerialHandling::ProcessSerialData()
 
 	while (true) 
 	{
-		size_t bytesRead;
-		uint8_t commandBuffer[7];
-		
 		if (!hSerial->isOpen()) { continue; }
 
-		while (hSerial->available() < 6) std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		size_t bytes_available = hSerial->available();
 
-		try {
-			bytesRead = hSerial->read(commandBuffer, 6);
-		} catch (const serial::IOException& e) { continue; }
+		if (bytes_available == 0) { continue; }
 
-		if (bytesRead != 6) continue;
-		std::string command(reinterpret_cast<const char*>(commandBuffer), bytesRead);
+		hSerial->read(serial_input_buffer + bytes_written, bytes_available);
+		bytes_written += bytes_available;
 
-		uint16_t messageSize = StringToUInt16(command, 4);
-		std::string header = command.substr(0,4);
+		int packet_start;
+		int packet_end;
 
-		std::string messageBuffer;
+		bool packet_available = IsPacketAvailable(&packet_start, &packet_end);
 		
-		try {
-			bytesRead = hSerial->read(messageBuffer, messageSize);
-		} catch (const serial::IOException& e) { return; }
+		if (!packet_available) { continue; }
+		
+		std::string header;
+		std::string message;
 
-		if (bytesRead != messageSize) continue;
+		ParsePacket(&header, &message, packet_start, packet_end);
 
 		if(header == "C_SC")
 		{
 			valueLock->lock();
 
-			if(messageBuffer == "C_LC")
+			if(message == "C_LC")
 			{
 				data->go_grid_values[1][4] = 1;
 			}
@@ -93,31 +89,31 @@ void SerialHandling::ProcessSerialData()
 
 		if(header == "C_UT") 
 		{
-			if (messageSize >= 44)
+			if (message.size() >= 44)
 			{
 				valueLock->lock();
 			
 				data->last_ping = time(NULL);
 
-				data->go_grid_values[1][0] = StringToFloat(messageBuffer, 36);
-				data->go_grid_values[1][1] = StringToFloat(messageBuffer, 40);
+				data->go_grid_values[1][0] = StringToFloat(message, 36);
+				data->go_grid_values[1][1] = StringToFloat(message, 40);
 
-				if (messageSize >= 45 && messageBuffer[45] != '\0')
+				if (message.size() >= 45 && message[45] != '\0')
 				{
-					data->go_grid_values[4][0] = static_cast<float>((bool)messageBuffer[45]);
+					data->go_grid_values[4][0] = static_cast<float>((bool)message[45]);
 				}
 
 				DataValues::DataValueSnapshot snapshot;
 
-				float time = StringToFloat(messageBuffer, 0);
-				snapshot.a_value = StringToFloat(messageBuffer, 4);
-				snapshot.v_value = StringToFloat(messageBuffer, 8);
-				snapshot.x_value = StringToFloat(messageBuffer, 12);
-				snapshot.y_value = StringToFloat(messageBuffer, 16);
-				snapshot.z_value = StringToFloat(messageBuffer, 20);
-				snapshot.x_rot_value = StringToFloat(messageBuffer, 24);
-				snapshot.y_rot_value = StringToFloat(messageBuffer, 28);
-				snapshot.z_rot_value = StringToFloat(messageBuffer, 32);
+				float time = StringToFloat(message, 0);
+				snapshot.a_value = StringToFloat(message, 4);
+				snapshot.v_value = StringToFloat(message, 8);
+				snapshot.x_value = StringToFloat(message, 12);
+				snapshot.y_value = StringToFloat(message, 16);
+				snapshot.z_value = StringToFloat(message, 20);
+				snapshot.x_rot_value = StringToFloat(message, 24);
+				snapshot.y_rot_value = StringToFloat(message, 28);
+				snapshot.z_rot_value = StringToFloat(message, 32);
 				
 
 				data->InsertDataSnapshot(time, snapshot);
@@ -244,6 +240,52 @@ bool SerialHandling::CreateSerialFile(serial::Serial* hSerial, std::string seria
 	{
 		return false;
 	}
+}
+
+bool SerialHandling::IsPacketAvailable(int* packet_start, int* packet_end)
+{
+	*packet_start = 0;
+	*packet_end = 0;
+
+	int i = 0;
+	while (*packet_start == 0 || i < bytes_written - 1)
+	{
+		if (serial_input_buffer[i] == 'C' && serial_input_buffer[i + 1] == '_')
+		{
+			*packet_start = i;
+		}
+
+		i++;
+	}
+
+	if (i = bytes_written - 1) { return false; }
+
+	i = *packet_start;
+	while (*packet_end == 0 || i < bytes_written - 1)
+	{
+		if (serial_input_buffer[i] == 'C' && serial_input_buffer[i + 1] == '_')
+		{
+			*packet_end = i - 1;
+
+			return true;
+		}
+
+		i++;
+	}
+
+	return false;
+}
+
+void SerialHandling::ParsePacket(std::string* header, std::string* message, int packet_start, int packet_end)
+{
+	size_t packet_length = packet_end - packet_start;
+
+	std::string packet(reinterpret_cast<const char*>(serial_input_buffer + packet_start), packet_length);
+	*header = packet.substr(0, 4);
+	*message = packet.substr(4, packet_length - 4);
+
+	std::copy(serial_input_buffer + packet_start, serial_input_buffer + bytes_written, serial_input_buffer);
+	bytes_written = 0;
 }
 
 SerialHandling::~SerialHandling()
