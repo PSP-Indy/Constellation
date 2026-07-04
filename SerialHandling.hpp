@@ -30,7 +30,7 @@ public:
     ~SerialHandling();
 private:
     size_t bytes_written = 0;
-    uint8_t serial_input_buffer[sizeof(uint8_t) * 2048];
+    uint8_t serial_input_buffer[2048];
 
     bool IsPacketAvailable(int* packet_start, int* packet_end);
     void ParsePacket(std::string* header, std::string* message, int packet_start, int packet_end);

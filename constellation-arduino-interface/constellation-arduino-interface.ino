@@ -15,20 +15,16 @@
 #define RELAY_PIN 28
 
 bool successful_connection = false;
-bool waiting_on_lora_handling = false;
 bool wdt_enabled = false;
 bool lora_connected = false;
 bool first_connection_ping = true;
 
-int16_t expected_next_message_size;
-
 unsigned long last_successful_ping = 0;
 unsigned long previous = 0;
-unsigned long lora_wait_start_time = 0;
 
-float charStringToFloat(const char*, int);
-int16_t checkForLoRaPacket(int);
-bool sendLoraPacket(unsigned char*, size_t)
+float charStringToFloat(uint8_t*, int);
+void handleLoraPacket(int);
+bool sendLoraPacket(uint8_t*, size_t);
 void sendMessage(String, String);
 void watchdogEnable();
 void watchdogDisable();
@@ -81,15 +77,11 @@ void loop() {
   //Check for LoRa Packets and handle them if one is recieved
   if (lora_connected && !first_connection_ping)
   {
-    int packetSize = LoRa.parsePacket();
+    int packet_size = LoRa.parsePacket();
 
-    if (waiting_on_lora_handling) 
+    if (packet_size > 0)
     {
-      handleLoRaPacket(packetSize, expected_next_message_size);
-    }
-    else
-    {
-      expected_next_message_size = checkForLoRaPacket(packetSize);
+      handleLoRaPacket(packet_size);
     }
   }
   
@@ -147,7 +139,7 @@ void handleComputerSerialData()
 
     Serial.readBytes(data_packet, 12);
 
-    if (sendLoraPacket(data_packet))
+    if (sendLoraPacket(data_packet, 12))
     {
       sendMessage("C_TS", {});
     }
@@ -156,30 +148,17 @@ void handleComputerSerialData()
   }
 }
 
-void handleLoRaPacket(int packetSize, uint16_t message_size)
+void handleLoRaPacket(int message_size)
 {
-  if (millis() - lora_wait_start_time > LORA_WAIT_TIMEOUT_MS) {
-    while (LoRa.available()) {
-      LoRa.read();
-    }
-    waiting_on_lora_handling = false;
-    return;
+  uint8_t* serial_send = new uint8_t[message_size + 1];
+  for(int i = 0; i < message_size; i++) {
+    serial_send[i] = (uint8_t)LoRa.read();
   }
-  
-  if (packetSize == message_size && packetSize > 0)
-  {
-    char* serial_send = new char[message_size + 1];
-    for(int i = 0; i < message_size; i++) {
-      serial_send[i] = (char)LoRa.read();
-    }
 
-    String serialSendString(serial_send, message_size);
-    delete[] serial_send;
-    sendMessage("C_UT", serialSendString);
-    handleTestingData(serialSendString);
-  }
-  
-  waiting_on_lora_handling = false;
+  String serialSendString(serial_send, message_size);
+  sendMessage("C_UT", serialSendString);
+
+  delete[] serial_send;
 }
 
 float charStringToFloat(const char* charString, int idx) 
@@ -189,30 +168,9 @@ float charStringToFloat(const char* charString, int idx)
   return cpy_flt;
 }
 
-int16_t checkForLoRaPacket(int packetSize)
+bool sendLoraPacket(uint8_t* packet, size_t size)
 {
-  waiting_on_lora_handling = true;
-  lora_wait_start_time = millis();
-
-  if (packetSize == 2) 
-  {
-    int16_t message_size;
-    uint8_t message_size_string[2];
-    for (int i = 0; i < 2; i++)
-    {
-      message_size_string[i] = LoRa.read();
-    }
-    memcpy(&message_size, message_size_string, 2);
-
-    waiting_on_lora_handling = true;
-    return message_size;
-  }
-  return 0;
-}
-
-bool sendLoraPacket(unsigned char* packet, size_t size)
-{
-  int success = LoRa.beginPacket();
+  int success = LoRa.beginPacket(false);
   LoRa.write(packet, size);
   success += LoRa.endPacket();
   return success == 2;
@@ -220,15 +178,8 @@ bool sendLoraPacket(unsigned char* packet, size_t size)
 
 void sendMessage(String header, String message)
 {
-  uint8_t packet[6];
-
-  memcpy(packet, header.c_str(), 4);
-
-  uint16_t message_length = message.length();
-  memcpy(packet + 4, &message_length, sizeof(uint16_t));
-
-  Serial.write(packet, 6);
-  Serial.write(message.c_str(), message_length);
+  Serial.write(header.c_str(), 4);
+  Serial.write(message.c_str(), message.length());
 }
 
 void watchdogEnable() 
