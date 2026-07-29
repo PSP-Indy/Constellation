@@ -37,6 +37,7 @@ void setup() {
   LoRa.setPins(7, 6, 1);
   if (LoRa.begin(915E6)) {
     lora_connected = true;
+    LoRa.enableCrc();
   }
   else lora_connected = false;
 
