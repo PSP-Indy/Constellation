@@ -1,50 +1,49 @@
 #include "DataValues.hpp"
 
 DataValues::DataValues()
-    : cx{"postgresql://username:password@localhost:5432/mydb"};
+    : cx{"postgresql://constellation:pswd@172.31.238.159:5432/flightdata"}
 {
     try {
         pqxx::work tx{cx};
 
         tx.exec("CREATE TABLE IF NOT EXISTS runs ("
-                "run_id INTEGER PRIMARY KEY AUTOINCREMENT, "
-                "started_at TEXT NOT NULL"
+                "run_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, "
+                "started_at TIMESTAMPTZ NOT NULL DEFAULT now()"
                 ")");
-        tx.commit();
-
-        tx.exec("INSERT INTO runs (started_at) VALUES (datetime('now'))");
-        tx.commit();
-        run_id = db.getLastInsertRowid();
 
         tx.exec("CREATE TABLE IF NOT EXISTS logs ("
-                "run_id INTEGER NOT NULL REFERENCES runs(run_id) ON DELETE CASCADE, "
-                "timestamp REAL NOT NULL, "
-                "a_value REAL, "
-                "v_value REAL, "
-                "x_value REAL, "
-                "y_value REAL, "
-                "z_value REAL, "
-                "x_rot_value REAL, "
-                "y_rot_value REAL, "
-                "z_rot_value REAL, "
+                "run_id BIGINT NOT NULL REFERENCES runs(run_id) ON DELETE CASCADE, "
+                "timestamp DOUBLE PRECISION NOT NULL, "
+                "a_value DOUBLE PRECISION, "
+                "v_value DOUBLE PRECISION, "
+                "x_value DOUBLE PRECISION, "
+                "y_value DOUBLE PRECISION, "
+                "z_value DOUBLE PRECISION, "
+                "x_rot_value DOUBLE PRECISION, "
+                "y_rot_value DOUBLE PRECISION, "
+                "z_rot_value DOUBLE PRECISION, "
                 "PRIMARY KEY (run_id, timestamp)"
-                ") WITHOUT ROWID");
+                ")");
+
+        auto row = tx.exec1("INSERT INTO runs DEFAULT VALUES RETURNING run_id");
+        run_id = row[0].as<int64_t>();
         tx.commit();
-        
-        insert_query_statement = std::make_unique<SQLite::Statement>(db,
+
+        cx.prepare("insert_data_value_snapshot",
                 "INSERT INTO logs (run_id, timestamp, a_value, v_value, x_value, y_value, "
                 "z_value, x_rot_value, y_rot_value, z_rot_value) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) "
+                "ON CONFLICT (run_id, timestamp) DO NOTHING");
 
-        get_data_list_statement = std::make_unique<SQLite::Statement>(db, 
+        cx.prepare("get_data_value_list", 
                 "SELECT timestamp, a_value, v_value, x_value, y_value, z_value, "
                 "x_rot_value, y_rot_value, z_rot_value "
-                "FROM logs WHERE run_id = ? AND timestamp > ? ORDER BY timestamp");
+                "FROM logs WHERE run_id = $1 AND timestamp > $2 ORDER BY timestamp");
 
         std::cout << "Database started successfully with id: " << run_id << std::endl;
     }
     catch (std::exception& e) {
-        std::cerr << "SQLite exception: " << e.what() << std::endl;
+        std::cerr << "Postgres exception: " << e.what() << std::endl;
         throw;
     }
 }
@@ -56,40 +55,35 @@ void DataValues::setValueLock(std::mutex* valueLock)
 
 void DataValues::InsertDataSnapshot(float time, DataValueSnapshot data)
 {
-    int i = 1;
-    insert_query_statement->bind(i++, run_id);
-    insert_query_statement->bind(i++, time); 
-    insert_query_statement->bind(i++, data.a_value);
-    insert_query_statement->bind(i++, data.v_value);
-    insert_query_statement->bind(i++, data.x_value);
-    insert_query_statement->bind(i++, data.y_value);
-    insert_query_statement->bind(i++, data.z_value);
-    insert_query_statement->bind(i++, data.x_rot_value);
-    insert_query_statement->bind(i++, data.y_rot_value);
-    insert_query_statement->bind(i++, data.z_rot_value);
-    insert_query_statement->exec();
-    insert_query_statement->reset();
+    std::lock_guard<std::mutex> lock(*valueLock);
+
+    pqxx::work tx{cx};
+    tx.exec_prepared("insert_data_value_snapshot", run_id, time, data.a_value, data.v_value,
+                    data.x_value, data.y_value, data.z_value, 
+                    data.x_rot_value, data.y_rot_value, data.z_rot_value);
+    tx.commit();
 }
 
 DataValues::DataValueList DataValues::getDataValueList()
 {
-    get_data_list_statement->bind(1, run_id);
-    get_data_list_statement->bind(2, values.t_values.back());
+    std::lock_guard<std::mutex> lock(*valueLock);
 
-    while (get_data_list_statement->executeStep()) {
+    pqxx::work tx{cx};
+    pqxx::result result = tx.exec_prepared("get_data_value_list", run_id, values.t_values.back());
+
+    for (auto const& row : result) {
         int i = 0;
 
-        values.t_values.push_back(get_data_list_statement->getColumn("timestamp").getDouble());
-        values.a_values.push_back(get_data_list_statement->getColumn("a_value").getDouble());
-        values.v_values.push_back(get_data_list_statement->getColumn("v_value").getDouble());
-        values.x_values.push_back(get_data_list_statement->getColumn("x_value").getDouble());
-        values.y_values.push_back(get_data_list_statement->getColumn("y_value").getDouble());
-        values.z_values.push_back(get_data_list_statement->getColumn("z_value").getDouble());
-        values.x_rot_values.push_back(get_data_list_statement->getColumn("x_rot_value").getDouble());
-        values.y_rot_values.push_back(get_data_list_statement->getColumn("y_rot_value").getDouble());
-        values.z_rot_values.push_back(get_data_list_statement->getColumn("z_rot_value").getDouble());
+        values.t_values.push_back(row[i++].as<float>());
+        values.a_values.push_back(row[i++].as<float>());
+        values.v_values.push_back(row[i++].as<float>());
+        values.x_values.push_back(row[i++].as<float>());
+        values.y_values.push_back(row[i++].as<float>());
+        values.z_values.push_back(row[i++].as<float>());
+        values.x_rot_values.push_back(row[i++].as<float>());
+        values.y_rot_values.push_back(row[i++].as<float>());
+        values.z_rot_values.push_back(row[i++].as<float>());
     }
-    get_data_list_statement->reset();
 
     return values;
 }

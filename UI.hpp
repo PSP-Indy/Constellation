@@ -30,7 +30,6 @@
 #include "GLFW/glfw3.h"
 
 #include "DataValues.hpp"
-#include "SerialHandling.hpp"
 
 class UI {
 public:

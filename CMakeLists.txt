@@ -7,7 +7,7 @@ endif()
 
 project ("Constellation" VERSION 0.1.1 DESCRIPTION "")
 
-add_executable (Constellation "Constellation.cpp"  "UI.cpp"  "UI.hpp"  "rocket_model.hpp"  "SerialHandling.cpp"  "SerialHandling.hpp"  "stb_image.h"  "DataValues.hpp"  "DataValues.cpp")
+add_executable (Constellation "Constellation.cpp"  "UI.cpp"  "UI.hpp"  "rocket_model.hpp"  "stb_image.h"  "DataValues.hpp"  "DataValues.cpp")
 
 set_property(TARGET Constellation PROPERTY CXX_STANDARD 23)
 
@@ -91,6 +91,9 @@ set(LIBPQXX_DIR "${LIB_DIR}/libpqxx")
 set(BUILD_DOC OFF CACHE BOOL "" FORCE)
 set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
 
+if (WIN32)
+    set(PostgreSQL_ROOT "${LIB_DIR}/libpq")
+endif()
 find_package(PostgreSQL REQUIRED)
 add_subdirectory("${LIBPQXX_DIR}")
 target_link_libraries(${PROJECT_NAME} PRIVATE pqxx PostgreSQL::PostgreSQL)
@@ -111,3 +114,14 @@ add_custom_command(
     "${CMAKE_SOURCE_DIR}/Assets/default.ini"
     "$<TARGET_FILE_DIR:${PROJECT_NAME}>/Assets/imgui.ini"
 )
+
+if (WIN32)
+    file(GLOB LIBPQ_DLLS "${LIB_DIR}/libpq/bin/*.dll")
+    add_custom_command(
+      TARGET ${PROJECT_NAME}
+      POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${LIBPQ_DLLS}
+        "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
+    )
+endif()
