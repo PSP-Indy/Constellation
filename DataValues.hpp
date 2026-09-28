@@ -13,8 +13,7 @@
 #include <chrono>
 #include <memory>
 
-#include "SQLiteCpp/SQLiteCpp.h"
-#include <serial/serial.h>
+#include <pqxx/pqxx>
 
 class DataValues {
 public:
@@ -55,8 +54,6 @@ public:
 
 	int32_t launch_altitude = 0;
 
-	serial::Serial* hSerialSRAD;
-
 	bool (*prime_rocket)() = NULL;
 	
 	const char go_grid_labels[5][5][5] = {
@@ -79,7 +76,7 @@ public:
 
 private:
     DataValues::DataValueList values;
-	SQLite::Database db;
+	pqxx::connection cx;
 	int run_id;
 
 	std::unique_ptr<SQLite::Statement> insert_query_statement;

@@ -1,18 +1,22 @@
 #include "DataValues.hpp"
 
 DataValues::DataValues()
-    : db("flight_data.db3", SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE)
+    : cx{"postgresql://username:password@localhost:5432/mydb"};
 {
     try {
-        db.exec("CREATE TABLE IF NOT EXISTS runs ("
+        pqxx::work tx{cx};
+
+        tx.exec("CREATE TABLE IF NOT EXISTS runs ("
                 "run_id INTEGER PRIMARY KEY AUTOINCREMENT, "
                 "started_at TEXT NOT NULL"
                 ")");
+        tx.commit();
 
-        db.exec("INSERT INTO runs (started_at) VALUES (datetime('now'))");
+        tx.exec("INSERT INTO runs (started_at) VALUES (datetime('now'))");
+        tx.commit();
         run_id = db.getLastInsertRowid();
 
-        db.exec("CREATE TABLE IF NOT EXISTS logs ("
+        tx.exec("CREATE TABLE IF NOT EXISTS logs ("
                 "run_id INTEGER NOT NULL REFERENCES runs(run_id) ON DELETE CASCADE, "
                 "timestamp REAL NOT NULL, "
                 "a_value REAL, "
@@ -25,6 +29,7 @@ DataValues::DataValues()
                 "z_rot_value REAL, "
                 "PRIMARY KEY (run_id, timestamp)"
                 ") WITHOUT ROWID");
+        tx.commit();
         
         insert_query_statement = std::make_unique<SQLite::Statement>(db,
                 "INSERT INTO logs (run_id, timestamp, a_value, v_value, x_value, y_value, "

@@ -18,7 +18,6 @@
 #endif
 
 #include "UI.hpp"
-#include "SerialHandling.hpp"
 #include "DataValues.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -52,52 +51,13 @@ void WriteVectorDataToFile(const std::vector<T>* data, std::string label, std::o
 	*outputFile << std::endl;
 }
 
-bool PrimeRocket()
-{
-	DataValues* data = DataValues::Get();
-	if(data->isSRADConnected)
-	{		
-		return SerialHandling::SendSRADData(data->launch_altitude, false, false, false);
-	}	
-	return false;
-}
-
 int main()
 {
 	//GUI INITIALIZATION
 	UI* gui = new UI();
-	SerialHandling* serialhandler = new SerialHandling();
 	DataValues* data = DataValues::Get();
 
 	data->setValueLock(&valueLock);
-
-	//FInd correct serial locations
-	std::string SRADSerialLoc;
-	std::string TeleBtSerialLoc;
-	serial::Serial hSerialSRAD;
-	serial::Serial hSerialTeleBT;
-
-	serialhandler->FindSerialLocations(&SRADSerialLoc, &TeleBtSerialLoc);
-
-	//SERIAL INITIALIZATION
-	if (SRADSerialLoc == "") {
-		std::cout << "Failed to find SRAD serial port, aborting serial communication." << std::endl;
-	} else {
-		if (serialhandler->CreateSerialFile(&hSerialSRAD, SRADSerialLoc))
-		{
-			data->prime_rocket = PrimeRocket;
-
-			data->hSerialSRAD = &hSerialSRAD;
-
-			std::thread serialThreadSRAD(&SerialHandling::ProcessSerialData, serialhandler);
-
-			serialThreadSRAD.detach();
-		} 
-		else
-		{
-			std::cout << "Failed to create SRAD serial communication, aborting." << std::endl;
-		}
-	}
 	
 	if (!glfwInit()) throw("Failed to initialize GLFW");
 
@@ -165,8 +125,6 @@ int main()
 	}
 
 	gui->Shutdown();
-	if (hSerialSRAD.isOpen()) hSerialSRAD.close();
-	if (hSerialTeleBT.isOpen()) hSerialTeleBT.close();
 
 	delete gui;
 

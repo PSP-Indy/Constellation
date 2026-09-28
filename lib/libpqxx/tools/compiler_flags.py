@@ -1,0 +1,130 @@
+#! /usr/bin/env python3
+
+"""Check whether the compiler accepts various options.
+
+Prints any of the flags that are accepted when used in combination with the
+base command line and the previously accepted flags.
+"""
+
+import shlex
+import sys
+from argparse import (
+    ArgumentParser,
+    Namespace,
+)
+from contextlib import nullcontext
+from os import devnull
+from pathlib import Path
+from subprocess import (
+    DEVNULL,
+    run,
+)
+
+EPILOG = """The flags file may contain comments, on lines starting with '#'
+as the first non-whitespace character.  Any whitespace between flags other than
+newlines is ignored, as are blank lines.
+"""
+
+
+def parse_args() -> Namespace:
+    """Parse command-line options."""
+    parser = ArgumentParser(description=__doc__, epilog=EPILOG)
+
+    parser.add_argument(
+        "-c",
+        "--command",
+        required=True,
+        help="The basic compiler command line, e.g. 'c++ -std=c++20 -Werror'.",
+    )
+    parser.add_argument(
+        "-f",
+        "--flags",
+        default="-",
+        type=str,
+        help="File with compiler flags to check, one per line; '-' for stdin.",
+    )
+    parser.add_argument(
+        "-s",
+        "--single-line",
+        action="store_true",
+        default=False,
+        help="Print all command-line options on a single line.",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        default="-",
+        type=str,
+        help="Output file, or '-' for stdout (the default).",
+    )
+
+    return parser.parse_args()
+
+
+def run_quietly(cmd: str) -> bool:
+    """Run `cmd`, suppressing output; return whether it succeeds.
+
+    **This will run `cmd` through shell interpretation.**
+    """
+    proc = run(cmd, stdout=DEVNULL, stderr=DEVNULL, shell=True, check=False)
+    return proc.returncode == 0
+
+
+def compiler_accepts(
+    command: str, source: Path, flag: str, prev: str = ""
+) -> bool:
+    """Return whether the compiler seems to accept `flag`."""
+    # This won't work with the default shell in Windows.  But then again who
+    # would run the configure script there?
+    src = shlex.quote(str(source))
+
+    # I'd love to pass -c to prevent linking, but unfortunately gcc on Alpine
+    # it accepts various sanitizer options for which it does not actually have
+    # link-time support.
+    return run_quietly(f"{command} {prev} {flag} {src} -o {devnull}")
+
+
+def open_in(path: str):
+    """Open file passed on command line for reading, unless it's '-'.
+
+    If it's a dash (`-`), open standard input instead.
+    """
+    if path == "-":
+        return nullcontext(sys.stdin)
+    else:
+        return Path(path).open()
+
+
+def open_out(path: str):
+    """Open file passed on command line for writing, unless it's '-'.
+
+    If it's a dash (`-`), open standard output instead.
+    """
+    if path == "-":
+        return nullcontext(sys.stdout)
+    else:
+        return Path(path).open("w")
+
+
+def main() -> None:
+    """Main entry point."""
+    args = parse_args()
+    good_flags: list[str] = []
+    source = Path(__file__).parents[1] / "config-tests" / "minimal.cxx"
+    with open_in(args.flags) as flags:
+        for line in flags:
+            flag = line.strip()
+            if flag == "" or flag.startswith("#"):
+                continue
+            prev = " ".join(good_flags)
+            if compiler_accepts(args.command, source, flag, prev=prev):
+                good_flags.append(flag)
+
+    sep = " " if args.single_line else "\n"
+
+    with open_out(args.output) as output:
+        print(sep.join(good_flags), file=output)
+
+
+if __name__ == "__main__":
+    main()

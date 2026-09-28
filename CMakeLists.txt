@@ -19,10 +19,6 @@ if (UNIX AND NOT APPLE)
     target_link_libraries(${PROJECT_NAME} PUBLIC ${X11_LIBRARIES})
 endif()
 
-# Serial
-add_subdirectory(lib/serial)
-target_link_libraries(${PROJECT_NAME} PRIVATE serial)
-
 # Glad
 set(GLAD_DIR "${LIB_DIR}/glad")
 
@@ -90,15 +86,14 @@ target_link_libraries(${PROJECT_NAME} PRIVATE ImGui "${CMAKE_DL_LIBS}")
 target_compile_definitions(ImGui PRIVATE GLFW_INCLUDE_NONE)
 target_compile_definitions(${PROJECT_NAME} PRIVATE "GLFW_INCLUDE_NONE")
 
-#SQLite
-set(SQLITECPP_RUN_CPPLINT OFF CACHE BOOL "" FORCE)
-set(SQLITECPP_RUN_CPPCHECK OFF CACHE BOOL "" FORCE)
-set(SQLITECPP_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(SQLITECPP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(SQLITECPP_INSTALL OFF CACHE BOOL "" FORCE)
+#libpqxx
+set(LIBPQXX_DIR "${LIB_DIR}/libpqxx")
+set(BUILD_DOC OFF CACHE BOOL "" FORCE)
+set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
 
-add_subdirectory("${LIB_DIR}/SQLiteCpp")
-target_link_libraries(${PROJECT_NAME} PRIVATE SQLiteCpp)
+find_package(PostgreSQL REQUIRED)
+add_subdirectory("${LIBPQXX_DIR}")
+target_link_libraries(${PROJECT_NAME} PRIVATE pqxx PostgreSQL::PostgreSQL)
 
 #Post Build
 add_custom_command(
