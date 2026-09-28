@@ -78,10 +78,12 @@ public:
 	static DataValues* Get();
 
 private:
+    DataValues::DataValueList values;
 	SQLite::Database db;
 	int run_id;
 
 	std::unique_ptr<SQLite::Statement> insert_query_statement;
+	std::unique_ptr<SQLite::Statement> get_data_list_statement;
 
 	static DataValues* dataValues;
 };

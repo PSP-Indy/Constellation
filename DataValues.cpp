@@ -31,10 +31,16 @@ DataValues::DataValues()
                 "z_value, x_rot_value, y_rot_value, z_rot_value) "
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
+        get_data_list_statement = std::make_unique<SQLite::Statement>(db, 
+                "SELECT timestamp, a_value, v_value, x_value, y_value, z_value, "
+                "x_rot_value, y_rot_value, z_rot_value "
+                "FROM logs WHERE run_id = ? AND timestamp > ? ORDER BY timestamp");
+
         std::cout << "Database started successfully with id: " << run_id << std::endl;
     }
     catch (std::exception& e) {
         std::cerr << "SQLite exception: " << e.what() << std::endl;
+        throw;
     }
 }
 
@@ -45,10 +51,7 @@ void DataValues::setValueLock(std::mutex* valueLock)
 
 void DataValues::InsertDataSnapshot(float time, DataValueSnapshot data)
 {
-    SQLite::Statement insert(db, "INSERT INTO logs (run_id, timestamp, a_value, v_value, x_value, y_value, z_value, x_rot_value, y_rot_value, z_rot_value) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-
     int i = 1;
-
     insert_query_statement->bind(i++, run_id);
     insert_query_statement->bind(i++, time); 
     insert_query_statement->bind(i++, data.a_value);
@@ -65,23 +68,23 @@ void DataValues::InsertDataSnapshot(float time, DataValueSnapshot data)
 
 DataValues::DataValueList DataValues::getDataValueList()
 {
-    SQLite::Statement query(db, "SELECT * FROM logs WHERE run_id = ? ORDER BY timestamp");
-    query.bind(1, "run_id");
+    get_data_list_statement->bind(1, run_id);
+    get_data_list_statement->bind(2, values.t_values.back());
 
-    DataValues::DataValueList values;
-
-    while (query.executeStep()) {
+    while (get_data_list_statement->executeStep()) {
         int i = 0;
 
-        values.t_values.push_back(query.getColumn(i++).getDouble());
-        values.a_values.push_back(query.getColumn(i++).getDouble());
-        values.x_values.push_back(query.getColumn(i++).getDouble());
-        values.y_values.push_back(query.getColumn(i++).getDouble());
-        values.z_values.push_back(query.getColumn(i++).getDouble());
-        values.x_rot_values.push_back(query.getColumn(i++).getDouble());
-        values.y_rot_values.push_back(query.getColumn(i++).getDouble());
-        values.z_rot_values.push_back(query.getColumn(i++).getDouble());
+        values.t_values.push_back(get_data_list_statement->getColumn("timestamp").getDouble());
+        values.a_values.push_back(get_data_list_statement->getColumn("a_value").getDouble());
+        values.v_values.push_back(get_data_list_statement->getColumn("v_value").getDouble());
+        values.x_values.push_back(get_data_list_statement->getColumn("x_value").getDouble());
+        values.y_values.push_back(get_data_list_statement->getColumn("y_value").getDouble());
+        values.z_values.push_back(get_data_list_statement->getColumn("z_value").getDouble());
+        values.x_rot_values.push_back(get_data_list_statement->getColumn("x_rot_value").getDouble());
+        values.y_rot_values.push_back(get_data_list_statement->getColumn("y_rot_value").getDouble());
+        values.z_rot_values.push_back(get_data_list_statement->getColumn("z_rot_value").getDouble());
     }
+    get_data_list_statement->reset();
 
     return values;
 }
