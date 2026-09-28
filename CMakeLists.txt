@@ -87,10 +87,20 @@ target_include_directories(ImGui PRIVATE "${IMGUI_DIR}")
 target_include_directories(${PROJECT_NAME} PRIVATE "${IMGUI_DIR}")
 target_link_libraries(${PROJECT_NAME} PRIVATE ImGui "${CMAKE_DL_LIBS}")
 
-
 target_compile_definitions(ImGui PRIVATE GLFW_INCLUDE_NONE)
 target_compile_definitions(${PROJECT_NAME} PRIVATE "GLFW_INCLUDE_NONE")
 
+#SQLite
+set(SQLITECPP_RUN_CPPLINT OFF CACHE BOOL "" FORCE)
+set(SQLITECPP_RUN_CPPCHECK OFF CACHE BOOL "" FORCE)
+set(SQLITECPP_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(SQLITECPP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(SQLITECPP_INSTALL OFF CACHE BOOL "" FORCE)
+
+add_subdirectory("${LIB_DIR}/SQLiteCpp")
+target_link_libraries(${PROJECT_NAME} PRIVATE SQLiteCpp)
+
+#Post Build
 add_custom_command(
   TARGET ${PROJECT_NAME} 
   POST_BUILD

@@ -6,11 +6,15 @@
 #include <cstdint>
 #include <thread>
 #include <mutex>
-
-#include <serial/serial.h>
-
+#include <ctime>
+#include <iomanip>
+#include <sstream>
 #include <iostream>
 #include <chrono>
+#include <memory>
+
+#include "SQLiteCpp/SQLiteCpp.h"
+#include <serial/serial.h>
 
 class DataValues {
 public:
@@ -23,6 +27,18 @@ public:
 		float x_rot_value;
 		float y_rot_value;
 		float z_rot_value;
+	};
+
+	struct DataValueList {
+		std::vector<float> t_values = {0.0f};
+		std::vector<float> a_values = {0.0f};
+		std::vector<float> v_values = {0.0f};
+		std::vector<float> x_values = {0.0f};
+		std::vector<float> y_values = {0.0f};
+		std::vector<float> z_values = {0.0f};
+		std::vector<float> x_rot_values = {0.0f};
+		std::vector<float> y_rot_values = {0.0f};
+		std::vector<float> z_rot_values = {0.0f};
 	};
 	
     std::mutex* valueLock;
@@ -43,18 +59,6 @@ public:
 
 	bool (*prime_rocket)() = NULL;
 	
-	struct DataValueList {
-		std::vector<float> t_values = {0.0f};
-		std::vector<float> a_values = {0.0f};
-		std::vector<float> v_values = {0.0f};
-		std::vector<float> x_values = {0.0f};
-		std::vector<float> y_values = {0.0f};
-		std::vector<float> z_values = {0.0f};
-		std::vector<float> x_rot_values = {0.0f};
-		std::vector<float> y_rot_values = {0.0f};
-		std::vector<float> z_rot_values = {0.0f};
-	};
-	
 	const char go_grid_labels[5][5][5] = {
 		{"C_TS", "BART", "c1", "d1", "e1"},
 		{"C_FI", "IMUT", "c2", "d2", "e2"},
@@ -68,19 +72,16 @@ public:
 
 	void setValueLock(std::mutex* valueLock);
 	void InsertDataSnapshot(float time, DataValueSnapshot data);
-
-	std::map<float, DataValueSnapshot>* getValueSnapshotMap()
-	{
-		return &value_snapshots;
-	}
-
-	DataValues::DataValueList getDataValueList();
+	DataValueList getDataValueList();
 	
 	~DataValues();
 	static DataValues* Get();
 
 private:
-	std::map<float, DataValueSnapshot> value_snapshots;
+	SQLite::Database db;
+	int run_id;
+
+	std::unique_ptr<SQLite::Statement> insert_query_statement;
 
 	static DataValues* dataValues;
 };

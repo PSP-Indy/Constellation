@@ -168,44 +168,6 @@ int main()
 	if (hSerialSRAD.isOpen()) hSerialSRAD.close();
 	if (hSerialTeleBT.isOpen()) hSerialTeleBT.close();
 
-	std::ofstream outputFile;
-	outputFile.open("DATA.csv", std::ios::out); 
-	if (outputFile.is_open()) {
-		char time_string[11];
-		if (data->launch_time != 0L)
-		{
-			std::tm* tm_time = std::localtime(&(data->launch_time));
-			std::strftime(time_string, sizeof(time_string), "%H:%M:%S", tm_time);
-		}
-		else
-		{
-			strncpy(time_string, "NO_LAUNCH", 11);
-		}	
-
-		char date_string[11];
-		time_t current_time = time(NULL);
-		std::tm *localTime = std::localtime(&current_time);
-		std::strftime(date_string, sizeof(date_string), "%m/%d/%Y", localTime);
-
-		DataValues::DataValueList dataValueList = data->getDataValueList();
-		
-		WriteVectorDataToFile(&dataValueList.a_values, std::string("acceleration"), &outputFile);
-		WriteVectorDataToFile(&dataValueList.v_values, std::string("velocity"), &outputFile);
-		WriteVectorDataToFile(&dataValueList.a_values, std::string("time"), &outputFile);
-		WriteVectorDataToFile(&dataValueList.x_values, std::string("positionX"), &outputFile);
-		WriteVectorDataToFile(&dataValueList.y_values, std::string("positionY"), &outputFile);
-		WriteVectorDataToFile(&dataValueList.z_values, std::string("positionZ"), &outputFile);
-		WriteVectorDataToFile(&dataValueList.x_rot_values, std::string("rotationX"), &outputFile);
-		WriteVectorDataToFile(&dataValueList.y_rot_values, std::string("rotationY"), &outputFile);
-		WriteVectorDataToFile(&dataValueList.z_rot_values, std::string("rotationZ"), &outputFile);
-
-		outputFile << "launchTime," << time_string << std::endl;
-		outputFile << "launchDate," << date_string << std::endl;
-		outputFile << "launchAltitude," << data->launch_altitude << std::endl;
-
-        outputFile.close();
-    }
-
 	delete gui;
 
 	return 0;

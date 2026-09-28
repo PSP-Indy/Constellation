@@ -6,6 +6,8 @@
 #include <atomic>
 #include <mutex>
 #include <numbers>
+#include <vector>
+#include <cmath>
 
 #if defined(_WIN32) || defined(WIN32)
 #include <windows.h>
