@@ -22,6 +22,7 @@ DataValues::DataValues()
                 "x_rot_value DOUBLE PRECISION, "
                 "y_rot_value DOUBLE PRECISION, "
                 "z_rot_value DOUBLE PRECISION, "
+                "rssi DOUBLE PRECISION, "
                 "PRIMARY KEY (run_id, timestamp)"
                 ")");
 
@@ -31,9 +32,14 @@ DataValues::DataValues()
 
         cx.prepare("insert_data_value_snapshot",
                 "INSERT INTO logs (run_id, timestamp, a_value, v_value, x_value, y_value, "
-                "z_value, x_rot_value, y_rot_value, z_rot_value) "
-                "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) "
-                "ON CONFLICT (run_id, timestamp) DO NOTHING");
+                "z_value, x_rot_value, y_rot_value, z_rot_value, rssi) "
+                "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) "
+                "ON CONFLICT (run_id, timestamp) "
+                "DO UPDATE SET "
+                "a_value = EXCLUDED.a_value, v_value = EXCLUDED.v_value, x_value = EXCLUDED.x_value, "
+                "y_value = EXCLUDED.y_value, z_value = EXCLUDED.z_value, x_rot_value = EXCLUDED.x_rot_value, "
+                "y_rot_value = EXCLUDED.y_rot_value, z_rot_value = EXCLUDED.z_rot_value, rssi = EXCLUDED.rssi "
+                "WHERE EXCLUDED.rssi > logs.rssi");
 
         cx.prepare("get_data_value_list", 
                 "SELECT timestamp, a_value, v_value, x_value, y_value, z_value, "
@@ -59,8 +65,8 @@ void DataValues::InsertDataSnapshot(float time, DataValueSnapshot data)
 
     pqxx::work tx{cx};
     tx.exec_prepared("insert_data_value_snapshot", run_id, time, data.a_value, data.v_value,
-                    data.x_value, data.y_value, data.z_value, 
-                    data.x_rot_value, data.y_rot_value, data.z_rot_value);
+                    data.x_value, data.y_value, data.z_value, data.x_rot_value, data.y_rot_value, 
+                    data.z_rot_value, 0.0);
     tx.commit();
 }
 
