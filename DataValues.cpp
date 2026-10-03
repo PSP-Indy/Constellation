@@ -7,12 +7,15 @@ DataValues::DataValues()
         pqxx::work tx{cx};
 
         tx.exec("CREATE TABLE IF NOT EXISTS runs ("
-                "run_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, "
+                "run_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY, "
                 "started_at TIMESTAMPTZ NOT NULL DEFAULT now()"
                 ")");
 
+        tx.exec("DROP TABLE IF EXISTS antennas;")
+        tx.exec("CREATE TABLE antennas (uuid INTEGER, rssi DOUBLE PRECISION)");
+
         tx.exec("CREATE TABLE IF NOT EXISTS logs ("
-                "run_id BIGINT NOT NULL REFERENCES runs(run_id) ON DELETE CASCADE, "
+                "run_id INTEGER NOT NULL REFERENCES runs(run_id) ON DELETE CASCADE, "
                 "timestamp DOUBLE PRECISION NOT NULL, "
                 "a_value DOUBLE PRECISION, "
                 "v_value DOUBLE PRECISION, "
