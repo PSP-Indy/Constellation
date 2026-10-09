@@ -1,7 +1,7 @@
 #include "DataValues.hpp"
 
 DataValues::DataValues()
-    : cx{"postgresql://constellation:pswd@172.31.238.159:5432/flightdata"}
+    : cx{"postgresql://constellation:pswd@100.70.182.9:5432/flightdata"}
 {
     try {
         pqxx::work tx{cx};
@@ -29,18 +29,7 @@ DataValues::DataValues()
         auto row = tx.exec1("INSERT INTO runs DEFAULT VALUES RETURNING run_id");
         run_id = row[0].as<int64_t>();
         tx.commit();
-
-        cx.prepare("insert_data_value_snapshot",
-                "INSERT INTO logs (run_id, timestamp, a_value, v_value, x_value, y_value, "
-                "z_value, x_rot_value, y_rot_value, z_rot_value, rssi) "
-                "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) "
-                "ON CONFLICT (run_id, timestamp) "
-                "DO UPDATE SET "
-                "a_value = EXCLUDED.a_value, v_value = EXCLUDED.v_value, x_value = EXCLUDED.x_value, "
-                "y_value = EXCLUDED.y_value, z_value = EXCLUDED.z_value, x_rot_value = EXCLUDED.x_rot_value, "
-                "y_rot_value = EXCLUDED.y_rot_value, z_rot_value = EXCLUDED.z_rot_value, rssi = EXCLUDED.rssi "
-                "WHERE EXCLUDED.rssi > logs.rssi");
-
+        
         cx.prepare("get_data_value_list", 
                 "SELECT timestamp, a_value, v_value, x_value, y_value, z_value, "
                 "x_rot_value, y_rot_value, z_rot_value "
@@ -57,17 +46,6 @@ DataValues::DataValues()
 void DataValues::setValueLock(std::mutex* valueLock)
 {
 	this->valueLock = valueLock;
-}
-
-void DataValues::InsertDataSnapshot(float time, DataValueSnapshot data)
-{
-    std::lock_guard<std::mutex> lock(*valueLock);
-
-    pqxx::work tx{cx};
-    tx.exec_prepared("insert_data_value_snapshot", run_id, time, data.a_value, data.v_value,
-                    data.x_value, data.y_value, data.z_value, data.x_rot_value, data.y_rot_value, 
-                    data.z_rot_value, 0.0);
-    tx.commit();
 }
 
 DataValues::DataValueList DataValues::getDataValueList()
