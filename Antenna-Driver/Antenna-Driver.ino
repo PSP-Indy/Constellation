@@ -1,16 +1,17 @@
 #include <LoRa.h>
-#include <math.h>
 #include <WiFi.h>
 #include <SPI.h>
 #include <SimplePgSQL.h>
-#define FLASH_CS 5                      // physical pin 7
+
+#define PACKET_SIZE 36
+#define PACKET_BUFFER_SIZE 12
+
+#define LORA_CS 5                       // physical pin 7
 #define LORA_G0 1                       // physical pin 2
 #define LORA_RST 6                      // physical pin 9
 #define MISO 16                         // physical pin 21
 #define MOSI 19                         // physical pin 23
 #define CLK 18                          // physical pin 24
-
-IPAddress PGIP(192,168,1,5);            // your PostgreSQL server IP
 
 const char ssid[] = "network_ssid";     // your network SSID (name)
 const char pass[] = "network_pass";     // your network password
@@ -19,9 +20,12 @@ const char user[] = "constellation";    // your database user
 const char password[] = "pswd";         // your database password
 const char dbname[] = "flightdata";     // your database name
 
-WiFiClient client;
+struct sample {
+  float data[9];
+  float rssi;
+};
 
-static PROGMEM const char insert_query[] = "INSERT INTO runs (run_id, a_value, v_value, x_value, y_value,\
+static PROGMEM const char insert_query[] = "INSERT INTO logs (run_id, timestamp, a_value, v_value, x_value, y_value,\
                 z_value, x_rot_value, y_rot_value, z_rot_value, rssi)\
                 VALUES (%d, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f)\
                 ON CONFLICT (run_id, timestamp)\
@@ -31,18 +35,30 @@ static PROGMEM const char insert_query[] = "INSERT INTO runs (run_id, a_value, v
                 y_rot_value = EXCLUDED.y_rot_value, z_rot_value = EXCLUDED.z_rot_value, rssi = EXCLUDED.rssi\
                 WHERE EXCLUDED.rssi > logs.rssi;";
 
-static PROGMEM const char run_id_query[] = "SELECT run_id FROM runs ORDER BY id DESC LIMIT 1;";
+static PROGMEM const char run_id_query[] = "SELECT run_id FROM runs ORDER BY run_id DESC LIMIT 1;";
 
-static PROGMEM const char create_uuid_query[] = "INSER INTO antennas uuid VALUES (%d);";
-
-static PROGMEM const char update_rssi_query[] = "INSERT INTO your_table (uuid, rssi) VALUES (%d, %f) ON CONFLICT (uuid) DO UPDATE SET rssi = EXCLUDED.rssi;";
-
-int run_id;
-int uuid;
+int run_id = -1;
 char buffer[1024];
-char query[1024];
-uint8_t* message[36];
+char query_buffer[4096];
+uint8_t message[36];
+bool run_id_queried = false;
+static sample sample_buffer[PACKET_BUFFER_SIZE];
+volatile int buffer_end;
+WiFiClient client;
+
+enum PgState { PG_IDLE, PG_WAIT_RUN_ID, PG_WAIT_INSERT };
+static PgState pg_state = PG_IDLE;
+static uint32_t last_run_query = 0;
+
 PGconnection conn(&client, 0, 1024, buffer);
+IPAddress PGIP(192,168,1,5);
+
+void runSQL();
+void handleLoRaPacket(int);
+float charStringToFloat(const uint8_t*, int);
+void runQuery(PGconnection*, const char*, ...);
+static void resetPg();
+static void appendf(size_t, const char, ...);
 
 void setup() 
 {
@@ -53,12 +69,10 @@ void setup()
   SPI.setSCK(CLK);
   SPI.begin();
 
-  delay(500);
-
   LoRa.setSPI(SPI);
   LoRa.setPins(LORA_CS, LORA_RST, LORA_G0);
 
-  LoRa.begin(915E6)
+  LoRa.begin(915E6);
 
   LoRa.setTxPower(20);
   LoRa.setSpreadingFactor(7);
@@ -67,50 +81,154 @@ void setup()
 
   delay(500);
 
-  conn.setDbLogin(PGIP, user, password, dbname, "utf8");
-
-  randomSeed(analogRead(A0)); 
-  uuid = random(0, 2147483647); 
-
-  conn.execute(run_id_query);
-  run_id = String(conn.getValue(0)).toInt();
-  conn.clearStatus(); 
-
-  snprintf(query, sizeof(query), create_uuid_query, uuid, 0.0f);
-  conn.execture(query);
-
   LoRa.onReceive(handleLoRaPacket);
+  LoRa.receive();
 }
 
 void loop() 
 {
-  delay(50);
+  switch (conn.status()) {
+    case CONNECTION_NEEDED:
+      if (WiFi.status() == WL_CONNECTED) {
+        conn.setDbLogin(PGIP, user, password, dbname, "utf8");
+      }
+      break;
+    case CONNECTION_OK:
+      runSQL();      
+      break;
+    case CONNECTION_BAD:
+      conn.close();
+      delay(1000);
+      ESP.restart();
+      break;
+    default:
+      break;
+  }
 }
 
-void handleLoRaPacket()
+static void appendf(size_t &bits, const char *format, ...) 
 {
-  int message_size = LoRa.parsePacket();
+  if (bits >= sizeof(query_buffer) - 1) return;
 
-  if (message_size != 36) return;
+  va_list va_list; 
+  va_start(va_list, format);
+  int written_bits = vsnprintf(query_buffer + bits, sizeof(query_buffer) - bits, format, va_list);
+  va_end(va_list);
 
-  for(int i = 0; i < message_size; i++) {
-    message[i] = (uint8_t)LoRa.read();
+  if (written_bits > 0) 
+  {
+    bits = min(bits + (size_t)written_bits, sizeof(query_buffer) - 1);
+  }
+}
+
+void runSQL()
+{
+  if (pg_state != PG_IDLE) {
+    int rc = conn.getData();
+
+    if (rc < 0) return;
+
+    if (pg_state == PG_WAIT_RUN_ID && (rc & PG_RSTAT_HAVE_ROW)) {
+      const char *v = conn.getValue(0);
+      if (v && *v) run_id = atoi(v);
+    }
+
+    if (rc & PG_RSTAT_READY)
+    {
+      pg_state = PG_IDLE;
+    }
+
+    return;
   }
 
-  float time = StringToFloat(message, 0);
-  float a_value = StringToFloat(message, 4);
-  float v_value = StringToFloat(message, 8);
-  float x_value = StringToFloat(message, 12);
-  float y_value = StringToFloat(message, 16);
-  float z_value = StringToFloat(message, 20);
-  float x_rot_value = StringToFloat(message, 24);
-  float y_rot_value = StringToFloat(message, 28);
-  float z_rot_value = StringToFloat(message, 32);
-  float rssi = LoRa.packetRssi();
+  if (run_id < 0) {
+    if (millis() - last_run_query < 1000) return;
 
-  snprintf(query, sizeof(query), insert_query, run_id, time, a_value, v_value, x_value, y_value, z_value, x_rot_value, y_rot_value, z_rot_value, rssi);
-  conn.execture(query);
+    last_run_query = millis();
+    conn.execute(run_id_query);
+    pg_state = PG_WAIT_RUN_ID;
 
-  snprintf(query, sizeof(query), update_rssi_query, uuid, rssi);
-  conn.execture(query);
+    return;
+  }
+
+  if (buffer_end == 0) return;
+
+  sample batch[PACKET_BUFFER_SIZE];
+  noInterrupts();
+  int count = buffer_end;
+  memcpy(batch, sample_buffer, count * sizeof(sample));
+  buffer_end = 0;
+  interrupts();
+
+  bool skip[PACKET_BUFFER_SIZE] = {};
+  for (int i = 0; i < count; i++)
+    for (int j = 0; j < i; j++)
+      if (!skip[j] && batch[j].data[0] == batch[i].data[0]) {
+        if (batch[i].rssi > batch[j].rssi) skip[j] = true; else skip[i] = true;
+        break;
+      }
+
+  size_t n = 0;
+  query_buffer[0] = 0;
+  appendf(n, "INSERT INTO logs (run_id, timestamp, a_value, v_value, x_value, y_value, "
+             "z_value, x_rot_value, y_rot_value, z_rot_value, rssi) VALUES ");
+  int rows = 0;
+  for (int i = 0; i < count; i++) {
+    if (skip[i]) continue;
+
+    bool finite = true;
+    for (int k = 0; k < 9; k++) 
+    {
+      if (!isfinite(batch[i].data[k]))
+      {
+        finite = false;
+      } 
+    }
+
+    if (!finite) continue;
+
+    const sample &s = batch[i];
+    appendf(n, "%s(%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f)", rows++ ? "," : "", run_id,
+            s.data[0], s.data[1], s.data[2], s.data[3], s.data[4],
+            s.data[5], s.data[6], s.data[7], s.data[8], s.rssi);
+  }
+  
+  if (rows == 0) return;
+
+  appendf(n, " ON CONFLICT (run_id, timestamp) DO UPDATE SET "
+             "a_value = EXCLUDED.a_value, v_value = EXCLUDED.v_value, x_value = EXCLUDED.x_value, "
+             "y_value = EXCLUDED.y_value, z_value = EXCLUDED.z_value, x_rot_value = EXCLUDED.x_rot_value, "
+             "y_rot_value = EXCLUDED.y_rot_value, z_rot_value = EXCLUDED.z_rot_value, rssi = EXCLUDED.rssi "
+             "WHERE EXCLUDED.rssi > logs.rssi;");
+
+  conn.execute(query_buffer);
+  pg_state = PG_WAIT_INSERT;
+}
+
+void handleLoRaPacket(int message_size)
+{
+  if (message_size != PACKET_SIZE || buffer_end >= PACKET_BUFFER_SIZE) return;
+
+  uint8_t* destination = (uint8_t*)sample_buffer[buffer_end].data;
+  for (int i = 0; i < PACKET_SIZE; i++) {
+    destination[i] = (uint8_t)LoRa.read();
+  }
+  sample_buffer[buffer_end].rssi = (float)LoRa.packetRssi();
+  buffer_end++;
+}
+
+float charStringToFloat(const uint8_t* charString, int idx) 
+{
+  float cpy_flt;
+  memcpy(&cpy_flt, charString + idx, 4);
+  return cpy_flt;
+}
+
+void runQuery(PGconnection* conn, const char* query, ...)
+{
+  va_list args;
+  va_start(args, query);
+  vsnprintf(query_buffer, sizeof(query_buffer), query, args);
+  va_end(args);
+  conn->execute(query_buffer);
 }

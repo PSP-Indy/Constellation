@@ -11,9 +11,6 @@ DataValues::DataValues()
                 "started_at TIMESTAMPTZ NOT NULL DEFAULT now()"
                 ")");
 
-        tx.exec("DROP TABLE IF EXISTS antennas;")
-        tx.exec("CREATE TABLE antennas (uuid INTEGER, rssi DOUBLE PRECISION)");
-
         tx.exec("CREATE TABLE IF NOT EXISTS logs ("
                 "run_id INTEGER NOT NULL REFERENCES runs(run_id) ON DELETE CASCADE, "
                 "timestamp DOUBLE PRECISION NOT NULL, "
