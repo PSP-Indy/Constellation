@@ -123,12 +123,14 @@ static void appendf(size_t &bits, const char *format, ...)
 
 void runSQL()
 {
-  if (pg_state != PG_IDLE) {
+  if (pg_state != PG_IDLE) 
+  {
     int rc = conn.getData();
 
     if (rc < 0) return;
 
-    if (pg_state == PG_WAIT_RUN_ID && (rc & PG_RSTAT_HAVE_ROW)) {
+    if (pg_state == PG_WAIT_RUN_ID && (rc & PG_RSTAT_HAVE_ROW)) 
+    {
       const char *v = conn.getValue(0);
       if (v && *v) run_id = atoi(v);
     }
@@ -141,7 +143,8 @@ void runSQL()
     return;
   }
 
-  if (run_id < 0) {
+  if (run_id < 0) 
+  {
     if (millis() - last_run_query < 1000) return;
 
     last_run_query = millis();
@@ -160,40 +163,19 @@ void runSQL()
   buffer_end = 0;
   interrupts();
 
-  bool skip[PACKET_BUFFER_SIZE] = {};
-  for (int i = 0; i < count; i++)
-    for (int j = 0; j < i; j++)
-      if (!skip[j] && batch[j].data[0] == batch[i].data[0]) {
-        if (batch[i].rssi > batch[j].rssi) skip[j] = true; else skip[i] = true;
-        break;
-      }
-
   size_t n = 0;
   query_buffer[0] = 0;
   appendf(n, "INSERT INTO logs (run_id, timestamp, a_value, v_value, x_value, y_value, "
              "z_value, x_rot_value, y_rot_value, z_rot_value, rssi) VALUES ");
+  
   int rows = 0;
-  for (int i = 0; i < count; i++) {
-    if (skip[i]) continue;
-
-    bool finite = true;
-    for (int k = 0; k < 9; k++) 
-    {
-      if (!isfinite(batch[i].data[k]))
-      {
-        finite = false;
-      } 
-    }
-
-    if (!finite) continue;
-
+  for (int i = 0; i < count; i++) 
+  {
     const sample &s = batch[i];
     appendf(n, "%s(%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f)", rows++ ? "," : "", run_id,
             s.data[0], s.data[1], s.data[2], s.data[3], s.data[4],
             s.data[5], s.data[6], s.data[7], s.data[8], s.rssi);
   }
-  
-  if (rows == 0) return;
 
   appendf(n, " ON CONFLICT (run_id, timestamp) DO UPDATE SET "
              "a_value = EXCLUDED.a_value, v_value = EXCLUDED.v_value, x_value = EXCLUDED.x_value, "
