@@ -12,6 +12,7 @@
 #include <iostream>
 #include <chrono>
 #include <memory>
+#include <string>
 
 #include <pqxx/pqxx>
 
@@ -64,7 +65,7 @@ public:
 		{"GPS ", "LoRa", "c5", "d5", "e5"}
 	};
 
-	DataValues();
+	DataValues(std::string location);
 	DataValues(const DataValues& obj) = delete;
 
 	void setValueLock(std::mutex* valueLock);

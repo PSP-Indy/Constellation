@@ -1,7 +1,7 @@
 #include "DataValues.hpp"
 
-DataValues::DataValues()
-    : cx{"postgresql://constellation:pswd@100.70.182.9:5432/flightdata"}
+DataValues::DataValues(std::string location)
+    : cx{location}
 {
     try {
         pqxx::work tx{cx};
@@ -78,7 +78,6 @@ DataValues::~DataValues()
 
 DataValues *DataValues::Get()
 {
-	if (dataValues == nullptr)
-		dataValues = new DataValues();
+	if (dataValues == nullptr) throw std::exception("DataValues instance has not been created yet.")
 	return dataValues;
 }

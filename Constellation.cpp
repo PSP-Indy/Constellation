@@ -30,7 +30,7 @@
 
 std::mutex valueLock;
 
-DataValues* DataValues::dataValues = new DataValues();
+DataValues* DataValues::dataValues = new DataValues("postgresql://constellation:pswd@100.70.182.9:5432/flightdata");
 
 template <typename T>
 void WriteVectorDataToFile(const std::vector<T>* data, std::string label, std::ofstream* outputFile) 
