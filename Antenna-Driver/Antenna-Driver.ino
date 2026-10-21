@@ -49,6 +49,7 @@ WiFiClient client;
 enum PgState { PG_IDLE, PG_WAIT_RUN_ID, PG_WAIT_INSERT };
 static PgState pg_state = PG_IDLE;
 static uint32_t last_run_query = 0;
+static uint32_t wifi_down_since = 0;
 
 PGconnection conn(&client, 0, 1024, buffer);
 IPAddress PGIP(192,168,1,5);
@@ -63,11 +64,9 @@ static void appendf(size_t, const char, ...);
 void setup() 
 {
   WiFi.begin((char *)ssid, pass);
+  WiFi.setTxPower(WIFI_POWER_19_5dBm);
 
-  SPI.setRX(MISO);
-  SPI.setTX(MOSI);
-  SPI.setSCK(CLK);
-  SPI.begin();
+  SPI.begin(CLK, MISO, MOSI, LORA_CS)
 
   LoRa.setSPI(SPI);
   LoRa.setPins(LORA_CS, LORA_RST, LORA_G0);
@@ -87,6 +86,8 @@ void setup()
 
 void loop() 
 {
+  ensureWiFiConn();
+
   switch (conn.status()) {
     case CONNECTION_NEEDED:
       if (WiFi.status() == WL_CONNECTED) {
@@ -213,4 +214,21 @@ void runQuery(PGconnection* conn, const char* query, ...)
   vsnprintf(query_buffer, sizeof(query_buffer), query, args);
   va_end(args);
   conn->execute(query_buffer);
+}
+
+void ensureWiFiConn() {
+  if (WiFi.status() == WL_CONNECTED) 
+  { 
+    wifi_down_since = 0; 
+    return; 
+  }
+  if (!wifi_down_since) wifi_down_since = millis();
+
+  if (millis() - wifi_down_since > 5000)
+  {
+    WiFi.disconnect();
+    WiFi.begin((char *)ssid, pass);
+    WiFi.setTxPower(WIFI_POWER_19_5dBm);
+    wifi_down_since = millis();
+  }
 }
